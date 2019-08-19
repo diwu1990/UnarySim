@@ -1,5 +1,26 @@
 import torch
 
+class SourceGen():
+    """
+    convert source problistic data to binary integer data
+    """
+    def __init__(self, prob, bitwidth=8, mode="unipolar"):
+        super(SourceGen, self).__init__()
+        self.prob = prob
+        self.bitwidth = bitwidth
+        self.mode = mode
+        self.len = pow(2,bitwidth)
+        if mode == "unipolar":
+            self.binary = self.prob.mul_(self.len).round_().type(torch.long)
+        elif mode == "bipolar":
+            self.binary = self.prob.add_(1).div_(2).mul_(self.len).round_().type(torch.long)
+        else:
+            raise ValueError("SourceGen mode is not Implemented.")
+
+    def Gen(self):
+        return self.binary
+    
+
 class BSGen(object):
     """
     compare source data with rng_seq[rng_idx] to generate bit stream from source
@@ -12,6 +33,7 @@ class BSGen(object):
     def Gen(self, rng_idx):
         return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.int8)
 
+    
 class BSRegen(object):
     """
     collect input bit, compare buffered binary with rng_seq[rng_idx] to regenerate bit stream
