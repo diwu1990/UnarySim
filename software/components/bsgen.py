@@ -15,7 +15,7 @@ class SourceGen():
         elif mode == "bipolar":
             self.binary = self.prob.add_(1).div_(2).mul_(self.len).round_().type(torch.long)
         else:
-            raise ValueError("SourceGen mode is not Implemented.")
+            raise ValueError("SourceGen mode is not implemented.")
 
     def Gen(self):
         return self.binary

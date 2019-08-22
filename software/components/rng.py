@@ -19,7 +19,7 @@ class RNG(object):
         elif self.mode == "Race":
             self.rng_seq = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len).type(torch.long)
         else:
-            raise ValueError("RNG mode is not Implemented.")
+            raise ValueError("RNG mode is not implemented.")
         
     def Out(self):
         return self.rng_seq
