@@ -31,7 +31,7 @@ class BSGen(object):
         self.rng_seq = rng_seq
     
     def Gen(self, rng_idx):
-        return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.int8)
+        return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.uint8)
 
     
 class BSRegen(object):
@@ -47,5 +47,5 @@ class BSRegen(object):
         self.cnt = torch.ones(input_shape).mul_(self.half).type(torch.long)
     
     def Gen(self, in_bit, rng_idx):
-        self.cnt.add_(in_bit.mul_(2).sub_(1)).clamp_(0, self.upper)
-        return torch.gt(self.cnt, self.rng_seq[rng_idx]).type(torch.int8)
+        self.cnt.add_(in_bit.type(torch.long).mul_(2).sub_(1)).clamp_(0, self.upper)
+        return torch.gt(self.cnt, self.rng_seq[rng_idx]).type(torch.uint8)

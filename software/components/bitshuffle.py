@@ -6,19 +6,10 @@ class Decorr():
     """
     def __init__(self, depth=8):
         super(Decorr, self).__init__()
-        self.prob = prob
-        self.bitwidth = bitwidth
-        self.mode = mode
-        self.len = pow(2,bitwidth)
-        if mode == "unipolar":
-            self.binary = self.prob.mul_(self.len).round_().type(torch.long)
-        elif mode == "bipolar":
-            self.binary = self.prob.add_(1).div_(2).mul_(self.len).round_().type(torch.long)
-        else:
-            raise ValueError("SourceGen mode is not implemented.")
+        raise ValueError("Decorr class is not implemented.")
 
     def Gen(self):
-        return self.binary
+        return None
     
 
 class Desync():
@@ -27,19 +18,10 @@ class Desync():
     """
     def __init__(self, prob, bitwidth=8, mode="unipolar"):
         super(Desync, self).__init__()
-        self.prob = prob
-        self.bitwidth = bitwidth
-        self.mode = mode
-        self.len = pow(2,bitwidth)
-        if mode == "unipolar":
-            self.binary = self.prob.mul_(self.len).round_().type(torch.long)
-        elif mode == "bipolar":
-            self.binary = self.prob.add_(1).div_(2).mul_(self.len).round_().type(torch.long)
-        else:
-            raise ValueError("SourceGen mode is not implemented.")
+        raise ValueError("Desync class is not implemented.")
 
     def Gen(self):
-        return self.binary
+        return None
     
 
 class Sync():
@@ -48,37 +30,32 @@ class Sync():
     """
     def __init__(self, prob, bitwidth=8, mode="unipolar"):
         super(Sync, self).__init__()
-        self.prob = prob
-        self.bitwidth = bitwidth
-        self.mode = mode
-        self.len = pow(2,bitwidth)
-        if mode == "unipolar":
-            self.binary = self.prob.mul_(self.len).round_().type(torch.long)
-        elif mode == "bipolar":
-            self.binary = self.prob.add_(1).div_(2).mul_(self.len).round_().type(torch.long)
-        else:
-            raise ValueError("SourceGen mode is not implemented.")
+        raise ValueError("Sync class is not implemented.")
 
     def Gen(self):
-        return self.binary
+        return None
     
     
 class SkewedSync():
     """
     synchronize two input bit streams
     """
-    def __init__(self, prob, bitwidth=8, mode="unipolar"):
+    def __init__(self, in_1_shape, depth=2):
         super(SkewedSync, self).__init__()
-        self.prob = prob
-        self.bitwidth = bitwidth
-        self.mode = mode
-        self.len = pow(2,bitwidth)
-        if mode == "unipolar":
-            self.binary = self.prob.mul_(self.len).round_().type(torch.long)
-        elif mode == "bipolar":
-            self.binary = self.prob.add_(1).div_(2).mul_(self.len).round_().type(torch.long)
-        else:
-            raise ValueError("SourceGen mode is not implemented.")
+        self.in_1_shape = in_1_shape
+        self.depth = depth
+        self.upper = pow(2, depth) - 1
+        self.cnt = torch.zeros(in_1_shape).type(torch.int8)
+        self.out_1 = torch.zeros(in_1_shape).type(torch.uint8)
 
-    def Gen(self):
-        return self.binary
+    def Gen(self, in_1, in_2):
+        # input and output are uint8 type tensor
+        # numerator can have larger or same shape as denominator
+        # assume input 1 is smaller than input 2, and input 2 is kept unchanged at output
+        sum_in = in_1 + in_2
+        cnt_not_min = torch.ne(self.cnt, 0).type(torch.uint8)
+        cnt_not_max = torch.ne(self.cnt, self.upper).type(torch.uint8)
+        self.out_1 = in_1.add(torch.eq(sum_in, 1).type(torch.uint8).mul_(cnt_not_min * (1 - in_1) + (cnt_not_max - 1) * in_1))
+
+        self.cnt.add_(torch.eq(sum_in, 1).type(torch.int8).mul_(2 * in_1.type(torch.int8) - 1)).clamp_(0, self.upper)        
+        return self.out_1, in_2
