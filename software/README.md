@@ -1,15 +1,27 @@
 File hierarchy:
+
 1. components:
+
     peripheral components to support the computing kernels, including:
+    
         1.1 bit stream generation/regeneration
+        
             from UnaryComputingSim.software.components.bsgen import BSGen, BSRegen, SourceGen
+            
             all are tested (Aug. 25, 2019)
+            
         1.2 random number generation
+        
             from UnaryComputingSim.software.components.rng import RNG
+            
             tested (Aug. 25, 2019)
+            
         1.3 correlation manipulation
+        
             from UnaryComputingSim.software.components.bitshuffle import SkewedSync, Decorr, Sync, DeSync
+            
             SkewedSync is tested (Aug. 25, 2019)
+            
 2. kernels:
     unary computing units, including:
         2.1 addition
