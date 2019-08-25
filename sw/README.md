@@ -6,19 +6,19 @@ File hierarchy:
     
         1.1 bit stream generation/regeneration
         
-            from UnaryComputingSim.software.components.bsgen import BSGen, BSRegen, SourceGen
+            from UnaryComputingSim.sw.components.bsgen import BSGen, BSRegen, SourceGen
             
             all are tested (Aug. 25, 2019)
             
         1.2 random number generation
         
-            from UnaryComputingSim.software.components.rng import RNG
+            from UnaryComputingSim.sw.components.rng import RNG
             
             tested (Aug. 25, 2019)
             
         1.3 correlation manipulation
         
-            from UnaryComputingSim.software.components.bitshuffle import SkewedSync, Decorr, Sync, DeSync
+            from UnaryComputingSim.sw.components.bsshuffle import SkewedSync, Decorr, Sync, DeSync
             
             SkewedSync is tested (Aug. 25, 2019)
             
@@ -54,25 +54,25 @@ File hierarchy:
     
         3.1 correlation
         
-            from UnaryComputingSim.software.metric.metric import Correlation
+            from UnaryComputingSim.sw.metric.metric import Correlation
             
             tested (Aug. 25, 2019)
             
         3.2 progressive precision
         
-            from UnaryComputingSim.software.metric.metric import ProgressivePrecision
+            from UnaryComputingSim.sw.metric.metric import ProgressivePrecision
             
             tested (Aug. 25, 2019)
             
         3.3 stability
         
-            from UnaryComputingSim.software.metric.metric import Stability
+            from UnaryComputingSim.sw.metric.metric import Stability
             
             tested (Aug. 25, 2019)
             
         3.4 normalized stability
         
-            from UnaryComputingSim.software.metric.metric import NormStability
+            from UnaryComputingSim.sw.metric.metric import NormStability
             
             tested (Aug. 25, 2019)
         
