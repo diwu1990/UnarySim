@@ -22,25 +22,27 @@ File hierarchy:
     
         2.1 addition
         
-        2.2 multiplication
+        2.2 comparison
         
-        2.3 division
+        2.3 conv
         
-        2.4 exponentiation
+        2.4 division
         
-        2.5 comparison
+        2.5 exponentiation
         
-        2.6 maximum
+        2.6 linear
         
-        2.7 minimum
+        2.7 maximum
         
-        2.8 square root
+        2.8 minimum
         
-        2.9 relu
+        2.9 multiplication
         
-        2.10 linear layer
+        2.10 pool
         
-        2.11 conv2d layer
+        2.11 relu
+        
+        2.12 square root
         
 3. metric:
 
