@@ -47,10 +47,10 @@ class ProgressivePrecision(object):
     """
     calculate progressive precision of input bit stream.
     """
-    def __init__(self, in_value, bipolar=True):
+    def __init__(self, in_value, mode="unipolar"):
         super(ProgressivePrecision, self).__init__()
         self.in_value = in_value
-        self.bipolar = bipolar
+        self.mode = mode
         self.len = 0.0
         self.one_cnt = 0.0
         self.out_pp = 0.0
@@ -61,8 +61,11 @@ class ProgressivePrecision(object):
         self.len += 1
 
     def Report(self):
-        self.out_pp = self.one_cnt / self.len
-        if self.bipolar is True:
+        if self.mode is "unipolar" or self.mode is "bipolar":
+            self.out_pp = self.one_cnt / self.len
+        else:
+            raise ValueError("ProgressivePrecision mode is not implemented.")
+        if self.mode is "bipolar":
             self.out_pp = 2 * self.out_pp - 1
         self.err = self.out_pp - self.in_value
         return self.err
@@ -72,16 +75,16 @@ class Stability():
     """
     calculate the stability of one bit stream.
     """
-    def __init__(self, in_value, bipolar=True, threshold=0.05):
+    def __init__(self, in_value, mode="bipolar", threshold=0.05):
         super(Stability, self).__init__()
         self.in_value = in_value
-        self.bipolar = bipolar
+        self.mode = mode
         self.threshold = threshold
         self.len = 0.0
         self.err = 0.0
         self.stable_len = torch.zeros(in_value.size())
         self.stability = torch.zeros(in_value.size())
-        self.pp = ProgressivePrecision(in_value, bipolar=bipolar)
+        self.pp = ProgressivePrecision(in_value, mode=mode)
 
     def Monitor(self, in_1):
         self.pp.Monitor(in_1)
@@ -100,12 +103,12 @@ class NormStability():
     calculate the normalized value-independent stability, which is standard stability over maximum stability.
     maximum stability is (1-min{(GCD(X, L) for X in (max(0,p-Pthd)*L, min(1,p+P_thd)*L)}/L)
     """
-    def __init__(self, in_value, bipolar=True, threshold=0.05):
+    def __init__(self, in_value, mode="bipolar", threshold=0.05):
         super(NormStability, self).__init__()
         self.in_value = in_value
-        self.bipolar = bipolar
+        self.mode = mode
         self.threshold = threshold
-        self.stability = Stability(in_value, bipolar=bipolar, threshold=threshold)
+        self.stability = Stability(in_value, mode=mode, threshold=threshold)
         self.min_prob = torch.max(in_value - threshold, torch.tensor([0.]))
         self.max_prob = torch.min(in_value + threshold, torch.tensor([1.]))
         self.len = 0.0

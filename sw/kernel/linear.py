@@ -2,92 +2,83 @@ import torch
 from UnaryComputingSim.sw.component.rng import RNG
 
 class UnaryLinear(torch.nn.modules.linear.Linear):
-    def __init__(self, in_features, out_features, upper_bound,
-                 binary_weight=torch.tensor([0]), binary_bias=torch.tensor([0]), bitwidth=8,
-                 bias=True):
+    def __init__(self, 
+                 in_features, 
+                 out_features, 
+                 acc_bound, 
+                 binary_weight=torch.tensor([0]), 
+                 binary_bias=torch.tensor([0]), 
+                 bitwidth=8, 
+                 bias=True, 
+                 mode="bipolar", 
+                 scaled=True):
         super(UnaryLinear, self).__init__(in_features, out_features)
-        
         self.in_features = in_features
         self.out_features = out_features
-        self.upper_bound = upper_bound
-        # bipolar accumulation
-        self.offset = (in_features-1)/2
-        
-        # data bit width
-        self.buf_wght = binary_weight.clone().detach()
-        if bias is True:
-            self.buf_bias = binary_bias.clone().detach()
-        self.bitwidth = bitwidth
-        
+        # upper bound for accumulation counter in non-scaled mode
+        self.acc_bound = acc_bound
+        self.mode = mode
+        self.scaled = scaled
+        # accumulation offset
+        if mode is "unipolar":
+            self.offset = 0
+        elif mode is "bipolar":
+            self.offset = (in_features-1)/2
+        else:
+            raise ValueError("UnaryLinear mode is not implemented.")
+        # bias indication for linear layer
         self.has_bias = bias
-        
+        # data bit width
+        self.bitwidth = bitwidth
         # random_sequence from sobol RNG
-        self.rng = torch.quasirandom.SobolEngine(1).draw(pow(2,self.bitwidth)).view(pow(2,self.bitwidth))
-        # convert to bipolar
-        self.rng.mul_(2).sub_(1)
-#         print(self.rng)
-
+        self.rng = RNG(self.bitwidth, 1, "Sobol").Out()
         # define the kernel linear
-        self.kernel = torch.nn.Linear(self.in_features, self.out_features,
-                                  bias=self.has_bias)
-
-        # define the RNG index tensor for weight
+        self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
+        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode).Gen()
+        self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
         self.rng_wght_idx = torch.zeros(self.kernel.weight.size(), dtype=torch.long)
-        self.rng_wght = self.rng[self.rng_wght_idx]
-        assert (self.buf_wght.size() == self.rng_wght.size()
-               ), "Input binary weight size of 'kernel' is different from true weight."
-        
-        # define the RNG index tensor for bias if available, only one is required for accumulation
         if self.has_bias is True:
-            print("Has bias.")
+            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode).Gen()
+            self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
             self.rng_bias_idx = torch.zeros(self.kernel.bias.size(), dtype=torch.long)
-            self.rng_bias = self.rng[self.rng_bias_idx]
-            assert (self.buf_bias.size() == self.rng_bias.size()
-                   ), "Input binary bias size of 'kernel' is different from true bias."
-
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-        # inverse
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-        # define the kernel_inverse, no bias required
-        self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features,
-                                  bias=False)
         
-        # define the RNG index tensor for weight_inverse
-        self.rng_wght_idx_inv = torch.zeros(self.kernel_inv.weight.size(), dtype=torch.long)
-        self.rng_wght_inv = self.rng[self.rng_wght_idx_inv]
-        assert (self.buf_wght.size() == self.rng_wght_inv.size()
-               ), "Input binary weight size of 'kernel_inv' is different from true weight."
-        
-        self.in_accumulator = torch.zeros([1,out_features])
-        self.out_accumulator = torch.zeros([1,out_features])
-        self.output = torch.zeros([1,out_features])
-#         self.cycle = 0
+        # define kernel_inverse with no bias required, if bipolar
+        if self.mode is "bipolar":
+            self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
+            self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng)
+            self.rng_wght_idx_inv = torch.zeros(self.kernel_inv.weight.size(), dtype=torch.long)
 
-    def UnaryKernel_nonscaled_forward(self, input):
+        self.in_accumulator = torch.zeros(out_features)
+        if self.scaled is False:
+            self.out_accumulator = torch.zeros(out_features)
+        self.output = torch.zeros(out_features)
+
+    def UnaryKernel_accumulation(self, input):
         # generate weight bits for current cycle
-        self.rng_wght = self.rng[self.rng_wght_idx]
-        self.kernel.weight.data = torch.gt(self.buf_wght, self.rng_wght).type(torch.float)
+        self.kernel.weight.data = self.buf_wght_bs.Gen(self.rng_wght_idx).type(torch.float)
         self.rng_wght_idx.add_(input.type(torch.long))
         if self.has_bias is True:
-            self.rng_bias = self.rng[self.rng_bias_idx]
-            self.kernel.bias.data = torch.gt(self.buf_bias, self.rng_bias).type(torch.float)
+            self.kernel.bias.data = self.buf_bias_bs.Gen(self.rng_bias_idx).type(torch.float)
             self.rng_bias_idx.add_(1)
-
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-        # inverse
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-        self.rng_wght_inv = self.rng[self.rng_wght_idx_inv].type(torch.float)
-        self.kernel_inv.weight.data = torch.le(self.buf_wght, self.rng_wght_inv).type(torch.float)
-        self.rng_wght_idx_inv.add_(1).sub_(input.type(torch.long))
-        return self.kernel(input) + self.kernel_inv(1-input)
+            
+        if self.mode is "unipolar":
+            return self.kernel(input)
+        
+        if self.mode is "bipolar":
+            self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv.Gen(self.rng_wght_idx_inv).type(torch.float)
+            self.rng_wght_idx_inv.add_(1 - input.type(torch.long))
+            return self.kernel(input) + self.kernel_inv(1 - input)
 
     def forward(self, input):
-        self.in_accumulator.add_(self.UnaryKernel_nonscaled_forward(input))
-#         .clamp_(-self.upper_bound, self.upper_bound)
-        self.in_accumulator.sub_(self.offset)
-        self.output = torch.gt(self.in_accumulator, self.out_accumulator).type(torch.float)
-#         print("accumulator result:", self.in_accumulator, self.out_accumulator)
-        self.out_accumulator.add_(self.output)
-        return self.output
-#         return self.UnaryKernel_nonscaled_forward(input)
+        if self.scaled is True:
+            self.in_accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
+            self.in_accumulator = self.in_accumulator - self.offset
+            self.output = torch.gt(self.in_accumulator, self.out_accumulator).type(torch.float)
+            return self.output
+        else:
+            self.in_accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
+            self.in_accumulator = self.in_accumulator - self.offset
+            self.output = torch.gt(self.in_accumulator, self.out_accumulator).type(torch.float)
+            self.out_accumulator = self.out_accumulator + self.output
+            return self.output
 

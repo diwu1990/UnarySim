@@ -11,9 +11,9 @@ class SourceGen():
         self.mode = mode
         self.len = pow(2,bitwidth)
         if mode == "unipolar":
-            self.binary = self.prob.mul_(self.len).round_().type(torch.long)
+            self.binary = self.prob.mul(self.len).round().type(torch.long)
         elif mode == "bipolar":
-            self.binary = self.prob.add_(1).div_(2).mul_(self.len).round_().type(torch.long)
+            self.binary = self.prob.add(1).div(2).mul(self.len).round().type(torch.long)
         else:
             raise ValueError("SourceGen mode is not implemented.")
 
@@ -32,7 +32,7 @@ class BSGen(object):
     
     def Gen(self, rng_idx):
         return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.uint8)
-
+    
     
 class BSRegen(object):
     """
