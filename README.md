@@ -1,2 +1,2 @@
-# UnaryComputingSim
+# UnarySim
 this is PyTorch-based simulator for general unary computing
