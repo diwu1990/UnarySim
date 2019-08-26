@@ -1,6 +1,6 @@
 import torch
-from UnaryComputingSim.sw.component.rng import RNG
-from UnaryComputingSim.sw.component.bsgen import SourceGen, BSGen
+from UnarySim.sw.component.rng import RNG
+from UnarySim.sw.component.bsgen import SourceGen, BSGen
 
 class UnaryLinear(torch.nn.modules.linear.Linear):
     def __init__(self, 
