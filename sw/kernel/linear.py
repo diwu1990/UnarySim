@@ -1,4 +1,5 @@
 import torch
+from UnaryComputingSim.sw.component.rng import RNG
 
 class UnaryLinear(torch.nn.modules.linear.Linear):
     def __init__(self, in_features, out_features, upper_bound,
