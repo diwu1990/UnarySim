@@ -11,7 +11,7 @@ class UnaryLinear(torch.nn.modules.linear.Linear):
                  bitwidth=8, 
                  bias=True, 
                  mode="bipolar", 
-                 scaled=True):
+                 scaled=False):
         super(UnaryLinear, self).__init__(in_features, out_features)
         self.in_features = in_features
         self.out_features = out_features
@@ -62,23 +62,25 @@ class UnaryLinear(torch.nn.modules.linear.Linear):
             self.rng_bias_idx.add_(1)
             
         if self.mode is "unipolar":
-            return self.kernel(input)
+            return self.kernel(input.type(torch.float))
         
         if self.mode is "bipolar":
             self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv.Gen(self.rng_wght_idx_inv).type(torch.float)
             self.rng_wght_idx_inv.add_(1 - input.type(torch.long))
-            return self.kernel(input) + self.kernel_inv(1 - input)
+            return self.kernel(input.type(torch.float)) + self.kernel_inv(1 - input.type(torch.float))
 
     def forward(self, input):
-        if self.scaled is True:
-            self.in_accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
-            self.in_accumulator = self.in_accumulator - self.offset
-            self.output = torch.gt(self.in_accumulator, self.out_accumulator).type(torch.float)
-            return self.output
-        else:
-            self.in_accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
-            self.in_accumulator = self.in_accumulator - self.offset
-            self.output = torch.gt(self.in_accumulator, self.out_accumulator).type(torch.float)
-            self.out_accumulator = self.out_accumulator + self.output
-            return self.output
+#         if self.scaled is True:
+#             self.in_accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
+#             self.output = torch.gt(self.in_accumulator, self.in_features).type(torch.float)
+#             self.in_accumulator.sub_(self.output * self.in_features)
+#         else:
+#             self.in_accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
+#             self.in_accumulator.sub_(self.offset)
+#             self.output = torch.gt(self.in_accumulator, self.out_accumulator).type(torch.float)
+#             self.out_accumulator = self.out_accumulator + self.output
 
+#         return self.output.type(torch.uint8)
+        
+        self.in_accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
+        return self.in_accumulator
