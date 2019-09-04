@@ -43,12 +43,12 @@ class Correlation():
         return ad_gt_bc * corr_ad_gt_bc + ad_lt_bc * corr_ad_lt_bc
     
     
-class ProgressivePrecision(object):
+class ProgressiveError(object):
     """
-    calculate progressive precision of input bit stream.
+    calculate progressive error based on progressive precision of input bit stream.
     """
     def __init__(self, in_value, mode="unipolar"):
-        super(ProgressivePrecision, self).__init__()
+        super(ProgressiveError, self).__init__()
         self.in_value = in_value
         self.mode = mode
         self.len = 0.0
@@ -64,7 +64,7 @@ class ProgressivePrecision(object):
         if self.mode is "unipolar" or self.mode is "bipolar":
             self.out_pp = self.one_cnt / self.len
         else:
-            raise ValueError("ProgressivePrecision mode is not implemented.")
+            raise ValueError("ProgressiveError mode is not implemented.")
         if self.mode is "bipolar":
             self.out_pp = 2 * self.out_pp - 1
         self.err = self.out_pp - self.in_value
@@ -84,7 +84,7 @@ class Stability():
         self.err = 0.0
         self.stable_len = torch.zeros(in_value.size())
         self.stability = torch.zeros(in_value.size())
-        self.pp = ProgressivePrecision(in_value, mode=mode)
+        self.pp = ProgressiveError(in_value, mode=mode)
 
     def Monitor(self, in_1):
         self.pp.Monitor(in_1)
