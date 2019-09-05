@@ -23,7 +23,10 @@ class UnaryLinear(torch.nn.modules.linear.Linear):
         if mode is "unipolar":
             self.offset = 0
         elif mode is "bipolar":
-            self.offset = (in_features-1)/2
+            if bias is True:
+                self.offset = (in_features+1)/2
+            else:
+                self.offset = in_features/2
         else:
             raise ValueError("UnaryLinear mode is not implemented.")
         # bias indication for linear layer
