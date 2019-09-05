@@ -35,13 +35,13 @@ class Correlation():
         self.in_shape = self.paired_11_a.size()
         corr_ad_gt_bc = ad_minus_bc.div(
             torch.max(
-                torch.min(a_plus_b, a_plus_c).mul(self.len).sub(a_plus_b.mul(a_plus_c)), 
+                torch.min(a_plus_b, a_plus_c).mul_(self.len).sub_(a_plus_b.mul(a_plus_c)), 
                 torch.ones(self.in_shape)
             )
         )
         corr_ad_le_bc = ad_minus_bc.div(
             torch.max(
-                a_plus_b.mul(a_plus_c).sub(torch.max(a_minus_d, torch.zeros(self.in_shape)).mul(self.len)),
+                a_plus_b.mul(a_plus_c).sub(torch.max(a_minus_d, torch.zeros(self.in_shape)).mul_(self.len)),
                 torch.ones(self.in_shape)
             )
         )
