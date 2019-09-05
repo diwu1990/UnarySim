@@ -5,42 +5,47 @@ class Correlation():
     """
     calculate the correlation between two input bit streams.
     """
-    def __init__(self, in_shape):
+    def __init__(self):
         super(Correlation, self).__init__()
-        self.in_shape = in_shape
-        self.paired_00_d = torch.zeros(in_shape)
-        self.paired_01_c = torch.zeros(in_shape)
-        self.paired_10_b = torch.zeros(in_shape)
-        self.paired_11_a = torch.zeros(in_shape)
+        self.paired_00_d = torch.zeros(1)
+        self.paired_01_c = torch.zeros(1)
+        self.paired_10_b = torch.zeros(1)
+        self.paired_11_a = torch.zeros(1)
         self.len = 0.0
+        self.in_shape = torch.zeros(1)
 
     def Monitor(self, in_1, in_2):
-        self.paired_00_d.add_(torch.eq(in_1, 0).type(torch.float)*torch.eq(in_2, 0).type(torch.float))
-        self.paired_01_c.add_(torch.eq(in_1, 0).type(torch.float)*torch.eq(in_2, 1).type(torch.float))
-        self.paired_10_b.add_(torch.eq(in_1, 1).type(torch.float)*torch.eq(in_2, 0).type(torch.float))
-        self.paired_11_a.add_(torch.eq(in_1, 1).type(torch.float)*torch.eq(in_2, 1).type(torch.float))
+        in_1_is_0 = torch.eq(in_1, 0).type(torch.float)
+        in_1_is_1 = 1 - in_1_is_0
+        in_2_is_0 = torch.eq(in_2, 0).type(torch.float)
+        in_2_is_1 = 1 - in_2_is_0
+        self.paired_00_d = self.paired_00_d.add(in_1_is_0 * in_2_is_0)
+        self.paired_01_c = self.paired_01_c.add(in_1_is_0 * in_2_is_1)
+        self.paired_10_b = self.paired_10_b.add(in_1_is_1 * in_2_is_0)
+        self.paired_11_a = self.paired_11_a.add(in_1_is_1 * in_2_is_1)
         self.len += 1
     
     def Report(self):
         ad_minus_bc = self.paired_11_a * self.paired_00_d - self.paired_10_b * self.paired_01_c
         ad_gt_bc = torch.gt(ad_minus_bc, 0).type(torch.float)
-        ad_lt_bc = torch.lt(ad_minus_bc, 0).type(torch.float)
+        ad_le_bc = 1 - ad_gt_bc
         a_plus_b = self.paired_11_a + self.paired_10_b
         a_plus_c = self.paired_11_a + self.paired_01_c
         a_minus_d = self.paired_11_a - self.paired_00_d
+        self.in_shape = self.paired_11_a.size()
         corr_ad_gt_bc = ad_minus_bc.div(
             torch.max(
                 torch.min(a_plus_b, a_plus_c).mul(self.len).sub(a_plus_b.mul(a_plus_c)), 
                 torch.ones(self.in_shape)
             )
         )
-        corr_ad_lt_bc = ad_minus_bc.div(
+        corr_ad_le_bc = ad_minus_bc.div(
             torch.max(
                 a_plus_b.mul(a_plus_c).sub(torch.max(a_minus_d, torch.zeros(self.in_shape)).mul(self.len)),
                 torch.ones(self.in_shape)
             )
         )
-        return ad_gt_bc * corr_ad_gt_bc + ad_lt_bc * corr_ad_lt_bc
+        return ad_gt_bc * corr_ad_gt_bc + ad_le_bc * corr_ad_le_bc
     
     
 class ProgressiveError(object):
