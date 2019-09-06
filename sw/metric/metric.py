@@ -4,6 +4,7 @@ import math
 class Correlation():
     """
     calculate the correlation between two input bit streams.
+    SC correlation: "Exploiting correlation in stochastic circuit design"
     """
     def __init__(self):
         super(Correlation, self).__init__()
@@ -51,6 +52,7 @@ class Correlation():
 class ProgressiveError(object):
     """
     calculate progressive error based on progressive precision of input bit stream.
+    progressive precision: "Fast and accurate computation using stochastic circuits"
     """
     def __init__(self, in_value, mode="unipolar"):
         super(ProgressiveError, self).__init__()
@@ -73,7 +75,7 @@ class ProgressiveError(object):
         if self.mode is "bipolar":
             self.out_pp = 2 * self.out_pp - 1
         self.err = self.out_pp - self.in_value
-        return self.err
+        return self.out_pp, self.err
     
     
 class Stability():
@@ -94,9 +96,8 @@ class Stability():
     def Monitor(self, in_1):
         self.pp.Monitor(in_1)
         self.len = self.pp.len
-        self.err = self.pp.Report()
-        update = torch.gt(self.err.abs(), self.threshold).type(torch.float)
-        self.stable_len.add_(update.mul(self.len - self.stable_len))
+        _, self.err = self.pp.Report()
+        self.stable_len.add_(torch.gt(self.err.abs(), self.threshold).type(torch.float).mul_(self.len - self.stable_len))
         
     def Report(self):
         self.stability = 1 - self.stable_len.div(self.len)
