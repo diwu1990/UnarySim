@@ -81,6 +81,7 @@ class ProgressiveError(object):
 class Stability():
     """
     calculate the stability of one bit stream.
+    stability: "uGEMM: Unary Computing Architecture for GEMM Applications"
     """
     def __init__(self, in_value, mode="bipolar", threshold=0.05):
         super(Stability, self).__init__()
@@ -89,7 +90,7 @@ class Stability():
         self.threshold = threshold
         self.len = 0.0
         self.err = 0.0
-        self.stable_len = torch.zeros(in_value.size())
+        self.stable_len = torch.ones(in_value.size())
         self.stability = torch.zeros(in_value.size())
         self.pp = ProgressiveError(in_value, mode=mode)
 
@@ -107,7 +108,7 @@ class Stability():
 class NormStability():
     """
     calculate the normalized value-independent stability, which is standard stability over maximum stability.
-    maximum stability is (1-min{(GCD(X, L) for X in (max(0,p-Pthd)*L, min(1,p+P_thd)*L)}/L)
+    normalized stability is acutual stability/max possible stability
     """
     def __init__(self, in_value, mode="bipolar", threshold=0.05):
         super(NormStability, self).__init__()
@@ -115,8 +116,12 @@ class NormStability():
         self.mode = mode
         self.threshold = threshold
         self.stability = Stability(in_value, mode=mode, threshold=threshold)
-        self.min_prob = torch.max(in_value - threshold, torch.tensor([0.]))
-        self.max_prob = torch.min(in_value + threshold, torch.tensor([1.]))
+        if mode is "bipolar":
+            self.min_prob = torch.max((in_value + 1) / 2 - threshold / 2, torch.tensor([0.]))
+            self.max_prob = torch.min((in_value + 1) / 2 + threshold / 2, torch.tensor([1.]))
+        else:
+            self.min_prob = torch.max(in_value - threshold, torch.tensor([0.]))
+            self.max_prob = torch.min(in_value + threshold, torch.tensor([1.]))
         self.len = 0.0
         self.in_shape = in_value.size()
         self.max_stab = torch.zeros(self.in_shape)
