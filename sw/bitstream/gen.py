@@ -59,19 +59,22 @@ class BSGen(object):
         return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.uint8)
     
     
-class BSRegen(object):
-    """
-    collect input bit, compare buffered binary with rng_seq[rng_idx] to regenerate bit stream
-    """
-    def __init__(self, in_shape, depth, rng_seq):
-        super(BSRegen, self).__init__()
-        self.in_shape = in_shape
-        self.rng_seq = rng_seq
-        self.half = pow(2,depth-1)
-        self.upper = pow(2,depth)-1
-        self.cnt = torch.ones(in_shape).mul_(self.half).type(torch.long)
+# class BSRegen(object):
+#     """
+#     collect input bit, compare buffered binary with rng_seq[rng_idx] to regenerate bit stream
+#     """
+#     def __init__(self, depth, rng_seq, mode="unipolar"):
+#         super(BSRegen, self).__init__()
+#         # self.in_shape = in_shape
+#         self.rng_seq = rng_seq
+#         self.half = pow(2,depth-1)
+#         self.upper = pow(2,depth)-1
+#         # self.cnt = torch.ones(in_shape).mul_(self.half).type(torch.long)
+#         self.cnt = self.half
     
-    def Gen(self, in_bit, rng_idx):
-        self.cnt.add_(in_bit.type(torch.long).mul_(2).sub_(1)).clamp_(0, self.upper)
-        return torch.gt(self.cnt, self.rng_seq[rng_idx]).type(torch.uint8)
+#     def Gen(self, in_bit, rng_idx):
+#         self.cnt = self.cnt + in_bit.type(torch.float).mul_(2).sub_(1)
+#         self.cnt.type(torch.long).clamp_(0, self.upper)
+#         # self.cnt.add_(in_bit.type(torch.long).mul_(2).sub_(1)).clamp_(0, self.upper)
+#         return torch.gt(self.cnt, self.rng_seq[rng_idx]).type(torch.uint8)
     

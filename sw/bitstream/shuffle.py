@@ -40,22 +40,22 @@ class SkewedSync():
     """
     synchronize two input bit streams
     """
-    def __init__(self, in_1_shape, depth=2):
+    def __init__(self, depth=2):
         super(SkewedSync, self).__init__()
-        self.in_1_shape = in_1_shape
-        self.depth = depth
         self.upper = pow(2, depth) - 1
-        self.cnt = torch.zeros(in_1_shape).type(torch.int8)
-        self.out_1 = torch.zeros(in_1_shape).type(torch.uint8)
+        self.cnt = torch.zeros(1).type(torch.int8)
+        self.out_1 = torch.zeros(1).type(torch.uint8)
 
     def Gen(self, in_1, in_2):
         # input and output are uint8 type tensor
         # numerator can have larger or same shape as denominator
         # assume input 1 is smaller than input 2, and input 2 is kept unchanged at output
         sum_in = in_1 + in_2
+        if list(self.cnt.size()) != list(sum_in.size()):
+            self.cnt = torch.zeros(sum_in.size()).type(torch.int8)
         cnt_not_min = torch.ne(self.cnt, 0).type(torch.uint8)
         cnt_not_max = torch.ne(self.cnt, self.upper).type(torch.uint8)
         self.out_1 = in_1.add(torch.eq(sum_in, 1).type(torch.uint8).mul_(cnt_not_min * (1 - in_1) + (cnt_not_max - 1) * in_1))
 
-        self.cnt.add_(torch.eq(sum_in, 1).type(torch.int8).mul_(2 * in_1.type(torch.int8) - 1)).clamp_(0, self.upper)        
+        self.cnt.add_(torch.eq(sum_in, 1).type(torch.int8).mul_(2 * in_1.type(torch.int8) - 1)).clamp_(0, self.upper)
         return self.out_1, in_2
