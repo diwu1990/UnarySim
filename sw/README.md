@@ -74,4 +74,4 @@ File hierarchy:
         
 4. test:
 
-    tests above
+    tests for above components
