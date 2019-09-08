@@ -1,6 +1,7 @@
 File hierarchy:
 
 1. bitstream:
+
     peripheral components to support the computing kernels, including:
     
         1.1 bit stream generation/regeneration
@@ -12,6 +13,7 @@ File hierarchy:
             SkewedSync is tested (Seq. 7, 2019)
             
 2. kernel:
+
     unary computing units, including:
     
         2.1 addition
@@ -28,6 +30,7 @@ File hierarchy:
         2.12 square root
         
 3. metric:
+
     measuring metrics:
     
         3.1 correlation
