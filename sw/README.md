@@ -8,13 +8,13 @@ File hierarchy:
         
             from UnaryComputingSim.sw.bitstream.gen import BSGen, BSRegen, SourceGen, RNG
             
-            all are tested (Aug. 25, 2019)
+            BSGen, SourceGen and RNG are tested (Seq. 7, 2019)
             
         1.2 correlation manipulation
         
             from UnaryComputingSim.sw.bitstream.shuffle import SkewedSync, Decorr, Sync, DeSync
             
-            SkewedSync is tested (Aug. 25, 2019)
+            SkewedSync is tested (Seq. 7, 2019)
             
 2. kernel:
 
@@ -52,26 +52,26 @@ File hierarchy:
         
             from UnaryComputingSim.sw.metric.metric import Correlation
             
-            tested (Aug. 25, 2019)
+            tested (Seq. 7, 2019)
             
         3.2 progressive precision
         
             from UnaryComputingSim.sw.metric.metric import ProgressivePrecision
             
-            tested (Aug. 25, 2019)
+            tested (Seq. 7, 2019)
             
         3.3 stability
         
             from UnaryComputingSim.sw.metric.metric import Stability
             
-            tested (Aug. 25, 2019)
+            tested (Seq. 7, 2019)
             
         3.4 normalized stability
         
             from UnaryComputingSim.sw.metric.metric import NormStability
             
-            tested (Aug. 25, 2019)
+            tested (Seq. 7, 2019)
         
 4. test:
 
-    tests for operators, including simple usage examples
+    tests above
