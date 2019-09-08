@@ -55,7 +55,8 @@ class SkewedSync():
             self.cnt = torch.zeros(sum_in.size()).type(torch.int8)
         cnt_not_min = torch.ne(self.cnt, 0).type(torch.uint8)
         cnt_not_max = torch.ne(self.cnt, self.upper).type(torch.uint8)
-        self.out_1 = in_1.add(torch.eq(sum_in, 1).type(torch.uint8).mul_(cnt_not_min * (1 - in_1) + (cnt_not_max - 1) * in_1))
+
+        self.out_1 = in_1.add(torch.eq(sum_in, 1).type(torch.uint8).mul_(cnt_not_min * (1 - in_1) + (0 - cnt_not_max) * in_1))
 
         self.cnt.add_(torch.eq(sum_in, 1).type(torch.int8).mul_(2 * in_1.type(torch.int8) - 1)).clamp_(0, self.upper)
         return self.out_1, in_2
