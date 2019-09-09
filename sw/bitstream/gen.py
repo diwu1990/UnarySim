@@ -1,52 +1,51 @@
 import torch
 
-class RNG(object):
+class RNG(torch.nn.Module):
     """
     random number generator class
     generate one random sequence
     """
     def __init__(self, bitwidth=8, dim=1, mode="Sobol"):
         super(RNG, self).__init__()
-        self.bitwidth = bitwidth
         self.dim = dim
         self.mode = mode
-        self.seq_len = pow(2,self.bitwidth)
-
+        self.seq_len = pow(2, bitwidth)
+        self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
+        
         if self.mode == "Sobol":
-            temp_seq = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)
             # get the requested dimension of sobol random number
-            self.rng_seq = temp_seq[:, dim-1].view(self.seq_len).mul_(self.seq_len).type(torch.long)
+            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, dim-1].view(self.seq_len).mul_(self.seq_len).type(torch.long)
         elif self.mode == "Race":
-            self.rng_seq = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len).type(torch.long)
+            self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len).type(torch.long)
         else:
             raise ValueError("RNG mode is not implemented.")
-        
-    def Out(self):
+            
+    def forward(self):
         return self.rng_seq
     
     
-class SourceGen():
+class SourceGen(torch.nn.Module):
     """
     convert source problistic data to binary integer data
     """
     def __init__(self, prob, bitwidth=8, mode="unipolar"):
         super(SourceGen, self).__init__()
         self.prob = prob
-        self.bitwidth = bitwidth
         self.mode = mode
-        self.len = pow(2,bitwidth)
+        self.len = pow(2, bitwidth)
+        self.binary = torch.nn.Parameter(torch.Tensor(prob.size()), requires_grad=False)
         if mode == "unipolar":
-            self.binary = self.prob.mul(self.len).round().type(torch.long)
+            self.binary.data = self.prob.mul(self.len).round().type(torch.long)
         elif mode == "bipolar":
-            self.binary = self.prob.add(1).div(2).mul(self.len).round().type(torch.long)
+            self.binary.data = self.prob.add(1).div(2).mul(self.len).round().type(torch.long)
         else:
             raise ValueError("SourceGen mode is not implemented.")
 
-    def Gen(self):
+    def forward(self):
         return self.binary
     
 
-class BSGen(object):
+class BSGen(torch.nn.Module):
     """
     compare source data with rng_seq[rng_idx] to generate bit stream from source
     """
@@ -55,11 +54,11 @@ class BSGen(object):
         self.source = source
         self.rng_seq = rng_seq
     
-    def Gen(self, rng_idx):
+    def forward(self, rng_idx):
         return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.uint8)
     
     
-# class BSRegen(object):
+# class BSRegen(torch.nn.Module):
 #     """
 #     collect input bit, compare buffered binary with rng_seq[rng_idx] to regenerate bit stream
 #     """
@@ -72,7 +71,7 @@ class BSGen(object):
 #         # self.cnt = torch.ones(in_shape).mul_(self.half).type(torch.long)
 #         self.cnt = self.half
     
-#     def Gen(self, in_bit, rng_idx):
+#     def forward(self, in_bit, rng_idx):
 #         self.cnt = self.cnt + in_bit.type(torch.float).mul_(2).sub_(1)
 #         self.cnt.type(torch.long).clamp_(0, self.upper)
 #         # self.cnt.add_(in_bit.type(torch.long).mul_(2).sub_(1)).clamp_(0, self.upper)
