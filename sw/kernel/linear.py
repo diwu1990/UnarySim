@@ -1,7 +1,7 @@
 import torch
 from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
 
-class UnaryLinear(torch.nn.modules.linear.Linear):
+class UnaryLinear(torch.nn.Module):
     def __init__(self, 
                  in_features, 
                  out_features, 
@@ -12,7 +12,7 @@ class UnaryLinear(torch.nn.modules.linear.Linear):
                  bias=True, 
                  mode="bipolar", 
                  scaled=False):
-        super(UnaryLinear, self).__init__(in_features, out_features)
+        super(UnaryLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         # upper bound for accumulation counter in non-scaled mode
