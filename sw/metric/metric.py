@@ -58,23 +58,23 @@ class ProgressiveError(torch.nn.Module):
         super(ProgressiveError, self).__init__()
         self.in_value = in_value
         self.mode = mode
-        self.len = 0.0
-        self.one_cnt = 0.0
-        self.out_pp = 0.0
-        self.err = 0.0
+        self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.one_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.out_pp = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.err = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
     
     def Monitor(self, in_1):
-        self.one_cnt += in_1.type(torch.float)
-        self.len += 1
+        self.one_cnt.data = self.one_cnt.data.add(in_1.type(torch.float))
+        self.len.data.add_(1)
 
-    def Report(self):
+    def forward(self):
         if self.mode is "unipolar" or self.mode is "bipolar":
-            self.out_pp = self.one_cnt / self.len
+            self.out_pp.data = self.one_cnt.div(self.len)
         else:
             raise ValueError("ProgressiveError mode is not implemented.")
         if self.mode is "bipolar":
-            self.out_pp = 2 * self.out_pp - 1
-        self.err = self.out_pp - self.in_value
+            self.out_pp.data = self.out_pp.mul(2).sub(1)
+        self.err.data = self.out_pp.sub(self.in_value)
         return self.out_pp, self.err
     
     
@@ -100,7 +100,7 @@ class Stability(torch.nn.Module):
         _, self.err = self.pp.Report()
         self.stable_len.add_(torch.gt(self.err.abs(), self.threshold).type(torch.float).mul_(self.len - self.stable_len))
         
-    def Report(self):
+    def forward(self):
         self.stability = 1 - self.stable_len.div(self.len)
         return self.stability
     
@@ -130,7 +130,7 @@ class NormStability(torch.nn.Module):
         self.stability.Monitor(in_1)
         self.len = self.stability.len
         
-    def Report(self):
+    def forward(self):
         assert self.len != 0, "Input bit stream length can't be 0."
         dim = len(self.in_shape)
         assert dim <= 4, "Input dimension larger than 4 is not implemented."
