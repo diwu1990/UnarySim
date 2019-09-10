@@ -54,7 +54,7 @@ class ProgressiveError(torch.nn.Module):
     calculate progressive error based on progressive precision of input bit stream.
     progressive precision: "Fast and accurate computation using stochastic circuits"
     """
-    def __init__(self, in_value, mode="unipolar"):
+    def __init__(self, in_value, mode="bipolar"):
         super(ProgressiveError, self).__init__()
         self.in_value = in_value
         self.mode = mode
@@ -87,11 +87,11 @@ class Stability(torch.nn.Module):
         super(Stability, self).__init__()
         self.in_value = in_value
         self.mode = mode
-        self.threshold = threshold
-        self.len = 0.0
-        self.err = 0.0
-        self.stable_len = torch.ones(in_value.size())
-        self.stability = torch.zeros(in_value.size())
+        self.threshold = torch.nn.Parameter(torch.torch([threshold]), requires_grad=False)
+        self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.err = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.stable_len = torch.ones_like(in_value)
+        self.stability = torch.zeros_like(in_value)
         self.pp = ProgressiveError(in_value, mode=mode)
 
     def Monitor(self, in_1):

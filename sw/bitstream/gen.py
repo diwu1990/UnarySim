@@ -28,7 +28,7 @@ class SourceGen(torch.nn.Module):
     """
     convert source problistic data to binary integer data
     """
-    def __init__(self, prob, bitwidth=8, mode="unipolar"):
+    def __init__(self, prob, bitwidth=8, mode="bipolar"):
         super(SourceGen, self).__init__()
         self.prob = prob
         self.mode = mode

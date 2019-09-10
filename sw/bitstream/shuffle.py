@@ -16,7 +16,7 @@ class Desync(torch.nn.Module):
     """
     desynchronize two input bit streams
     """
-    def __init__(self, prob, bitwidth=8, mode="unipolar"):
+    def __init__(self, prob, bitwidth=8, mode="bipolar"):
         super(Desync, self).__init__()
         raise ValueError("Desync class is not implemented.")
 
@@ -28,7 +28,7 @@ class Sync(torch.nn.Module):
     """
     synchronize two input bit streams
     """
-    def __init__(self, prob, bitwidth=8, mode="unipolar"):
+    def __init__(self, prob, bitwidth=8, mode="bipolar"):
         super(Sync, self).__init__()
         raise ValueError("Sync class is not implemented.")
 
