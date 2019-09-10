@@ -90,10 +90,9 @@ class Stability(torch.nn.Module):
         self.threshold = torch.nn.Parameter(torch.tensor([threshold]), requires_grad=False)
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.err = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        self.stable_len = torch.ones_like(in_value)
+        self.stable_len = torch.zeros_like(in_value)
         self.stability = torch.zeros_like(in_value)
         self.pp = ProgressiveError(in_value, mode=mode)
-        print(self.threshold)
         
     def Monitor(self, in_1):
         self.pp.Monitor(in_1)
@@ -102,7 +101,7 @@ class Stability(torch.nn.Module):
         self.stable_len.add_(torch.gt(self.err.abs(), self.threshold).type(torch.float).mul_(self.len - self.stable_len))
         
     def forward(self):
-        self.stability = 1 - self.stable_len.div(self.len)
+        self.stability = 1 - self.stable_len.add(1).clamp(1, self.len.item()).div(self.len)
         return self.stability
     
     
@@ -128,7 +127,6 @@ class NormStability(torch.nn.Module):
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.in_shape = in_value.size()
         self.max_stab = torch.zeros_like(in_value)
-        print(self.threshold)
 
     def Monitor(self, in_1):
         self.stability.Monitor(in_1)
