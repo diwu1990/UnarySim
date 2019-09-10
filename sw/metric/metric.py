@@ -87,17 +87,18 @@ class Stability(torch.nn.Module):
         super(Stability, self).__init__()
         self.in_value = in_value
         self.mode = mode
-        self.threshold = torch.nn.Parameter(torch.torch([threshold]), requires_grad=False)
+        self.threshold = torch.nn.Parameter(torch.tensor([threshold]), requires_grad=False)
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.err = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.stable_len = torch.ones_like(in_value)
         self.stability = torch.zeros_like(in_value)
         self.pp = ProgressiveError(in_value, mode=mode)
-
+        print(self.threshold)
+        
     def Monitor(self, in_1):
         self.pp.Monitor(in_1)
         self.len = self.pp.len
-        _, self.err = self.pp.Report()
+        _, self.err = self.pp()
         self.stable_len.add_(torch.gt(self.err.abs(), self.threshold).type(torch.float).mul_(self.len - self.stable_len))
         
     def forward(self):
@@ -114,17 +115,20 @@ class NormStability(torch.nn.Module):
         super(NormStability, self).__init__()
         self.in_value = in_value
         self.mode = mode
-        self.threshold = threshold
+        self.threshold = torch.nn.Parameter(torch.tensor([threshold]), requires_grad=False)
         self.stability = Stability(in_value, mode=mode, threshold=threshold)
+        self.min_prob = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.max_prob = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         if mode is "bipolar":
-            self.min_prob = torch.max((in_value + 1) / 2 - threshold / 2, torch.tensor([0.]))
-            self.max_prob = torch.min((in_value + 1) / 2 + threshold / 2, torch.tensor([1.]))
+            self.min_prob.data = torch.max((in_value + 1) / 2 - threshold / 2, torch.zeros_like(in_value))
+            self.max_prob.data = torch.min((in_value + 1) / 2 + threshold / 2, torch.ones_like(in_value))
         else:
-            self.min_prob = torch.max(in_value - threshold, torch.tensor([0.]))
-            self.max_prob = torch.min(in_value + threshold, torch.tensor([1.]))
-        self.len = 0.0
+            self.min_prob.data = torch.max(in_value - threshold, torch.zeros_like(in_value))
+            self.max_prob.data = torch.min(in_value + threshold, torch.ones_like(in_value))
+        self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.in_shape = in_value.size()
-        self.max_stab = torch.zeros(self.in_shape)
+        self.max_stab = torch.zeros_like(in_value)
+        print(self.threshold)
 
     def Monitor(self, in_1):
         self.stability.Monitor(in_1)
@@ -179,5 +183,5 @@ class NormStability(torch.nn.Module):
                                 max_stab_len = min(max_stab_len, length_gcd/val_gcd)
                             self.max_stab[index_0][index_1][index_2][index_3] = 1 - max_stab_len/length_gcd
                             
-        return self.stability.Report()/self.max_stab
+        return self.stability()/self.max_stab
     
