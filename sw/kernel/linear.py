@@ -2,6 +2,16 @@ import torch
 from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
 
 class UnaryLinear(torch.nn.Module):
+    """
+    this module is the fully connected layer,
+    its API is similar to the parent class (input/output feature count, bias flag), except:
+    1) accumulation mode
+    2) accumulation bound
+    3) unary data mode
+    4) binary data width
+    5) binary weight
+    6) binary bias
+    """
     def __init__(self, 
                  in_features, 
                  out_features, 
@@ -11,14 +21,16 @@ class UnaryLinear(torch.nn.Module):
                  bitwidth=8, 
                  bias=True, 
                  mode="bipolar", 
-                 scaled=False):
+                 scaled=True):
         super(UnaryLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
+        
         # upper bound for accumulation counter in non-scaled mode
         self.acc_bound = acc_bound
         self.mode = mode
         self.scaled = scaled
+        
         # accumulation offset
         if mode is "unipolar":
             self.offset = 0
@@ -29,27 +41,34 @@ class UnaryLinear(torch.nn.Module):
                 self.offset = in_features/2
         else:
             raise ValueError("UnaryLinear mode is not implemented.")
+        
         # bias indication for linear layer
         self.has_bias = bias
+        
         # data bit width
         self.bitwidth = bitwidth
+        
         # random_sequence from sobol RNG
-        self.rng = RNG(self.bitwidth, 1, "Sobol").Out()
+        self.rng = RNG(self.bitwidth, 1, "Sobol")()
+        # print(self.rng)
+        
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
-        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode).Gen()
+        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode)()
+        print(self.buf_wght)
         self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
-        self.rng_wght_idx = torch.zeros(self.kernel.weight.size(), dtype=torch.long)
+        self.rng_wght_idx = torch.zeros_like(self.kernel.weight, dtype=torch.long)
+        print("rng_wght_idx:", self.rng_wght_idx)
         if self.has_bias is True:
             self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode).Gen()
             self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
-            self.rng_bias_idx = torch.zeros(self.kernel.bias.size(), dtype=torch.long)
+            self.rng_bias_idx = torch.zeros_like(self.kernel.bias, dtype=torch.long)
         
         # define kernel_inverse with no bias required, if bipolar
         if self.mode is "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
             self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng)
-            self.rng_wght_idx_inv = torch.zeros(self.kernel_inv.weight.size(), dtype=torch.long)
+            self.rng_wght_idx_inv = torch.zeros_like(self.kernel_inv.weight, dtype=torch.long)
 
         self.in_accumulator = torch.zeros(out_features)
         if self.scaled is False:
@@ -60,7 +79,7 @@ class UnaryLinear(torch.nn.Module):
 
     def UnaryKernel_accumulation(self, input):
         # generate weight bits for current cycle
-        self.kernel.weight.data = self.buf_wght_bs.Gen(self.rng_wght_idx).type(torch.float)
+        self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
         self.rng_wght_idx.add_(input.type(torch.long))
         if self.has_bias is True:
             self.kernel.bias.data = self.buf_bias_bs.Gen(self.rng_bias_idx).type(torch.float)
@@ -72,7 +91,7 @@ class UnaryLinear(torch.nn.Module):
             return self.kernel_out
         
         if self.mode is "bipolar":
-            self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv.Gen(self.rng_wght_idx_inv).type(torch.float)
+            self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv(self.rng_wght_idx_inv).type(torch.float)
             self.rng_wght_idx_inv.add_(1 - input.type(torch.long))
             self.kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
             return self.kernel_out + self.kernel_out_inv
