@@ -39,10 +39,12 @@ class Sync(torch.nn.Module):
 class SkewedSync(torch.nn.Module):
     """
     synchronize two input bit streams in a skewed way
+    "in-stream stochastic division and square root via correlation"
+    all tensors are torch.nn.Parameter type so as to move to GPU for computing
     """
     def __init__(self, depth=2):
         super(SkewedSync, self).__init__()
-        self.upper = pow(2, depth) - 1
+        self.upper = torch.nn.Parameter(pow(2, depth) - 1, requires_grad=False)
         self.cnt = torch.nn.Parameter(torch.Tensor(1), requires_grad=False)
         self.out_1 = torch.nn.Parameter(torch.Tensor(1), requires_grad=False)
         self.cnt_not_min = torch.nn.Parameter(torch.Tensor(1), requires_grad=False)
