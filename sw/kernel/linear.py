@@ -51,36 +51,31 @@ class UnaryLinear(torch.nn.Module):
         # random_sequence from sobol RNG
         self.rng = RNG(self.bitwidth, 1, "Sobol")()
         
-        # define the kernel linear
-        self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
-        print(self.kernel)
+        # define the convolution weight and bias
         self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode)()
-        print("self.buf_wght", self.buf_wght)
-        self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
-        print("self.buf_wght_bs", self.buf_wght_bs)
-        self.rng_wght_idx = torch.zeros_like(self.kernel.weight, dtype=torch.long)
-        print("rng_wght_idx:", self.rng_wght_idx)
         if self.has_bias is True:
             self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode)()
+
+        # define the kernel linear
+        self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
+        self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
+        self.rng_wght_idx = torch.zeros_like(self.kernel.weight, dtype=torch.long)
+        if self.has_bias is True:
             self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
             self.rng_bias_idx = torch.zeros_like(self.kernel.bias, dtype=torch.long)
         
-        # define kernel_inverse with no bias required, if bipolar
+        # if bipolar, define a kernel with inverse input with no bias required
         if self.mode is "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
             self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng)
             self.rng_wght_idx_inv = torch.zeros_like(self.kernel_inv.weight, dtype=torch.long)
 
-        self.in_accumulator = torch.zeros(out_features)
+        self.in_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         if self.scaled is False:
-            self.out_accumulator = torch.zeros(out_features)
-        self.output = torch.zeros(out_features)
-        self.kernel_out = torch.zeros(out_features)
-        if self.mode is "bipolar":
-            self.kernel_out_inv = torch.zeros(out_features)
+            self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
     def UnaryKernel_accumulation(self, input):
-        # generate weight bits for current cycle
+        # generate weight and bias bits for current cycle
         self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
         self.rng_wght_idx.add_(input.type(torch.long))
         if self.has_bias is True:
