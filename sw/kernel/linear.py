@@ -32,17 +32,17 @@ class UnaryLinear(torch.nn.Module):
         self.scaled = scaled
         
         # accumulation offset
+        self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         if mode is "unipolar":
-            self.offset = 0
+            pass
         elif mode is "bipolar":
+            self.offset.add_(in_features/2)
             if bias is True:
-                self.offset = (in_features+1)/2
-            else:
-                self.offset = in_features/2
+                self.offset.add_(1/2)
         else:
             raise ValueError("UnaryLinear mode is not implemented.")
         
-        # bias indication for linear layer
+        # bias indication for original linear layer
         self.has_bias = bias
         
         # data bit width
@@ -50,17 +50,18 @@ class UnaryLinear(torch.nn.Module):
         
         # random_sequence from sobol RNG
         self.rng = RNG(self.bitwidth, 1, "Sobol")()
-        # print(self.rng)
         
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
+        print(self.kernel)
         self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode)()
-        print(self.buf_wght)
+        print("self.buf_wght", self.buf_wght)
         self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
+        print("self.buf_wght_bs", self.buf_wght_bs)
         self.rng_wght_idx = torch.zeros_like(self.kernel.weight, dtype=torch.long)
         print("rng_wght_idx:", self.rng_wght_idx)
         if self.has_bias is True:
-            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode).Gen()
+            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode)()
             self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
             self.rng_bias_idx = torch.zeros_like(self.kernel.bias, dtype=torch.long)
         
@@ -75,14 +76,15 @@ class UnaryLinear(torch.nn.Module):
             self.out_accumulator = torch.zeros(out_features)
         self.output = torch.zeros(out_features)
         self.kernel_out = torch.zeros(out_features)
-        self.kernel_out_inv = torch.zeros(out_features)
+        if self.mode is "bipolar":
+            self.kernel_out_inv = torch.zeros(out_features)
 
     def UnaryKernel_accumulation(self, input):
         # generate weight bits for current cycle
         self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
         self.rng_wght_idx.add_(input.type(torch.long))
         if self.has_bias is True:
-            self.kernel.bias.data = self.buf_bias_bs.Gen(self.rng_bias_idx).type(torch.float)
+            self.kernel.bias.data = self.buf_bias_bs(self.rng_bias_idx).type(torch.float)
             self.rng_bias_idx.add_(1)
             
         self.kernel_out = self.kernel(input.type(torch.float))
