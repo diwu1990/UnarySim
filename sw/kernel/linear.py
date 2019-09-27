@@ -15,7 +15,6 @@ class UnaryLinear(torch.nn.Module):
     def __init__(self, 
                  in_features, 
                  out_features, 
-                 acc_bound, 
                  binary_weight=None, 
                  binary_bias=None, 
                  bitwidth=8, 
@@ -27,7 +26,11 @@ class UnaryLinear(torch.nn.Module):
         self.out_features = out_features
         
         # upper bound for accumulation counter in non-scaled mode
-        self.acc_bound = acc_bound
+        self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.acc_bound.add_(in_features)
+        if bias is True:
+            self.acc_bound.add_(1)
+            
         self.mode = mode
         self.scaled = scaled
         
@@ -36,7 +39,7 @@ class UnaryLinear(torch.nn.Module):
         if mode is "unipolar":
             pass
         elif mode is "bipolar":
-            self.offset.add_(in_features/2)
+            self.offset.add_((in_features-1)/2)
             if bias is True:
                 self.offset.add_(1/2)
         else:
@@ -95,16 +98,14 @@ class UnaryLinear(torch.nn.Module):
 
     def forward(self, input):
         if self.scaled is True:
-            self.accumulator = self.accumulator + self.UnaryKernel_accumulation(input)
-            self.output = torch.gt(self.accumulator, self.in_features).type(torch.float)
-            self.accumulator.sub_(self.output * self.in_features)
+            self.accumulator.data = self.accumulator.add(self.UnaryKernel_accumulation(input))
+            self.output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
+            self.accumulator.sub_(self.output * self.acc_bound)
         else:
-            self.accumulator = self.in_accumulator + self.UnaryKernel_accumulation(input)
+            self.accumulator.data = self.accumulator.add(self.UnaryKernel_accumulation(input))
             self.accumulator.sub_(self.offset)
             self.output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
-            self.out_accumulator = self.out_accumulator + self.output
+            self.out_accumulator.data = self.out_accumulator.add(self.output)
 
         return self.output.type(torch.uint8)
         
-#         self.accumulator = self.accumulator + self.UnaryKernel_accumulation(input)
-#         return self.accumulator
