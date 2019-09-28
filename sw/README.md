@@ -21,7 +21,7 @@ File hierarchy:
         2.3 conv
         2.4 division
         2.5 exponentiation
-        2.6 linear
+        2.6 linear (tested Seq. 27, 2019)
         2.7 maximum
         2.8 minimum
         2.9 multiplication
