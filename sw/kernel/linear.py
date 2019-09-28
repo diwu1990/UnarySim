@@ -6,11 +6,10 @@ class UnaryLinear(torch.nn.Module):
     this module is the fully connected layer,
     its API is similar to the parent class (input/output feature count, bias flag), except:
     1) accumulation mode
-    2) accumulation bound
-    3) unary data mode
-    4) binary data width
-    5) binary weight
-    6) binary bias
+    2) unary data mode
+    3) binary data width
+    4) binary weight
+    5) binary bias
     """
     def __init__(self, 
                  in_features, 
