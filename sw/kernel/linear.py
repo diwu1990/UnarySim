@@ -61,16 +61,16 @@ class UnaryLinear(torch.nn.Module):
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
         self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
-        self.rng_wght_idx = torch.zeros_like(self.kernel.weight, dtype=torch.long)
+        self.rng_wght_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.weight, dtype=torch.long), requires_grad=False)
         if self.has_bias is True:
             self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
-            self.rng_bias_idx = torch.zeros_like(self.kernel.bias, dtype=torch.long)
+            self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
-        # if bipolar, define a kernel with inverse input with no bias required
+        # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
         if self.mode is "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
             self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng)
-            self.rng_wght_idx_inv = torch.zeros_like(self.kernel_inv.weight, dtype=torch.long)
+            self.rng_wght_idx_inv = torch.nn.Parameter(torch.zeros_like(self.kernel_inv.weight, dtype=torch.long), requires_grad=False)
 
         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         if self.scaled is False:
