@@ -3,9 +3,10 @@ import torch
 class UnaryReLU(torch.nn.Module):
     """
     unary ReLU activation based on comparator
+    data is always bipolar mode
     """
-    def __init__(self, input_shape):
-        super(UnaryCompare, self).__init__()
+    def __init__(self):
+        super(UnaryReLU, self).__init__()
 
         self.input_shape = input_shape
         self.out_accumulator = torch.zeros(input_shape)
