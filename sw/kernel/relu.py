@@ -1,8 +1,8 @@
 import torch
 
-class UnaryCompare(torch.nn.Module):
+class UnaryReLU(torch.nn.Module):
     """
-    unary comparator
+    unary ReLU activation based on comparator
     """
     def __init__(self, input_shape):
         super(UnaryCompare, self).__init__()
