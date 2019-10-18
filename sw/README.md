@@ -16,7 +16,7 @@ This directory contains the components for _**Bit Stream Manipulation**_, which 
 
 1. _gen.py_ is for _**Bit Stream Generation**_.
 
-(from UnaryComputingSim.sw.bitstream.gen import \*)
+(from UnarySim.sw.bitstream.gen import \*)
 
 | Name                 | Date          | Note          | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
@@ -28,7 +28,7 @@ This directory contains the components for _**Bit Stream Manipulation**_, which 
 
 2. _shuffle.py_ is for _**Bit Stream Shuffle**_.
 
-(from UnaryComputingSim.sw.bitstream.shuffle import \*)
+(from UnarySim.sw.bitstream.shuffle import \*)
 
 | Name                 | Date          | Note          | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
@@ -60,7 +60,7 @@ This directory contains the components for _**Unary Computing Kernel**_, which t
 ### _'metric'_ subdirectory
 This directory contains the components for  _**Performance Metric**_, which take bit streams as inputs and calculate certain performance metrics.
 
-(from UnaryComputingSim.sw.metric.metric import \*)
+(from UnarySim.sw.metric.metric import \*)
 
 | Name                 | Date          | Note          | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
