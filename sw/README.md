@@ -1,5 +1,7 @@
 # Overview
-This folder contains the required code for cycle-accurate simulation based on PyTorch. The simulation can be done on either CPU or GPU, aligned with PyTorch.
+This folder contains the required code for cycle-accurate simulation based on PyTorch. 
+The simulation can be done on either CPU or GPU, aligned with PyTorch.
+
 We have three categories of data in UnarySim:
 1. **Bit Stream**: At each cycle, the bit in each bit stream hysically flows through cascaded logic kernels. Those bits count for most of the memory space. For the sake of efficiency, they are forced to be *torch.int8* type.
 2. **Bit Buffer**: Inside each logic kernel, there may exist some buffers to record the its interal state. Those buffers can be counters or shift registers. Those buffers need to record past bit streams, which could be extemely long. To ensure the functionality, they are forced to be *torch.long* type.
