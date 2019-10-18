@@ -14,54 +14,57 @@ This directory contains four subdirectories, including _**bitstream**_, _**kerne
 ### _bitstream_ subdirectory
 This directory contains the components for _**Bit Stream Manipulation**_, which deal with the bit stream generation or shuffle for high performance and accuracy.
 
-There are two files in this directory, _gen.py_ for _**Bit Stream Generation**_ and _shuffle.py_ for _**Bit Stream Shuffle**_.
-    
-1. bit stream generation/regeneration
-    from UnaryComputingSim.sw.bitstream.gen import BSGen, BSRegen, SourceGen, RNG
-    BSGen, SourceGen and RNG are implemented and tested (Seq. 7, 2019)
+_gen.py_ is for _**Bit Stream Generation**_.
 
-2. correlation manipulation
-    from UnaryComputingSim.sw.bitstream.shuffle import SkewedSync, Decorr, Sync, DeSync
-    SkewedSync is implemented and tested (Seq. 7, 2019)
-            
+(from UnaryComputingSim.sw.bitstream.gen import \*)
+
+Status | Name                 | Date          | Note
+------ | -------------------- | ------------- | -------------
+- [x]  | BSGen                | Seq. 7, 2019  | 
+- [ ]  | BSRegen              |               | 
+- [x]  | SourceGen            | Seq. 7, 2019  | 
+- [x]  | RNG                  | Seq. 7, 2019  | 
+
+_shuffle.py_ is for _**Bit Stream Shuffle**_.
+
+(from UnaryComputingSim.sw.bitstream.shuffle import \*)
+
+Status | Name                 | Date          | Note
+------ | -------------------- | ------------- | -------------
+- [ ]  | Decorr               |               | 
+- [ ]  | DeSync               |               | 
+- [x]  | SkewedSync           | Seq. 7, 2019  | 
+- [ ]  | Sync                 |               | 
+
 ### _kernel_ subdirectory
-This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual computation. The kernels are listed as follows, where - [x] means the kernel is implemented and tested.
+This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 
-Status | Name | Date
------------- | ------------- | -------------
-- [] | addition | 
-- [] | comparison | 
-- [] | conv | 
-- [] | division | 
-- [] | exponentiation | 
-- [x] | linear | Seq. 27, 2019
-- [] | max | 
-- [] | min | 
-- [] | multiplication | 
-- [] | pool | 
-- [] | relu | 
-- [] | square root | 
-        
+Status | Name                 | Date          | Note
+------ | -------------------- | ------------- | -------------
+- [ ]  | addition             |               | 
+- [ ]  | comparison           |               | 
+- [ ]  | conv                 |               | 
+- [ ]  | division             |               | 
+- [ ]  | exponentiation       |               | 
+- [x]  | linear               | Seq. 27, 2019 | 
+- [ ]  | max                  |               | 
+- [ ]  | min                  |               | 
+- [ ]  | multiplication       |               | 
+- [ ]  | pool                 |               | 
+- [ ]  | relu                 |               | 
+- [ ]  | square root          |               | 
+
 ### _metric_ subdirectory
+This directory contains the components for  _**Performance Metric**_, which take bit streams as inputs and calculate certain performance metrics.
 
-    measuring metrics:
-    
-        3.1 correlation
-            from UnaryComputingSim.sw.metric.metric import Correlation
-            tested (Seq. 7, 2019)
-            
-        3.2 progressive precision
-            from UnaryComputingSim.sw.metric.metric import ProgressivePrecision
-            tested (Seq. 7, 2019)
-            
-        3.3 stability
-            from UnaryComputingSim.sw.metric.metric import Stability
-            tested (Seq. 7, 2019)
-            
-        3.4 normalized stability
-            from UnaryComputingSim.sw.metric.metric import NormStability
-            tested (Seq. 7, 2019)
+(from UnaryComputingSim.sw.metric.metric import \*)
+
+Status | Name                 | Date          | Note
+------ | -------------------- | ------------- | -------------
+- [x]  | Correlation          | Seq. 7, 2019  | 
+- [x]  | ProgressivePrecision | Seq. 7, 2019  | 
+- [x]  | Stability            | Seq. 7, 2019  | 
+- [x]  | NormStability        | Seq. 7, 2019  | 
         
-4. test:
-
-    tests for above components
+### _test_ subdirectory
+This directory contains the examples for testing for above implemented kernels.
