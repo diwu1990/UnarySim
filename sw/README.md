@@ -28,7 +28,7 @@ There are two files in this directory, _gen.py_ for _**Bit Stream Generation**_ 
 This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual computation. The kernels are listed as follows, where [x] means the kernel is implemented and tested.
 
 Name | Status | Date
-___ __________ __
+------------ | ------------- | -------------
 addition | [] | 
 comparison | [] | 
 conv | [] | 
