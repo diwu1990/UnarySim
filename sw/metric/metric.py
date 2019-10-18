@@ -142,8 +142,8 @@ class NormStability(torch.nn.Module):
         if dim == 1:
             for index_0 in range(self.in_shape[0]):
                 max_stab_len = length_gcd
-                for val in range(lower[index_0].type(torch.int), 
-                                 upper[index_0].type(torch.int)):
+                for val in range(lower[index_0].type(torch.long), 
+                                 upper[index_0].type(torch.long)):
                     val_gcd = math.gcd(val, length_gcd)
                     max_stab_len = min(max_stab_len, length_gcd/val_gcd)
                 self.max_stab[index_0] = 1 - max_stab_len/length_gcd
@@ -152,8 +152,8 @@ class NormStability(torch.nn.Module):
             for index_0 in range(self.in_shape[0]):
                 for index_1 in range(self.in_shape[1]):
                     max_stab_len = length_gcd
-                    for val in range(lower[index_0][index_1].type(torch.int), 
-                                     upper[index_0][index_1].type(torch.int)):
+                    for val in range(lower[index_0][index_1].type(torch.long), 
+                                     upper[index_0][index_1].type(torch.long)):
                         val_gcd = math.gcd(val, length_gcd)
                         max_stab_len = min(max_stab_len, length_gcd/val_gcd)
                     self.max_stab[index_0][index_1] = 1 - max_stab_len/length_gcd
@@ -163,8 +163,8 @@ class NormStability(torch.nn.Module):
                 for index_1 in range(self.in_shape[1]):
                     for index_2 in range(self.in_shape[2]):
                         max_stab_len = length_gcd
-                        for val in range(lower[index_0][index_1][index_2].type(torch.int), 
-                                         upper[index_0][index_1][index_2].type(torch.int)):
+                        for val in range(lower[index_0][index_1][index_2].type(torch.long), 
+                                         upper[index_0][index_1][index_2].type(torch.long)):
                             val_gcd = math.gcd(val, length_gcd)
                             max_stab_len = min(max_stab_len, length_gcd/val_gcd)
                         self.max_stab[index_0][index_1][index_2] = 1 - max_stab_len/length_gcd
@@ -175,8 +175,8 @@ class NormStability(torch.nn.Module):
                     for index_2 in range(self.in_shape[2]):
                         for index_3 in range(self.in_shape[3]):
                             max_stab_len = length_gcd
-                            for val in range(lower[index_0][index_1][index_2][index_3].type(torch.int), 
-                                             upper[index_0][index_1][index_2][index_3].type(torch.int)):
+                            for val in range(lower[index_0][index_1][index_2][index_3].type(torch.long), 
+                                             upper[index_0][index_1][index_2][index_3].type(torch.long)):
                                 val_gcd = math.gcd(val, length_gcd)
                                 max_stab_len = min(max_stab_len, length_gcd/val_gcd)
                             self.max_stab[index_0][index_1][index_2][index_3] = 1 - max_stab_len/length_gcd

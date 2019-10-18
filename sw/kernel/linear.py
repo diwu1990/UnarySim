@@ -106,5 +106,5 @@ class UnaryLinear(torch.nn.Module):
             self.output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
             self.out_accumulator.data = self.out_accumulator.add(self.output)
 
-        return self.output.type(torch.uint8)
+        return self.output.type(torch.int8)
         

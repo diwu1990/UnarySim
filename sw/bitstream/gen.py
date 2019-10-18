@@ -54,7 +54,7 @@ class BSGen(torch.nn.Module):
         self.rng_seq = rng_seq
     
     def forward(self, rng_idx):
-        return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.uint8)
+        return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.int8)
     
     
 # class BSRegen(torch.nn.Module):
@@ -74,5 +74,5 @@ class BSGen(torch.nn.Module):
 #         self.cnt = self.cnt + in_bit.type(torch.float).mul_(2).sub_(1)
 #         self.cnt.type(torch.long).clamp_(0, self.upper)
 #         # self.cnt.add_(in_bit.type(torch.long).mul_(2).sub_(1)).clamp_(0, self.upper)
-#         return torch.gt(self.cnt, self.rng_seq[rng_idx]).type(torch.uint8)
+#         return torch.gt(self.cnt, self.rng_seq[rng_idx]).type(torch.int8)
     
