@@ -11,7 +11,6 @@ class RNG(torch.nn.Module):
         self.mode = mode
         self.seq_len = pow(2, bitwidth)
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
-        
         if self.mode == "Sobol":
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, dim-1].view(self.seq_len).mul_(self.seq_len).type(torch.long)
@@ -19,7 +18,7 @@ class RNG(torch.nn.Module):
             self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len).type(torch.long)
         else:
             raise ValueError("RNG mode is not implemented.")
-            
+
     def forward(self):
         return self.rng_seq
     
