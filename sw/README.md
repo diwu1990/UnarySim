@@ -14,57 +14,61 @@ This directory contains four subdirectories, including _**bitstream**_, _**kerne
 ### _bitstream_ subdirectory
 This directory contains the components for _**Bit Stream Manipulation**_, which deal with the bit stream generation or shuffle for high performance and accuracy.
 
-_gen.py_ is for _**Bit Stream Generation**_.
+1. _gen.py_ is for _**Bit Stream Generation**_.
 
 (from UnaryComputingSim.sw.bitstream.gen import \*)
 
-Status | Name                 | Date          | Note
------- | -------------------- | ------------- | -------------
-- [x]  | BSGen                | Seq. 7, 2019  | 
-- [ ]  | BSRegen              |               | 
-- [x]  | SourceGen            | Seq. 7, 2019  | 
-- [x]  | RNG                  | Seq. 7, 2019  | 
+| Name                 | Date          | Note          | Status                 |
+| -------------------- | ------------- | ------------- | ---------------------- |
+| BSGen                | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| BSRegen              |               |               | <ul><li>[ ] </li></ul> |
+| SourceGen            | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| RNG                  | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
 
-_shuffle.py_ is for _**Bit Stream Shuffle**_.
+
+2. _shuffle.py_ is for _**Bit Stream Shuffle**_.
 
 (from UnaryComputingSim.sw.bitstream.shuffle import \*)
 
-Status | Name                 | Date          | Note
------- | -------------------- | ------------- | -------------
-- [ ]  | Decorr               |               | 
-- [ ]  | DeSync               |               | 
-- [x]  | SkewedSync           | Seq. 7, 2019  | 
-- [ ]  | Sync                 |               | 
+| Name                 | Date          | Note          | Status                 |
+| -------------------- | ------------- | ------------- | ---------------------- |
+| Decorr               |               |               | <ul><li>[ ] </li></ul> |
+| DeSync               |               |               | <ul><li>[ ] </li></ul> |
+| SkewedSync           | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| Sync                 |               |               | <ul><li>[ ] </li></ul> |
+
 
 ### _kernel_ subdirectory
 This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 
-Status | Name                 | Date          | Note
------- | -------------------- | ------------- | -------------
-- [ ]  | addition             |               | 
-- [ ]  | comparison           |               | 
-- [ ]  | conv                 |               | 
-- [ ]  | division             |               | 
-- [ ]  | exponentiation       |               | 
-- [x]  | linear               | Seq. 27, 2019 | 
-- [ ]  | max                  |               | 
-- [ ]  | min                  |               | 
-- [ ]  | multiplication       |               | 
-- [ ]  | pool                 |               | 
-- [ ]  | relu                 |               | 
-- [ ]  | square root          |               | 
+| Name                 | Date          | Note          | Status                 |
+| -------------------- | ------------- | ------------- | ---------------------- |
+| addition             |               |               | <ul><li>[ ] </li></ul> |
+| comparison           |               |               | <ul><li>[ ] </li></ul> |
+| conv                 |               |               | <ul><li>[ ] </li></ul> |
+| division             |               |               | <ul><li>[ ] </li></ul> |
+| exponentiation       |               |               | <ul><li>[ ] </li></ul> |
+| linear               | Seq. 27, 2019 |               | <ul><li>[x] </li></ul> |
+| max                  |               |               | <ul><li>[ ] </li></ul> |
+| min                  |               |               | <ul><li>[ ] </li></ul> |
+| multiplication       |               |               | <ul><li>[ ] </li></ul> |
+| pool                 |               |               | <ul><li>[ ] </li></ul> |
+| relu                 |               |               | <ul><li>[ ] </li></ul> |
+| square root          |               |               | <ul><li>[ ] </li></ul> |
+
 
 ### _metric_ subdirectory
 This directory contains the components for  _**Performance Metric**_, which take bit streams as inputs and calculate certain performance metrics.
 
 (from UnaryComputingSim.sw.metric.metric import \*)
 
-Status | Name                 | Date          | Note
------- | -------------------- | ------------- | -------------
-- [x]  | Correlation          | Seq. 7, 2019  | 
-- [x]  | ProgressivePrecision | Seq. 7, 2019  | 
-- [x]  | Stability            | Seq. 7, 2019  | 
-- [x]  | NormStability        | Seq. 7, 2019  | 
-        
+| Name                 | Date          | Note          | Status                 |
+| -------------------- | ------------- | ------------- | ---------------------- |
+| Correlation          | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| ProgressivePrecision | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| Stability            | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| NormStability        | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+
+
 ### _test_ subdirectory
 This directory contains the examples for testing for above implemented kernels.
