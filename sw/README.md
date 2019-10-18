@@ -11,7 +11,7 @@ We have three categories of data in UnarySim:
 ## Directory Hierarchy
 This directory contains four subdirectories, including _**bitstream**_, _**kernel**_,  _**metric**_ and _**test**_, corresponding to the three components mentioned above.
 
-### _bitstream_ subdirectory
+### _'bitstream'_ subdirectory
 This directory contains the components for _**Bit Stream Manipulation**_, which deal with the bit stream generation or shuffle for high performance and accuracy.
 
 1. _gen.py_ is for _**Bit Stream Generation**_.
@@ -38,7 +38,7 @@ This directory contains the components for _**Bit Stream Manipulation**_, which 
 | Sync                 |               |               | <ul><li>[ ] </li></ul> |
 
 
-### _kernel_ subdirectory
+### _'kernel'_ subdirectory
 This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 
 | Name                 | Date          | Note          | Status                 |
@@ -57,7 +57,7 @@ This directory contains the components for _**Unary Computing Kernel**_, which t
 | square root          |               |               | <ul><li>[ ] </li></ul> |
 
 
-### _metric_ subdirectory
+### _'metric'_ subdirectory
 This directory contains the components for  _**Performance Metric**_, which take bit streams as inputs and calculate certain performance metrics.
 
 (from UnaryComputingSim.sw.metric.metric import \*)
@@ -70,5 +70,5 @@ This directory contains the components for  _**Performance Metric**_, which take
 | NormStability        | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
 
 
-### _test_ subdirectory
+### _'test'_ subdirectory
 This directory contains the examples for testing for above implemented kernels.
