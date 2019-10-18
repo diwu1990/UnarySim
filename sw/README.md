@@ -71,4 +71,4 @@ This directory contains the components for  _**Performance Metric**_, which take
 
 
 ### _'test'_ subdirectory
-This directory contains the examples for testing for above implemented kernels.
+This directory contains the testing examples for above implemented kernels.
