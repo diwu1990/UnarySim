@@ -1,12 +1,12 @@
 # Overview
 This directory contains the required components for cycle-accurate simulation for Unary Computing based on PyTorch, where the simulation can be done on either CPU or GPU.
-Those components includes _**Bit Stream Manipulation**_, _**Unary Computing Kernel**_ and _**Performance Metric**_.
+Those components include _**Bit Stream Manipulation**_, _**Unary Computing Kernel**_ and _**Performance Metric**_.
 
 ## Data Representation
-We have three categories of data in UnarySim:
-1. **Bit Stream**: At each cycle, the bit in each bit stream hysically flows through cascaded logic kernels. Those bits count for most of the memory space. For the sake of efficiency, they are forced to be _**'torch.int8'**_ type.
-2. **Bit Buffer**: Inside each logic kernel, there may exist some buffers to record the its interal state. Those buffers can be counters or shift registers. Those buffers need to record past bit streams, which could be extemely long. To ensure the functionality, they are forced to be _**'torch.long'**_ type.
-3. **Metric Variable**: Those are variables to compute specially designed metrics, which are usually floating point values. To provide precise records of target metrics, they are forced to be _**'torch.float'**_ type.
+UnarySim has three categories of data, with each having dedicated data type in PyTorch.
+1. **Bit Stream**: At each cycle, the bits in bit streams physically flow through cascaded logic kernels, and they count for most of the memory space. For the sake of execution efficiency, they are forced to be _**'torch.int8'**_ type.
+2. **Bit Buffer**: Inside each logic kernel, there may exist some buffers to record the its interal state by monitoring the past bit streams, which could be extemely long. Those buffers can be counters or shift registers. To ensure the correctness (not overflowing), they are forced to be _**'torch.long'**_ type.
+3. **Metric Variable**: Those are variables to compute specially designed performance metrics, which are usually floating point values. To provide precise records of target metrics, they are forced to be _**'torch.float'**_ type.
 
 ## Directory Hierarchy
 This directory contains four subdirectories, including _**'bitstream'**_, _**'kernel'**_,  _**'metric'**_ and _**'test'**_, corresponding to the three components mentioned above.
