@@ -25,22 +25,22 @@ There are two files in this directory, _gen.py_ for _**Bit Stream Generation**_ 
     SkewedSync is implemented and tested (Seq. 7, 2019)
             
 ### _kernel_ subdirectory
-This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual computation. The kernels are listed as follows, where [x] means the kernel is implemented and tested.
+This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual computation. The kernels are listed as follows, where - [x] means the kernel is implemented and tested.
 
-Name | Status | Date
+Status | Name | Date
 ------------ | ------------- | -------------
-addition | [] | 
-comparison | [] | 
-conv | [] | 
-division | [] | 
-exponentiation | [] | 
-linear | [x] | Seq. 27, 2019
-max | [] | 
-min | [] | 
-multiplication | [] | 
-pool | [] | 
-relu | [] | 
-square root | [] | 
+- [] | addition | 
+- [] | comparison | 
+- [] | conv | 
+- [] | division | 
+- [] | exponentiation | 
+- [x] | linear | Seq. 27, 2019
+- [] | max | 
+- [] | min | 
+- [] | multiplication | 
+- [] | pool | 
+- [] | relu | 
+- [] | square root | 
         
 ### _metric_ subdirectory
 
