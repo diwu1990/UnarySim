@@ -20,7 +20,7 @@ This directory contains the components for _**Bit Stream Manipulation**_, which 
 
 (from UnarySim.sw.bitstream.gen import \*)
 
-| Name                 | Date          | Note          | Status                 |
+| Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
 | BSGen                | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
 | BSRegen              |               |               | <ul><li>[ ] </li></ul> |
@@ -33,18 +33,18 @@ This directory contains the components for _**Bit Stream Manipulation**_, which 
 
 (from UnarySim.sw.bitstream.shuffle import \*)
 
-| Name                 | Date          | Note          | Status                 |
+| Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
-| Decorr               |               |               | <ul><li>[ ] </li></ul> |
-| DeSync               |               |               | <ul><li>[ ] </li></ul> |
+| Decorr               |               | [1]           | <ul><li>[ ] </li></ul> |
+| DeSync               |               | [1]           | <ul><li>[ ] </li></ul> |
 | SkewedSync           | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-| Sync                 |               |               | <ul><li>[ ] </li></ul> |
+| Sync                 |               | [1]           | <ul><li>[ ] </li></ul> |
 
 
 ### _'kernel'_ subdirectory
 This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 
-| Name                 | Date          | Note          | Status                 |
+| Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
 | addition             |               |               | <ul><li>[ ] </li></ul> |
 | comparison           |               |               | <ul><li>[ ] </li></ul> |
@@ -65,7 +65,7 @@ This directory contains the components for  _**Performance Metric**_, which take
 
 (from UnarySim.sw.metric.metric import \*)
 
-| Name                 | Date          | Note          | Status                 |
+| Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
 | Correlation          | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
 | ProgressivePrecision | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
