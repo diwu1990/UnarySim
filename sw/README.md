@@ -78,3 +78,6 @@ This directory contains the testing examples for above implemented kernels.
 
 
 Please contact me if you are interested in contributing to this project!
+
+Reference
+[1] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.
