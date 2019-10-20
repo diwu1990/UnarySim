@@ -1,6 +1,7 @@
 # Overview
 This directory contains the required components for cycle-accurate software simulation for _**Unary Computing**_ based on PyTorch, where the simulation can be done on either CPU or GPU.
-The components in this include _**Bit Stream Manipulation**_, _**Unary Computing Kernel**_ and _**Performance Metric**_.
+The components in this include _**Bit Stream Manipulation**_, _**Unary Computing Kernel**_ and _**Performance Metric**_. 
+Among those, _**Bit Stream Manipulation**_ and _**Unary Computing Kernel**_ can pysically exist in real hardware, while _**Performance Metric**_ is usually for performance analysis in simulation or emulation.
 
 ## Data Representation
 UnarySim has five categories of data, with each having dedicated data type in PyTorch.
@@ -48,7 +49,7 @@ This directory contains the components for _**Bit Stream Manipulation**_, which 
 | RNG                  | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
 
 
-2. File _shuffle.py_ is for _**Bit Stream Shuffle**_.
+2. File _shuffle.py_ is for _**Bit Stream Shuffle**_. The _**Bit Stream Shuffle**_ refers to how to shuffle the bit streams to improve the computational accuracy. This effect of shuffle can be measured by correlation between bit streams.
 
 (from UnarySim.sw.bitstream.shuffle import \*)
 
