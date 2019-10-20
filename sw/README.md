@@ -25,6 +25,7 @@ This directory contains the components for _**Bit Stream Manipulation**_, which 
 | BSGen                | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
 | BSRegen              |               |               | <ul><li>[ ] </li></ul> |
 | SourceGen            | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| SourceScale          |               |               | <ul><li>[ ] </li></ul> |
 | RNG                  | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
 
 
