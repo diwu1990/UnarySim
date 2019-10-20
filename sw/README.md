@@ -8,7 +8,7 @@ UnarySim has five categories of data, with each having dedicated data type in Py
 1. **Source Data**: 
 The source input data for unary computing ranges from _0_ to _1_ in _**unipolar**_ format, or from _-1_ to _1_ in _**bipolar**_ format. 
 The input data (_source_) is scaled to a certain range (as in _unipolar/bipolar_ format) from the original value (_origin_) with respect to maximum origin. 
-More specifically, such relationship is formulated as _source = origin / max(origin). Thus, source data type is suggested to be _**'torch.float'**_.
+More specifically, such relationship is formulated as _source = origin / max(origin)_. Thus, source data type is suggested to be _**'torch.float'**_.
 
 2. **Random Number**: 
 The random numbers (_rand_) are to be compared with the source data in order to generate the bit stream. To notice, source data is in _unipolar/bipolar_ format, while random numbers are integers. 
