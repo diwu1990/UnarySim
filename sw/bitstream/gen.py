@@ -2,8 +2,7 @@ import torch
 
 class RNG(torch.nn.Module):
     """
-    random number generator class
-    generate one random sequence
+    Random number generator to generate one random sequence
     """
     def __init__(self, bitwidth=8, dim=1, mode="Sobol"):
         super(RNG, self).__init__()
@@ -22,10 +21,34 @@ class RNG(torch.nn.Module):
     def forward(self):
         return self.rng_seq
     
+
+class RawScale(torch.nn.Module):
+    """
+    Scale raw data to source data to unary computing, which meets bipolar/unipolar requirements.
+    """
+    def __init__(self, raw, mode="bipolar", percentile=100):
+        super(RawScale, self).__init__()
+        self.raw = raw
+        self.mode = mode
+        
+        # to do: add the percentile based scaling
+        self.percentile = percentile
+        
+        self.source = torch.nn.Parameter(torch.Tensor(raw.size()), requires_grad=False)
+
+    def forward(self):
+        if self.mode == "unipolar":
+            self.source.data = (self.raw - torch.min(self.raw))/(torch.max(self.raw) - torch.min(self.raw))
+        elif self.mode == "bipolar":
+            self.source.data = (self.raw - torch.min(self.raw))/(torch.max(self.raw) - torch.min(self.raw)) * 2 - 1
+        else:
+            raise ValueError("SourceGen mode is not implemented.")
+        return self.source
+    
     
 class SourceGen(torch.nn.Module):
     """
-    convert source problistic data to binary integer data
+    Convert source problistic data to binary integer data
     """
     def __init__(self, prob, bitwidth=8, mode="bipolar"):
         super(SourceGen, self).__init__()
@@ -46,7 +69,7 @@ class SourceGen(torch.nn.Module):
 
 class BSGen(torch.nn.Module):
     """
-    compare source data with rng_seq[rng_idx] to generate bit stream from source
+    Compare source data with rng_seq[rng_idx] to generate bit stream from source
     """
     def __init__(self, source, rng_seq):
         super(BSGen, self).__init__()
