@@ -1,105 +1,115 @@
 # Overview
 
-This directory contains the required components for cycle-accurate software simulation for _**Unary Computing**_ based on PyTorch, where the simulation can be done on either CPU or GPU.
-The components in this include _**Bit Stream Manipulation**_, _**Unary Computing Kernel**_ and _**Performance Metric**_. 
-Among those, _**Bit Stream Manipulation**_ and _**Unary Computing Kernel**_ can pysically exist in real hardware, while _**Performance Metric**_ is usually for performance analysis in simulation or emulation.
+This directory contains the required components for cycle-accurate software simulation for _**Unary Computing**_. UnarySim is based on [PyTorch](https://pytorch.org/), a deep learning framework from Facebook,such that the simulation can be done on either CPU or GPU efficiently.
+
+The components for simulation include 
+1. _**Bit Stream Manipulation**_
+2. _**Unary Computing Kernel**_
+3. _**Performance Metric**_
+
+Among those, components in _**Bit Stream Manipulation**_ and _**Unary Computing Kernel**_ can pysically exist in real hardware, while those from _**Performance Metric**_ is usually for performance analysis.
 
 ## Data Representation
-UnarySim has five categories of data, with each having dedicated data type in PyTorch.
+UnarySim has five categories of data, with each having preferred data type in PyTorch.
 
 1. **Source Data**: 
-The source input data for unary computing ranges from _0_ to _1_ in _**unipolar**_ format, or from _-1_ to _1_ in _**bipolar**_ format. 
-The input data (_source_) is scaled to a certain range (as in _unipolar/bipolar_ format) from the original value (_origin_) with respect to maximum origin. 
-More specifically, such relationship is formulated as _source = origin / max(origin)_. Thus, source data type is suggested to be _**'torch.float'**_.
+The input source data in unary computing need to be ranging from _0_ to _1_ in _**unipolar**_ format, or from _-1_ to _1_ in _**bipolar**_ format. 
+The input source data (_source_) is scaled to a certain range (as in _unipolar/bipolar_ format) from the raw data (_raw_) with respect to its maximum.
+More specifically, such a relationship is formulated as _source = raw / max(raw)_. Thus, the type of _source data_ is suggested to be _**'torch.float'**_.
 
 2. **Random Number**: 
-The random numbers (_rand_) are to be compared with the source data in order to generate the bit stream. To notice, source data is in _unipolar/bipolar_ format, while random numbers are integers. 
+The random numbers (_rand_) are to be compared with the source data in order to generate the bit streams. To notice, source data is in _unipolar/bipolar_ format, while random numbers are integers. 
 To compare them, source data requires to scale up by the _bitwidth_ of random numbers. 
-At each cycle, if the _round(source * 2^bitwidth) > rand_, a bit 1 in the bit stream will be generated; otherwise, a bit 0 will be generated. 
-To support sufficiently long bit streams, the random number type is suggested to be _**'torch.long'**_.
+At each cycle, if the _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the bit stream will be generated; otherwise, a bit of logic 0 will be generated. 
+To support sufficiently long bit streams, the type of _random number_ is suggested to be _**'torch.long'**_.
 
 3. **Bit Stream**: 
-At each cycle, the bits in bit streams physically flow through cascaded logic kernels, and they count for most of the memory space for simulation. 
-For the sake of execution efficiency, bit stream type is suggested to be _**'torch.int8'**_.
+At each cycle, the bits in bit streams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation. 
+For the sake of execution efficiency, the type of _bit stream_ is suggested to be _**'torch.int8'**_.
 
 4. **Bit Buffer**: 
-Inside each logic kernel, there may exist some buffers to record the its interal state by monitoring the past bit streams, which could be extemely long. 
+Inside each logic kernel, there may exist buffers to record the its interal state by monitoring the past bit streams, which could be extemely long. 
 Those buffers can be counters or shift registers. 
-To ensure the correctness (not overflowing), bit buffer type is suggested to be _**'torch.long'**_.
+To ensure the correctness (not overflowing), the type of _bit buffer_ is suggested to be _**'torch.long'**_.
 
 5. **Metric Variable**: 
 Those are variables to compute specially designed performance metrics, which are usually floating point values. 
-To provide precise records of target metrics, metric variable type is suggested to be _**'torch.float'**_.
+To provide precise records of target metrics, the type of _metric variable_ is suggested to be _**'torch.float'**_.
 
 ## Directory Hierarchy
-This directory contains four subdirectories, including _**'bitstream'**_, _**'kernel'**_,  _**'metric'**_ and _**'test'**_, corresponding to the three components mentioned above.
+This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, corresponding to the three components mentioned above.
 
 ### _'bitstream'_ subdirectory
 This directory contains the components for _**Bit Stream Manipulation**_, which deal with the bit stream generation or shuffle for high performance and accuracy.
 
-1. File _gen.py_ is for _**Bit Stream Generation**_. The _**Bit Stream Generation**_ refers to how to generate the bit streams to be fed into the computing kernels.
-
-(from UnarySim.sw.bitstream.gen import \*)
-
-| Name                 | Date          | Reference     | Status                 |
-| -------------------- | ------------- | ------------- | ---------------------- |
-| BSGen                | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-| BSRegen              |               |               | <ul><li>[ ] </li></ul> |
-| SourceGen            | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-| SourceScale          |               |               | <ul><li>[ ] </li></ul> |
-| RNG                  | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-
-
-2. File _shuffle.py_ is for _**Bit Stream Shuffle**_. The _**Bit Stream Shuffle**_ refers to how to shuffle the bit streams to improve the computational accuracy. This effect of shuffle can be measured by correlation between bit streams.
-
-(from UnarySim.sw.bitstream.shuffle import \*)
+1. File _gen.py_ is for _**Bit Stream Generation**_, which refers to generating the bit streams as the input of the computing kernels.
+The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
-| Decorr               |               | [1]           | <ul><li>[ ] </li></ul> |
-| DeSync               |               | [1]           | <ul><li>[ ] </li></ul> |
-| SkewedSync           | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-| Sync                 |               | [1]           | <ul><li>[ ] </li></ul> |
+| BSGen                | Seq. 7, 2019  | [1]           | <ul><li>[x] </li></ul> |
+| BSReGen              |               | NA            | <ul><li>[ ] </li></ul> |
+| SourceGen            | Seq. 7, 2019  | [1]           | <ul><li>[x] </li></ul> |
+| SourceScale          |               | NA            | <ul><li>[ ] </li></ul> |
+| RNG                  | Seq. 7, 2019  | [2]           | <ul><li>[x] </li></ul> |
+
+
+2. File _shuffle.py_ is for _**Bit Stream Shuffle**_, which refers to shuffling the bit streams for higher computational accuracy. This effect of shuffle can be measured by correlation between bit streams [3].
+The components currently supported or to be implemented are listed in the table below.
+
+| Name                 | Date          | Reference     | Status                 |
+| -------------------- | ------------- | ------------- | ---------------------- |
+| Decorr               |               | [4]           | <ul><li>[ ] </li></ul> |
+| DeSync               |               | [4]           | <ul><li>[ ] </li></ul> |
+| SkewedSync           | Seq. 7, 2019  | [5]           | <ul><li>[x] </li></ul> |
+| Sync                 |               | [4]           | <ul><li>[ ] </li></ul> |
 
 
 ### _'kernel'_ subdirectory
 This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
+The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
-| addition             |               |               | <ul><li>[ ] </li></ul> |
+| addition             |               | [6]           | <ul><li>[ ] </li></ul> |
 | comparison           |               |               | <ul><li>[ ] </li></ul> |
 | conv                 |               |               | <ul><li>[ ] </li></ul> |
-| division             |               |               | <ul><li>[ ] </li></ul> |
+| division             |               | [5]           | <ul><li>[ ] </li></ul> |
 | exponentiation       |               |               | <ul><li>[ ] </li></ul> |
-| linear               | Seq. 27, 2019 |               | <ul><li>[x] </li></ul> |
+| linear               | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | max                  |               |               | <ul><li>[ ] </li></ul> |
 | min                  |               |               | <ul><li>[ ] </li></ul> |
-| multiplication       |               |               | <ul><li>[ ] </li></ul> |
+| multiplication       |               | [6]           | <ul><li>[ ] </li></ul> |
 | pool                 |               |               | <ul><li>[ ] </li></ul> |
 | relu                 |               |               | <ul><li>[ ] </li></ul> |
-| square root          |               |               | <ul><li>[ ] </li></ul> |
+| square root          |               | [5]           | <ul><li>[ ] </li></ul> |
 
 
 ### _'metric'_ subdirectory
-This directory contains the components for  _**Performance Metric**_, which take bit streams as inputs and calculate certain performance metrics.
-
-(from UnarySim.sw.metric.metric import \*)
+This directory contains the components for _**Performance Metric**_, which take bit streams as inputs and calculate certain performance metrics.
+The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
-| Correlation          | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-| ProgressivePrecision | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-| Stability            | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
-| NormStability        | Seq. 7, 2019  |               | <ul><li>[x] </li></ul> |
+| Correlation          | Seq. 7, 2019  | [3]           | <ul><li>[x] </li></ul> |
+| ProgressivePrecision | Seq. 7, 2019  | [7]           | <ul><li>[x] </li></ul> |
+| Stability            | Seq. 7, 2019  | [6]           | <ul><li>[x] </li></ul> |
+| NormStability        | Seq. 7, 2019  | NA            | <ul><li>[x] </li></ul> |
 
 
 ### _'test'_ subdirectory
-This directory contains the testing examples for above implemented kernels.
+This directory contains simple testing examples for above components.
 
 
 ### Contribution
 Please contact me if you are interested in contributing to this project!
 
 ### Reference
-[1] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.
+[1] B.R. Gaines, "Stochastic computing systems," in _Advances in Information Systems Science_ 1969.
+[2] S. Liu and J. Han, "Energy efficient stochastic computing with Sobol sequences," in _DATE_ 2017.
+[3] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.
+[4] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.
+[5] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.
+[6] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," submitted for review.
+[7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.
+
