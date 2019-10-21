@@ -75,7 +75,7 @@ The components currently supported or to be implemented are listed in the table 
 
 | Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
-| UnaryAdd             | Oct. 10, 2019 | [6]           | <ul><li>[ ] </li></ul> |
+| UnaryAdd             | Oct. 10, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | comparison           |               |               | <ul><li>[ ] </li></ul> |
 | conv                 |               |               | <ul><li>[ ] </li></ul> |
 | division             |               | [5]           | <ul><li>[ ] </li></ul> |
