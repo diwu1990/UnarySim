@@ -53,9 +53,9 @@ The components currently supported or to be implemented are listed in the table 
 | -------------------- | ------------- | ------------- | ---------------------- |
 | BSGen                | Seq. 7, 2019  | [1]           | <ul><li>[x] </li></ul> |
 | BSReGen              |               | NA            | <ul><li>[ ] </li></ul> |
-| SourceGen            | Seq. 7, 2019  | [1]           | <ul><li>[x] </li></ul> |
-| SourceScale          |               | NA            | <ul><li>[ ] </li></ul> |
+| RawScale             | Oct. 10, 2019 | NA            | <ul><li>[x] </li></ul> |
 | RNG                  | Seq. 7, 2019  | [2]           | <ul><li>[x] </li></ul> |
+| SourceGen            | Seq. 7, 2019  | [1]           | <ul><li>[x] </li></ul> |
 
 
 2. File _shuffle.py_ is for **Bit Stream Shuffle**, which refers to shuffling the bit streams for higher computational accuracy. This effect of shuffle can be measured by correlation between bit streams [3].
