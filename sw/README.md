@@ -105,10 +105,10 @@ The components currently supported or to be implemented are listed in the table 
 This directory contains simple testing examples for above components, which are integrated with Jupyter-notebook.
 
 
-### Contribution
+## Contribution
 Please contact me if you are interested in contributing to this project!
 
-### Reference
+## Reference
 [1] B.R. Gaines, "Stochastic computing systems," in _Advances in Information Systems Science_ 1969.  
 [2] S. Liu and J. Han, "Energy efficient stochastic computing with Sobol sequences," in _DATE_ 2017.  
 [3] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
