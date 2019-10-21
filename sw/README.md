@@ -2,7 +2,7 @@
 
 This directory contains the required components for cycle-accurate software simulation for unary computing. UnarySim is based on [PyTorch](https://pytorch.org/), a deep learning framework from Facebook, such that the simulation can be done on either CPU or GPU efficiently.
 
-The components included in this simulatior include 
+The components included in UnarySim belong to three categories, including 
 1. **Bit Stream Manipulation**
 2. **Unary Computing Kernel**
 3. **Performance Metric**
