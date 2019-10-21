@@ -3,11 +3,11 @@
 This directory contains the required components for cycle-accurate software simulation for unary computing. UnarySim is based on [PyTorch](https://pytorch.org/), a deep learning framework from Facebook, such that the simulation can be done on either CPU or GPU efficiently.
 
 The components included in this simulatior include 
-1. _**Bit Stream Manipulation**_
-2. _**Unary Computing Kernel**_
-3. _**Performance Metric**_
+1. **Bit Stream Manipulation**
+2. **Unary Computing Kernel**
+3. **Performance Metric**
 
-Among those, components in _**Bit Stream Manipulation**_ and _**Unary Computing Kernel**_ can pysically exist in real hardware, while those from _**Performance Metric**_ is usually for performance analysis.
+Among those, components in **Bit Stream Manipulation** and **Unary Computing Kernel** can pysically exist in real hardware, while those from **Performance Metric** is usually for performance analysis.
 
 ## Prerequisite
 1. PyTorch version >= 1.0
@@ -17,7 +17,7 @@ Among those, components in _**Bit Stream Manipulation**_ and _**Unary Computing 
 UnarySim has five categories of data, with each having preferred data type in PyTorch.
 
 1. **Source Data**: 
-The input source data in unary computing need to be ranging from _0_ to _1_ in _**unipolar**_ format, or from _-1_ to _1_ in _**bipolar**_ format. 
+The input source data in unary computing need to be ranging from _0_ to _1_ in **unipolar** format, or from _-1_ to _1_ in **bipolar** format. 
 The input source data (_source_) is scaled to a certain range (as in _unipolar/bipolar_ format) from the raw data (_raw_) with respect to its maximum.
 More specifically, such a relationship is formulated as _source = raw / max(raw)_. Thus, the type of _source data_ is suggested to be _**'torch.float'**_.
 
@@ -44,9 +44,9 @@ To provide precise records of target metrics, the type of _metric variable_ is s
 This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, corresponding to the three components mentioned above.
 
 ### _'bitstream'_ subdirectory
-This directory contains the components for _**Bit Stream Manipulation**_, which deal with the bit stream generation or shuffle for high performance and accuracy.
+This directory contains the components for **Bit Stream Manipulation**, which deal with the bit stream generation or shuffle for high performance and accuracy.
 
-1. File _gen.py_ is for _**Bit Stream Generation**_, which refers to generating the bit streams as the input of the computing kernels.
+1. File _gen.py_ is for **Bit Stream Generation**, which refers to generating the bit streams as the input of the computing kernels.
 The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
@@ -58,7 +58,7 @@ The components currently supported or to be implemented are listed in the table 
 | RNG                  | Seq. 7, 2019  | [2]           | <ul><li>[x] </li></ul> |
 
 
-2. File _shuffle.py_ is for _**Bit Stream Shuffle**_, which refers to shuffling the bit streams for higher computational accuracy. This effect of shuffle can be measured by correlation between bit streams [3].
+2. File _shuffle.py_ is for **Bit Stream Shuffle**, which refers to shuffling the bit streams for higher computational accuracy. This effect of shuffle can be measured by correlation between bit streams [3].
 The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
@@ -70,7 +70,7 @@ The components currently supported or to be implemented are listed in the table 
 
 
 ### _'kernel'_ subdirectory
-This directory contains the components for _**Unary Computing Kernel**_, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
+This directory contains the components for **Unary Computing Kernel**, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
@@ -90,7 +90,7 @@ The components currently supported or to be implemented are listed in the table 
 
 
 ### _'metric'_ subdirectory
-This directory contains the components for _**Performance Metric**_, which take bit streams as inputs and calculate certain performance metrics.
+This directory contains the components for **Performance Metric**, which take bit streams as inputs and calculate certain performance metrics.
 The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
