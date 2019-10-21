@@ -106,10 +106,16 @@ Please contact me if you are interested in contributing to this project!
 
 ### Reference
 [1] B.R. Gaines, "Stochastic computing systems," in _Advances in Information Systems Science_ 1969.
+
 [2] S. Liu and J. Han, "Energy efficient stochastic computing with Sobol sequences," in _DATE_ 2017.
+
 [3] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.
+
 [4] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.
+
 [5] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.
+
 [6] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," submitted for review.
+
 [7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.
 
