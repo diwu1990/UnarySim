@@ -80,7 +80,7 @@ The components currently supported or to be implemented are listed in the table 
 | conv                 |               |               | <ul><li>[ ] </li></ul> |
 | division             |               | [5]           | <ul><li>[ ] </li></ul> |
 | exponentiation       |               |               | <ul><li>[ ] </li></ul> |
-| linear               | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
+| UnaryLinear          | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | max                  |               |               | <ul><li>[ ] </li></ul> |
 | min                  |               |               | <ul><li>[ ] </li></ul> |
 | multiplication       |               | [6]           | <ul><li>[ ] </li></ul> |
