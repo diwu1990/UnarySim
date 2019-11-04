@@ -106,7 +106,12 @@ This directory contains simple testing examples for above components, which are 
 
 
 ## Contribution
-Please contact me if you are interested in contributing to this project!
+Active contributor:
+1. Di Wu
+1. Ruokai Yin
+
+Please contact me (di.wu@ece.wisc.edu) if you are interested in contributing to this project!
+
 
 ## Reference
 [1] B.R. Gaines, "Stochastic computing systems," in _Advances in Information Systems Science_ 1969.  
