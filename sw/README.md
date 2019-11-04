@@ -107,7 +107,7 @@ This directory contains simple testing examples for above components, which are 
 
 ## Contribution
 Active contributor:
-1. [Di Wu](diwu1990.github.io)
+1. [Di Wu](https://diwu1990.github.io/)
 1. Ruokai Yin
 
 Please contact me (di.wu@ece.wisc.edu) if you are interested in contributing to this project!
