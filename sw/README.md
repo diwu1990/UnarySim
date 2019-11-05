@@ -83,7 +83,7 @@ The components currently supported or to be implemented are listed in the table 
 | UnaryLinear          | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | max                  |               |               | <ul><li>[ ] </li></ul> |
 | min                  |               |               | <ul><li>[ ] </li></ul> |
-| UnaryMul             | Nov. 05, 2019 | [6]           | <ul><li>[ ] </li></ul> |
+| UnaryMul             | Nov. 05, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | pool                 |               |               | <ul><li>[ ] </li></ul> |
 | relu                 |               |               | <ul><li>[ ] </li></ul> |
 | square root          |               | [5]           | <ul><li>[ ] </li></ul> |
