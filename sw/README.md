@@ -51,11 +51,11 @@ The components currently supported or to be implemented are listed in the table 
 
 | Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
-| BSGen                | Seq. 7, 2019  | [1]           | <ul><li>[x] </li></ul> |
+| BSGen                | Seq. 07, 2019 | [1]           | <ul><li>[x] </li></ul> |
 | BSReGen              |               | NA            | <ul><li>[ ] </li></ul> |
 | RawScale             | Oct. 10, 2019 | NA            | <ul><li>[x] </li></ul> |
-| RNG                  | Seq. 7, 2019  | [2]           | <ul><li>[x] </li></ul> |
-| SourceGen            | Seq. 7, 2019  | [1]           | <ul><li>[x] </li></ul> |
+| RNG                  | Seq. 07, 2019 | [2]           | <ul><li>[x] </li></ul> |
+| SourceGen            | Seq. 07, 2019 | [1]           | <ul><li>[x] </li></ul> |
 
 
 2. File _shuffle.py_ is for **Bit Stream Shuffle**, which refers to shuffling the bit streams for higher computational accuracy. This effect of shuffle can be measured by correlation between bit streams [3].
@@ -65,7 +65,7 @@ The components currently supported or to be implemented are listed in the table 
 | -------------------- | ------------- | ------------- | ---------------------- |
 | Decorr               |               | [4]           | <ul><li>[ ] </li></ul> |
 | DeSync               |               | [4]           | <ul><li>[ ] </li></ul> |
-| SkewedSync           | Seq. 7, 2019  | [5]           | <ul><li>[x] </li></ul> |
+| SkewedSync           | Seq. 07, 2019 | [5]           | <ul><li>[x] </li></ul> |
 | Sync                 |               | [4]           | <ul><li>[ ] </li></ul> |
 
 
@@ -83,7 +83,7 @@ The components currently supported or to be implemented are listed in the table 
 | UnaryLinear          | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | max                  |               |               | <ul><li>[ ] </li></ul> |
 | min                  |               |               | <ul><li>[ ] </li></ul> |
-| multiplication       |               | [6]           | <ul><li>[ ] </li></ul> |
+| UnaryMul             | Nov. 05, 2019 | [6]           | <ul><li>[ ] </li></ul> |
 | pool                 |               |               | <ul><li>[ ] </li></ul> |
 | relu                 |               |               | <ul><li>[ ] </li></ul> |
 | square root          |               | [5]           | <ul><li>[ ] </li></ul> |
@@ -95,10 +95,10 @@ The components currently supported or to be implemented are listed in the table 
 
 | Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
-| Correlation          | Seq. 7, 2019  | [3]           | <ul><li>[x] </li></ul> |
-| ProgressivePrecision | Seq. 7, 2019  | [7]           | <ul><li>[x] </li></ul> |
-| Stability            | Seq. 7, 2019  | [6]           | <ul><li>[x] </li></ul> |
-| NormStability        | Seq. 7, 2019  | NA            | <ul><li>[x] </li></ul> |
+| Correlation          | Seq. 07, 2019 | [3]           | <ul><li>[x] </li></ul> |
+| ProgressivePrecision | Seq. 07, 2019 | [7]           | <ul><li>[x] </li></ul> |
+| Stability            | Seq. 07, 2019 | [6]           | <ul><li>[x] </li></ul> |
+| NormStability        | Seq. 07, 2019 | NA            | <ul><li>[x] </li></ul> |
 
 
 ### _'test'_ subdirectory
