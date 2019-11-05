@@ -1,78 +1,123 @@
 import torch
 from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
 
-class UnaryAdd(torch.nn.Module):
+class UnaryMul(torch.nn.Module):
     """
-    this module is for unary addition,
-    1) accumulation mode
-    2) unary data mode
-    3) binary data width
+    this module is for unary multiplication, supporting static/non-static computation, unipolar/bipolar
+    input_prob is a don't care if the multiplier is non-static, defualt value is 0.
+    if the multiplier is static, then need to input the pre-scaled input_1 to port input_prob 
     """
-    def __init__(self, 
-                 bitwidth=8, 
-                 mode="bipolar", 
-                 scaled=True, 
-                 static=True, 
-                 st_in=None, 
-                 acc_dim=0):
-        super(UnaryAdd, self).__init__()
+    def __init__(self,
+                 bitwidth=8,
+                 mode="unipolar",
+                 static=True,
+                 input_prob=0):
+        super(UnaryMul, self).__init__()
         
-        # data bit width
         self.bitwidth = bitwidth
-        # data representation
         self.mode = mode
-        # whether it is scaled addition
-        self.scaled = scaled
-        # whether one input is stored statically in the counter
         self.static = static
-        # define the static input
-        self.st_in = SourceGen(st_in, bitwidth=self.bitwidth, mode=mode)()
-        # dimension to do reduce sum
-        self.acc_dim = acc_dim
-        
-        # upper bound for accumulation counter in non-scaled mode
-        # it is the number of input
-        self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        self.acc_bound.add_(in_features)
-        
-        # accumulation offset
-        self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if mode is "unipolar":
-            pass
-        elif mode is "bipolar":
-            self.offset.add_((in_features-1)/2)
-        else:
-            raise ValueError("UnaryAdd mode is not implemented.")
-        
-        
-        # random_sequence from sobol RNG
-        self.rng = RNG(self.bitwidth, 1, "Sobol")()
-        
 
-        # define the conditional updated bit stream for logic 1
-        self.st_in_bs = BSGen(self.st_in, self.rng)
-        self.rng_in_idx = torch.nn.Parameter(torch.zeros_like(self.st_in, dtype=torch.long), requires_grad=False)
+        # the probability of input_1 used in static computation
+        self.input_prob = input_prob
         
-        self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if self.scaled is False:
-            self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-
-    def UnaryKernel_parallel_cnt(self, input):
-        # generate input bits for current cycle
-        paralle_cnt = torch.sum(self.st_in_bs(self.rng_in_idx), self.acc_dim)
-        self.rng_wght_idx.add_(input.type(torch.long))
-        return paralle_cnt
-
-    def forward(self, input):
-        if self.scaled is True:
-            self.accumulator.data = self.accumulator.add(self.UnaryKernel_parallel_cnt(input))
-            self.output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
-            self.accumulator.sub_(self.output * self.acc_bound)
-        else:
-            self.accumulator.data = self.accumulator.add(self.UnaryKernel_parallel_cnt(input))
-            self.accumulator.sub_(self.offset)
-            self.output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
-            self.out_accumulator.data = self.out_accumulator.add(self.output)
-
-        return self.output.type(torch.int8)
+        # the random number generator used in computation
+        self.rng = RNG(
+            bitwidth=self.bitwidth,
+            dim=1,
+            mode="Sobol")()
         
+        # currently only support static mode
+        if self.static is True:
+            # directly create an unchange bitstream generator for static computation
+            self.source_gen = SourceGen(self.input_prob, self.bitwidth,self.mode)()
+            self.bs = BSGen(self.source_gen, self.rng)
+            
+            # rng_idx is used later as a enable signal, get update every cycled
+            self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
+            
+            # Generate two seperate bitstream generators and two enable signals for bipolar mode
+            if self.mode is "bipolar":
+                self.bs_inv = BSGen(self.source_gen, self.rng)
+                self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
+
+        # support of in-stream mode will be updated later
+#         else:
+#             # need to count for one in bs every cycle and update probability for non-static computation    
+#             self.cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+#             self.gen_prob = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+
+#             if self.mode is "unipolar":
+                
+#                 # this time the source_gen and bs need to be update every time by the updated prob
+#                 self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"unipolar")()
+#                 self.bs = BSGen(self.source_gen,self.rng)
+#                 self.rng_idx = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+                
+#             else:
+#                 self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"bipolar")()
+#                 self.bs_0 = BSGen(self.source_gen,self.rng)
+#                 self.bs_1 = BSGen(self.source_gen,self.rng)
+#                 self.rng_idx_0 = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+#                 self.rng_idx_1 = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+
+    def UnaryMul_forward(self, input_0, input_1=None):
+        # currently only support static mode
+        if self.static is True:
+            if self.mode is "unipolar":
+                output = input_0.mul(self.bs(self.rng_idx))
+               
+                # update rng index according to current input0. The update simulates enable signal of bs gen
+                self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long)) 
+                
+            else:                 
+                # two seperate data path
+                path_0 = (1-input_0).mul(1-self.bs(self.rng_idx))
+                path_1 = input_0.mul(self.bs_inv(self.rng_idx_inv))
+
+                output = path_1 | path_0
+                
+                 # update two rng_index
+                self.rng_idx.data = self.rng_idx.add(1-input_0.type(torch.long))
+                self.rng_idx_inv.data = self.rng_idx_inv.add(input_0.type(torch.long))
+
+        # support of in-stream mode will be updated later 
+#         else:
+
+#             if self.mode is "unipolar":    
+                
+#                 self.cnt.data =self.cnt.add(input_1) # update the number of 1 in input_1 every cycle
+#                 self.gen_prob.data = self.cnt.div(self.bitwidth) # update probability
+                
+#                 # update the source_gen and bit_stream_generator
+#                 self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"unipolar")
+#                 self.bs = BSGen(self.source_gen,self.rng)
+
+#                 output = input_0.mul(self.bs(self.rng_idx))
+#                 # as the enable signal, if input_0 is zero, no new bit will be generated
+#                 self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long)) 
+                
+#             else:
+#                 # update
+#                 self.cnt.data = self.cnt.add(input_1)
+#                 self.gen_prob.data = self.cnt.div(self.bitwidth) # update probability
+#                 self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"bipolar")
+#                 self.bs_0 = BSGen(self.source_gen,self.rng)
+#                 self.bs_1 = BSGen(self.source_gen,self.rng)
+
+         
+#                 gen_0 = 1 - self.bs_0(self.rng_idx_0)
+#                 self.rng_idx_0.data = self.rng_idx_0.add(1 - input_0.type(torch.long))
+#                 in_0 = input_0.mul(gen_0)
+            
+#                 gen_1 = self.bs_1(self.rng_idx_1)
+#                 self.rng_idx_1.data = self.rng_idx_1.add(1 - input_0.type(torch.long))
+#                 in_1 = input_0.mul(gen_1)
+            
+#                 output = in_1 | in_0
+            
+        return output
+
+    def forward(self,input_0, input_1=None):
+        return self.UnaryMul_forward(input_0,input_1)
+    
