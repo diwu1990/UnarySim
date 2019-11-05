@@ -11,4 +11,5 @@ This _**UnarySim**_ is a PyTorch-based cycle-accurate simulator for large scale 
 
 ## Reference
 [1] V. T. Lee, A. Alaghi, J. P. Hayes, V. Sathe, and L. Ceze, "Energy-efficient hybrid stochastic-binary neural networks for near-sensor computing", in *DATE* 2017.
+
 [2] V. T. Lee, A. Alaghi, R. Pamula, V. S. Sathe, L. Ceze and M. Oskin, "Architecture Considerations for Stochastic Computing Accelerators", in *TCAD* 2018.  
