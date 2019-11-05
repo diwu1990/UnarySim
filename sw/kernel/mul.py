@@ -63,15 +63,17 @@ class UnaryMul(torch.nn.Module):
     def UnaryMul_forward(self, input_0, input_1=None):
         # currently only support static mode
         if self.static is True:
+            # for input0 is 0.
             path_0 = input_0 & self.bs(self.rng_idx)
-            # update rng index according to current input0. The update simulates enable signal of bs gen
+            # conditional update for rng index when input0 is 1. The update simulates enable signal of bs gen.
             self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long))
             
             if self.mode is "unipolar":
                 return path_0
             elif self.mode is "bipolar":
+                # for input0 is 0.
                 path_1 = (1 - input_0) & (1 - self.bs_inv(self.rng_idx_inv))
-                # update two rng_index
+                # conditional update for rng_idx_inv
                 self.rng_idx_inv.data = self.rng_idx_inv.add(1 - input_0.type(torch.long))
                 return path_0 | path_1
             else:
