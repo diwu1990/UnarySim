@@ -37,6 +37,7 @@ class UnaryAdd(torch.nn.Module):
         if self.mode is "bipolar":
             self.offset.fill_((self.acc_bound.item()-1)/2)
         self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
+        
         if self.scaled is True:
             self.output = torch.ge(self.accumulator, self.acc_bound.item()).type(torch.float)
             self.accumulator.sub_(self.output * self.acc_bound)
