@@ -41,7 +41,7 @@ Those are variables to compute specially designed performance metrics, which are
 To provide precise records of target metrics, the type of _metric variable_ is suggested to be _**'torch.float'**_.
 
 ## Directory Hierarchy
-This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, corresponding to the three components mentioned above.
+This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
 
 ### _'bitstream'_ subdirectory
 This directory contains the components for **Bit Stream Manipulation**, which deal with the bit stream generation or shuffle for high performance and accuracy.
