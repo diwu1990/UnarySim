@@ -24,7 +24,7 @@ More specifically, such a relationship is formulated as _source = raw / max(raw)
 2. **Random Number**: 
 The random numbers (_rand_) are to be compared with the source data in order to generate the bit streams. To notice, source data is in _unipolar/bipolar_ format, while random numbers are integers. 
 To compare them, source data requires to scale up by the _bitwidth_ of random numbers. 
-At each cycle, if the _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the bit stream will be generated; otherwise, a bit of logic 0 will be generated. 
+At each cycle, if _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the bit stream will be generated; otherwise, a bit of logic 0 will be generated. 
 To support sufficiently long bit streams, the type of _random number_ is suggested to be _**'torch.long'**_.
 
 3. **Bit Stream**: 
