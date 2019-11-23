@@ -85,7 +85,7 @@ The components currently supported or to be implemented are listed in the table 
 | min                  |               |               | <ul><li>[ ] </li></ul> |
 | UnaryMul             | Nov. 05, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | pool                 |               |               | <ul><li>[ ] </li></ul> |
-| relu                 | Nov. 23, 2019 | [6]           | <ul><li>[ ] </li></ul> |
+| relu                 | Nov. 23, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | square root          |               | [5]           | <ul><li>[ ] </li></ul> |
 
 
