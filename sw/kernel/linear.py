@@ -180,20 +180,18 @@ class GainesLinear(torch.nn.Module):
         if self.mode is "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
 
-        self.parallel_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.parallel_cnt = torch.nn.Parameter(torch.zeros(1, dtype=torch.long), requires_grad=False)
         
-        if self.scaled is False:
-            self.input_cnt = self.in_features
-            if self.has_bias is True:
-                self.input_cnt = self.input_cnt + 1
-            self.rng_scale = RNG(round(math.log(in_features)), 3, "Sobol")()
-            self.rng_scale_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.weight, dtype=torch.long), requires_grad=False)
-            self.max = torch.nn.Parameter(torch.ones(1).fill_(2**depth-1), requires_grad=False)
-            self.half = torch.nn.Parameter(torch.ones(1).fill_(2**(depth-1)), requires_grad=False)
-            self.cnt = torch.nn.Parameter(torch.zeros_like(self.kernel.weight), requires_grad=False)
-            self.cnt.data = self.cnt.add(self.half)
+        if self.scaled is True:
+            self.rng_scale = RNG(round(math.log2(self.acc_bound.item())), 3, "Sobol")()
+            self.rng_scale_idx = torch.nn.Parameter(torch.zeros(1, dtype=torch.long), requires_grad=False)
+        elif self.scaled is False:
+            self.input_cnt = self.acc_bound.item()
+            self.max = torch.nn.Parameter(torch.ones(1, dtype=torch.long).fill_(2**depth-1), requires_grad=False)
+            self.half_max = torch.nn.Parameter(torch.ones(1, dtype=torch.long).fill_(2**(depth-1)), requires_grad=False)
+            self.cnt = torch.nn.Parameter(torch.zeros(1, dtype=torch.long).fill_(2**(depth-1)), requires_grad=False)
             
-    def UnaryKernel_accumulation(self, input):
+    def GainesKernel_accumulation(self, input):
         # generate weight and bias bits for current cycle
         self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
         self.rng_wght_idx.add_(1)
@@ -212,15 +210,18 @@ class GainesLinear(torch.nn.Module):
             return kernel_out + kernel_out_inv
 
     def forward(self, input):
-        self.parallel_cnt.data = self.UnaryKernel_accumulation(input).type(torch.int)
+        self.parallel_cnt.data = self.GainesKernel_accumulation(input).type(torch.long)
         
         if self.scaled is True:
-            output = torch.ge(self.parallel_cnt.data, self.rng_scale[self.rng_scale_idx])
+            output = torch.ge(self.parallel_cnt.data, self.rng_scale[self.rng_scale_idx%len(self.rng_scale)])
             self.rng_scale_idx.add_(1)
         else:
-            self.parallel_cnt.mul_(2).sub_(self.input_cnt)
-            self.cnt.data = self.cnt.add(self.parallel_cnt).clamp(0, self.max.item())
-            output = torch.gt(self.cnt, self.half)
+            if self.mode is "unipolar":
+                output = torch.gt(self.parallel_cnt, 0)
+            elif self.mode is "bipolar":
+                self.parallel_cnt.mul_(2).sub_(self.input_cnt)
+                self.cnt.data = self.cnt.add(self.parallel_cnt).clamp(0, self.max.item())
+                output = torch.gt(self.cnt, self.half_max)
 
         return output.type(torch.int8)
     
