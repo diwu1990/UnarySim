@@ -1,4 +1,5 @@
 import torch
+import math
 from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
 
 class UnaryLinear(torch.nn.Module):
@@ -127,7 +128,8 @@ class GainesLinear(torch.nn.Module):
                  bitwidth=8, 
                  bias=True, 
                  mode="bipolar", 
-                 scaled=True):
+                 scaled=True, 
+                 depth=8):
         super(UnaryLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -159,13 +161,13 @@ class GainesLinear(torch.nn.Module):
         self.bitwidth = bitwidth
         
         # random_sequence from sobol RNG
-        self.rng = RNG(self.bitwidth, 1, "Sobol")()
+        self.rng = RNG(self.bitwidth, 2, "Sobol")()
         
         # define the convolution weight and bias
         self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode)()
         if self.has_bias is True:
             self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode)()
-
+        
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
         self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
@@ -177,13 +179,20 @@ class GainesLinear(torch.nn.Module):
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
         if self.mode is "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-            self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng)
-            self.rng_wght_idx_inv = torch.nn.Parameter(torch.zeros_like(self.kernel_inv.weight, dtype=torch.long), requires_grad=False)
 
-        self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if self.scaled is False:
-            self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-
+        self.parallel_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        
+        if self.scaled is True:
+            self.input_cnt = self.in_features
+            if self.has_bias is True:
+                self.input_cnt = self.input_cnt + 1
+            self.rng_scale = RNG(round(math.log(in_features)), 3, "Sobol")()
+            self.rng_scale_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.weight, dtype=torch.long), requires_grad=False)
+            self.max = torch.nn.Parameter(torch.ones(1).fill_(2**depth-1), requires_grad=False)
+            self.half = torch.nn.Parameter(torch.ones(1).fill_(2**(depth-1)), requires_grad=False)
+            self.cnt = torch.nn.Parameter(torch.zeros_like(self.kernel.weight), requires_grad=False)
+            self.cnt.data = self.cnt.add(self.half)
+            
     def UnaryKernel_accumulation(self, input):
         # generate weight and bias bits for current cycle
         self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
@@ -198,21 +207,20 @@ class GainesLinear(torch.nn.Module):
             return kernel_out
         
         if self.mode is "bipolar":
-            self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv(self.rng_wght_idx_inv).type(torch.float)
-            self.rng_wght_idx_inv.add_(1 - input.type(torch.long))
+            self.kernel_inv.weight.data = 1 - self.kernel.weight.data
             kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
             return kernel_out + kernel_out_inv
 
     def forward(self, input):
+        self.parallel_cnt.data = self.UnaryKernel_accumulation(input).type(torch.int)
+        
         if self.scaled is True:
-            self.accumulator.data = self.accumulator.add(self.UnaryKernel_accumulation(input))
-            output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
-            self.accumulator.sub_(output * self.acc_bound)
+            output = torch.ge(self.parallel_cnt.data, self.rng_scale[self.rng_scale_idx])
+            self.rng_scale_idx.add_(1)
         else:
-            self.accumulator.data = self.accumulator.add(self.UnaryKernel_accumulation(input))
-            self.accumulator.sub_(self.offset)
-            output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
-            self.out_accumulator.data = self.out_accumulator.add(output)
+            self.parallel_cnt.mul_(2).sub_(self.input_cnt)
+            self.cnt.data = self.cnt.add(self.parallel_cnt).clamp(0, self.max.item())
+            output = torch.gt(self.cnt, self.half)
 
         return output.type(torch.int8)
     
