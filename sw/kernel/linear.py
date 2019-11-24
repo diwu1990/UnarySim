@@ -130,7 +130,7 @@ class GainesLinear(torch.nn.Module):
                  mode="bipolar", 
                  scaled=True, 
                  depth=8):
-        super(UnaryLinear, self).__init__()
+        super(GainesLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         
@@ -182,7 +182,7 @@ class GainesLinear(torch.nn.Module):
 
         self.parallel_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         
-        if self.scaled is True:
+        if self.scaled is False:
             self.input_cnt = self.in_features
             if self.has_bias is True:
                 self.input_cnt = self.input_cnt + 1
