@@ -3,22 +3,23 @@ import torch
 class UnaryReLU(torch.nn.Module):
     """
     unary ReLU activation based on comparator
-    data is always in bipolar mode
+    data is always in bipolar representation
+    the input bit streams are categorized into Sobol and Race like
     """
-    def __init__(self, buf_dep=4, bitwidth=8, mode="Sobol", compensation=None):
+    def __init__(self, buf_dep=4, bitwidth=8, rng="Sobol"):
         super(UnaryReLU, self).__init__()
-        if mode is "Sobol":
+        if rng is "Sobol":
             self.buf_max = torch.nn.Parameter(torch.zeros(1).fill_(2**buf_dep - 1).type(torch.long), requires_grad=False)
             self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(buf_dep - 1)).type(torch.long), requires_grad=False)
             self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(buf_dep - 1)).type(torch.long), requires_grad=False)
-        elif mode is "Race":
+        elif rng is "Race":
             self.threshold = torch.nn.Parameter(torch.zeros(1).fill_(2**(bitwidth - 1)).type(torch.long), requires_grad=False)
             self.acc = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
             self.cycle = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         else:
-            raise ValueError("UnaryReLU mode other than \"Sobol\" or \"Race\" is illegal.")
-        self.mode = mode
-        
+            raise ValueError("UnaryReLU rng other than \"Sobol\" or \"Race\" is illegal.")
+        self.rng = rng
+    
     def UnaryReLU_forward_sobol(self, input):
         # check whether acc is larger than or equal to half.
         half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
@@ -41,8 +42,8 @@ class UnaryReLU(torch.nn.Module):
         return output
 
     def forward(self, input):
-        if self.mode is "Sobol":
+        if self.rng is "Sobol":
             return self.UnaryReLU_forward_sobol(input)
-        elif self.mode is "Race":
+        elif self.rng is "Race":
             return self.UnaryReLU_forward_race(input)
 
