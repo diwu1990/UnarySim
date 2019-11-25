@@ -1,0 +1,58 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uSADD8
+Version: N-2017.09-SP5
+Date   : Mon Aug 12 16:10:24 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: in[4] (input port clocked by clk)
+  Endpoint: out (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uSADD8             TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 r
+  in[4] (in)                               0.00       0.25 r
+  U42/Z (XOR2D1BWP)                        0.08       0.33 f
+  U41/ZN (XNR2D1BWP)                       0.09       0.42 r
+  U40/Z (XOR2D1BWP)                        0.10       0.52 f
+  U34/ZN (MAOI22D1BWP)                     0.06       0.58 r
+  U32/ZN (XNR2D1BWP)                       0.09       0.67 f
+  U31/ZN (XNR2D1BWP)                       0.10       0.77 r
+  U29/Z (XOR2D1BWP)                        0.10       0.87 f
+  U56/Z (AN2XD1BWP)                        0.05       0.92 f
+  U22/ZN (OAI22D2BWP)                      0.06       0.97 r
+  U49/Z (CKAN2D1BWP)                       0.07       1.04 r
+  U47/Z (OA221D2BWP)                       0.10       1.15 r
+  U48/ZN (INVD16BWP)                       0.06       1.20 f
+  out (out)                                0.00       1.20 f
+  data arrival time                                   1.20
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -1.20
+  -----------------------------------------------------------
+  slack (MET)                                         0.65
+
+
+1

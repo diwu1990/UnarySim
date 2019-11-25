@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : gsqrt5b
+Version: N-2017.09-SP5
+Date   : Thu Sep  6 01:33:36 2018
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
+
+Number of ports:                            9
+Number of nets:                            55
+Number of cells:                           43
+Number of combinational cells:             37
+Number of sequential cells:                 6
+Number of macros/black boxes:               0
+Number of buf/inv:                         11
+Number of references:                      24
+
+Combinational area:                 52.743601
+Buf/Inv area:                        9.349200
+Noncombinational area:              25.578000
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                    78.321601
+Total area:                 undefined
+1

@@ -1,0 +1,48 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : orADD
+Version: N-2017.09-SP5
+Date   : Mon Aug 12 16:07:09 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: out_reg (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: out (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  orADD              TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  out_reg/CP (DFCNQD1BWP)                  0.00       0.00 r
+  out_reg/Q (DFCNQD1BWP)                   0.13       0.13 f
+  U9/ZN (CKND2BWP)                         0.04       0.17 r
+  U10/ZN (CKND16BWP)                       0.06       0.23 f
+  out (out)                                0.00       0.23 f
+  data arrival time                                   0.23
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.23
+  -----------------------------------------------------------
+  slack (MET)                                         1.62
+
+
+1

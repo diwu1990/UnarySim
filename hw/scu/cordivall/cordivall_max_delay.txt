@@ -1,0 +1,57 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : cordivall
+Version: N-2017.09-SP5
+Date   : Thu Sep  6 01:18:53 2018
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: randNum[0] (input port clocked by clk)
+  Endpoint: quotient (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  cordivall          TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 r
+  randNum[0] (in)                          0.00       0.25 r
+  U154/ZN (INVD1BWP)                       0.01       0.26 f
+  U35/Z (AO211D1BWP)                       0.10       0.36 f
+  U142/Z (OA221D1BWP)                      0.06       0.42 f
+  U33/Z (AO221D1BWP)                       0.12       0.54 f
+  U203/Z (OA221D0BWP)                      0.07       0.62 f
+  U122/ZN (AOI221D1BWP)                    0.10       0.72 r
+  U140/ZN (OAI22D1BWP)                     0.06       0.78 f
+  U139/ZN (OAI221D1BWP)                    0.05       0.83 r
+  U204/ZN (OAI21D2BWP)                     0.07       0.89 f
+  U126/ZN (MOAI22D1BWP)                    0.08       0.97 r
+  U125/Z (CKBD16BWP)                       0.10       1.07 r
+  quotient (out)                           0.00       1.07 r
+  data arrival time                                   1.07
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -1.07
+  -----------------------------------------------------------
+  slack (MET)                                         0.78
+
+
+1

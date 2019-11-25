@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : SobolRNGDim1_5b
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 04:28:38 2019
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
+
+Number of ports:                            8
+Number of nets:                            47
+Number of cells:                           44
+Number of combinational cells:             34
+Number of sequential cells:                10
+Number of macros/black boxes:               0
+Number of buf/inv:                          9
+Number of references:                      20
+
+Combinational area:                 58.035602
+Buf/Inv area:                       25.225201
+Noncombinational area:              46.922400
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                   104.958002
+Total area:                 undefined
+1

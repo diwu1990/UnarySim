@@ -1,0 +1,51 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : iscbdiv
+Version: N-2017.09-SP5
+Date   : Thu Sep  6 01:16:15 2018
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: dividend (input port clocked by clk)
+  Endpoint: quotient (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  iscbdiv            TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 f
+  dividend (in)                            0.00       0.25 f
+  U22/ZN (INVD1BWP)                        0.03       0.28 r
+  U5/Z (XOR2D1BWP)                         0.10       0.37 f
+  U20/Z (AN2XD1BWP)                        0.05       0.42 f
+  U18/Z (OA22D2BWP)                        0.09       0.51 f
+  U19/ZN (INVD16BWP)                       0.07       0.58 r
+  quotient (out)                           0.00       0.58 r
+  data arrival time                                   0.58
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.58
+  -----------------------------------------------------------
+  slack (MET)                                         1.27
+
+
+1

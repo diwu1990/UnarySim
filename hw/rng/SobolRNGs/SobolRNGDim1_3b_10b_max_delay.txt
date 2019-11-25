@@ -1,0 +1,50 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : SobolRNGDim1_3b_10b
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 04:31:50 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: sobolSeq_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: sobolSeq[0]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  SobolRNGDim1_3b_10b
+                     TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  sobolSeq_reg[0]/CP (EDFCNQD1BWP)         0.00       0.00 r
+  sobolSeq_reg[0]/Q (EDFCNQD1BWP)          0.13       0.13 r
+  U34/Z (CKBD16BWP)                        0.09       0.21 r
+  sobolSeq[0] (out)                        0.00       0.21 r
+  data arrival time                                   0.21
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.21
+  -----------------------------------------------------------
+  slack (MET)                                         1.64
+
+
+1

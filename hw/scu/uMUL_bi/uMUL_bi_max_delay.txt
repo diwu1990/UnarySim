@@ -1,0 +1,58 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uMUL_bi
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 02:40:43 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: iB_buf_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: oC (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uMUL_bi            TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  iB_buf_reg[0]/CP (EDFCND1BWP)            0.00       0.00 r
+  iB_buf_reg[0]/QN (EDFCND1BWP)            0.17       0.17 f
+  U26/Z (OR2D1BWP)                         0.06       0.23 f
+  U25/Z (OR2D1BWP)                         0.06       0.29 f
+  U24/Z (AO222D1BWP)                       0.12       0.41 f
+  U178/Z (OA221D1BWP)                      0.06       0.47 f
+  U22/Z (AO221D1BWP)                       0.13       0.59 f
+  U175/ZN (OAI221D1BWP)                    0.04       0.63 r
+  U173/ZN (MAOI22D0BWP)                    0.05       0.68 f
+  U172/ZN (AOI221D4BWP)                    0.17       0.85 r
+  U153/ZN (IAO21D1BWP)                     0.02       0.86 f
+  U151/Z (OA22D2BWP)                       0.09       0.96 f
+  U152/ZN (INVD16BWP)                      0.07       1.03 r
+  oC (out)                                 0.00       1.03 r
+  data arrival time                                   1.03
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -1.03
+  -----------------------------------------------------------
+  slack (MET)                                         0.82
+
+
+1

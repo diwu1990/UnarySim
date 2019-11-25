@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : cordivall
+Version: N-2017.09-SP5
+Date   : Thu Sep  6 01:18:52 2018
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
+
+Number of ports:                           14
+Number of nets:                           150
+Number of cells:                          123
+Number of combinational cells:            105
+Number of sequential cells:                18
+Number of macros/black boxes:               0
+Number of buf/inv:                         29
+Number of references:                      31
+
+Combinational area:                133.887603
+Buf/Inv area:                       20.109601
+Noncombinational area:              77.263200
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                   211.150802
+Total area:                 undefined
+1

@@ -1,0 +1,73 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uMAC_bi_scaled
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 15:15:26 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: genblk1[9].U_uMUL_bi/U_SobolRNGDim1_reverse/sobolSeq_reg[1]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: oC (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uMAC_bi_scaled     TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  genblk1[9].U_uMUL_bi/U_SobolRNGDim1_reverse/sobolSeq_reg[1]/CP (EDFCNQD1BWP)
+                                                          0.00       0.00 r
+  genblk1[9].U_uMUL_bi/U_SobolRNGDim1_reverse/sobolSeq_reg[1]/Q (EDFCNQD1BWP)
+                                                          0.13       0.13 f
+  U3357/ZN (INVD1BWP)                                     0.03       0.16 r
+  U2508/ZN (OAI211D0BWP)                                  0.06       0.22 f
+  U2611/ZN (ND3D1BWP)                                     0.05       0.27 r
+  U2502/ZN (OAI221D2BWP)                                  0.06       0.33 f
+  U3128/ZN (OAI221D1BWP)                                  0.04       0.37 r
+  U2335/ZN (OAI221D1BWP)                                  0.08       0.45 f
+  U3057/ZN (AOI22D1BWP)                                   0.06       0.51 r
+  U2589/ZN (AOI221D2BWP)                                  0.04       0.55 f
+  U3344/ZN (AOI21D1BWP)                                   0.05       0.61 r
+  U3343/Z (OA22D1BWP)                                     0.08       0.68 r
+  U2513/Z (CKXOR2D1BWP)                                   0.10       0.78 f
+  U2686/ZN (XNR2D1BWP)                                    0.09       0.87 r
+  U2323/Z (CKXOR2D2BWP)                                   0.10       0.97 f
+  U2322/ZN (IAO22D2BWP)                                   0.08       1.05 r
+  U1428/ZN (XNR2D1BWP)                                    0.07       1.12 f
+  U2466/ZN (XNR2D1BWP)                                    0.09       1.21 r
+  U1421/Z (XOR2D1BWP)                                     0.09       1.30 f
+  U2616/ZN (XNR2D1BWP)                                    0.09       1.39 r
+  U1418/Z (XOR2D1BWP)                                     0.08       1.47 f
+  U_uSADD16/U7/CO (FA1D0BWP)                              0.12       1.59 f
+  U_uSADD16/U5/CO (FA1D0BWP)                              0.09       1.68 f
+  U_uSADD16/U9/CO (FA1D2BWP)                              0.08       1.76 f
+  U2469/ZN (NR2XD4BWP)                                    0.04       1.80 r
+  U2470/ZN (INVD16BWP)                                    0.05       1.85 f
+  oC (out)                                                0.00       1.85 f
+  data arrival time                                                  1.85
+
+  clock clk (rise edge)                                   2.50       2.50
+  clock network delay (ideal)                             0.00       2.50
+  clock uncertainty                                      -0.15       2.35
+  output external delay                                  -0.50       1.85
+  data required time                                                 1.85
+  --------------------------------------------------------------------------
+  data required time                                                 1.85
+  data arrival time                                                 -1.85
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1

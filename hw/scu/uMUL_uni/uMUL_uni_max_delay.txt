@@ -1,0 +1,57 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uMUL_uni
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 02:47:52 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: iB_buf_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: oC (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uMUL_uni           TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  iB_buf_reg[0]/CP (EDFCNQD1BWP)           0.00       0.00 r
+  iB_buf_reg[0]/Q (EDFCNQD1BWP)            0.12       0.12 f
+  U106/ZN (INR2D1BWP)                      0.04       0.17 f
+  U105/ZN (MAOI222D1BWP)                   0.06       0.23 r
+  U109/ZN (IAO21D1BWP)                     0.03       0.26 f
+  U11/Z (AO221D1BWP)                       0.12       0.39 f
+  U108/Z (OA221D1BWP)                      0.06       0.45 f
+  U107/ZN (AOI221D1BWP)                    0.09       0.54 r
+  U77/ZN (MOAI22D0BWP)                     0.06       0.60 f
+  U88/ZN (OAI221D1BWP)                     0.05       0.64 r
+  U86/Z (AO21D2BWP)                        0.09       0.73 r
+  U87/ZN (INVD16BWP)                       0.06       0.79 f
+  oC (out)                                 0.00       0.79 f
+  data arrival time                                   0.79
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.79
+  -----------------------------------------------------------
+  slack (MET)                                         1.06
+
+
+1

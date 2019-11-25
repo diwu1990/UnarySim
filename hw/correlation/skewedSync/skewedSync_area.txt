@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : skewedSync
+Version: N-2017.09-SP5
+Date   : Thu Sep  6 01:08:47 2018
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
+
+Number of ports:                            6
+Number of nets:                            18
+Number of cells:                           14
+Number of combinational cells:             12
+Number of sequential cells:                 2
+Number of macros/black boxes:               0
+Number of buf/inv:                          5
+Number of references:                      10
+
+Combinational area:                 20.462400
+Buf/Inv area:                       10.231200
+Noncombinational area:               8.114400
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                    28.576800
+Total area:                 undefined
+1

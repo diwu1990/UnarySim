@@ -1,0 +1,60 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : dMUL_uni
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 03:20:07 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: U_SobolRNGDim1_B/u_SobolRNG/out_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: oC (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  dMUL_uni           TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  U_SobolRNGDim1_B/u_SobolRNG/out_reg[0]/CP (EDFCNQD1BWP)
+                                                          0.00       0.00 r
+  U_SobolRNGDim1_B/u_SobolRNG/out_reg[0]/Q (EDFCNQD1BWP)
+                                                          0.13       0.13 f
+  U224/ZN (IND2D1BWP)                                     0.06       0.19 f
+  U22/Z (OA21D1BWP)                                       0.06       0.25 f
+  U222/ZN (AOI221D4BWP)                                   0.16       0.41 r
+  U20/Z (AO221D1BWP)                                      0.04       0.45 r
+  U221/Z (OA221D1BWP)                                     0.09       0.54 r
+  U220/ZN (AOI221D1BWP)                                   0.03       0.57 f
+  U215/ZN (MOAI22D0BWP)                                   0.06       0.62 r
+  U214/ZN (OAI221D1BWP)                                   0.07       0.70 f
+  U187/ZN (CKND2D0BWP)                                    0.05       0.75 r
+  U188/ZN (ND2D2BWP)                                      0.06       0.81 f
+  U185/ZN (CKND16BWP)                                     0.07       0.89 r
+  oC (out)                                                0.00       0.89 r
+  data arrival time                                                  0.89
+
+  clock clk (rise edge)                                   2.50       2.50
+  clock network delay (ideal)                             0.00       2.50
+  clock uncertainty                                      -0.15       2.35
+  output external delay                                  -0.50       1.85
+  data required time                                                 1.85
+  --------------------------------------------------------------------------
+  data required time                                                 1.85
+  data arrival time                                                 -0.89
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.96
+
+
+1

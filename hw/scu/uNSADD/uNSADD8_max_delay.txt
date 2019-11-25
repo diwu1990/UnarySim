@@ -1,0 +1,59 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uNSADD8
+Version: N-2017.09-SP5
+Date   : Mon Aug 12 15:51:23 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: actualOneBuf_reg[2]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: out (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uNSADD8            TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  actualOneBuf_reg[2]/CP (DFCNQD1BWP)      0.00       0.00 r
+  actualOneBuf_reg[2]/Q (DFCNQD1BWP)       0.12       0.12 r
+  U93/ZN (INVD1BWP)                        0.04       0.16 f
+  U98/Z (OA211D1BWP)                       0.07       0.24 f
+  U57/Z (AO221D1BWP)                       0.12       0.36 f
+  U97/Z (OA221D1BWP)                       0.06       0.42 f
+  U86/ZN (AOI221D4BWP)                     0.16       0.58 r
+  U84/ZN (AOI221D4BWP)                     0.07       0.65 f
+  U83/ZN (AOI221D1BWP)                     0.09       0.74 r
+  U88/ZN (MOAI22D0BWP)                     0.06       0.79 f
+  U87/ZN (OAI221D1BWP)                     0.05       0.84 r
+  U77/ZN (IOA21D0BWP)                      0.08       0.91 f
+  U63/ZN (CKND2BWP)                        0.08       0.99 r
+  U75/ZN (CKND16BWP)                       0.07       1.06 f
+  out (out)                                0.00       1.06 f
+  data arrival time                                   1.06
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -1.06
+  -----------------------------------------------------------
+  slack (MET)                                         0.79
+
+
+1

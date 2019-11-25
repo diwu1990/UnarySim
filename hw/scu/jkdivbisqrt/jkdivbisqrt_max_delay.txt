@@ -1,0 +1,49 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : jkdivbisqrt
+Version: N-2017.09-SP5
+Date   : Thu Sep  6 01:22:16 2018
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: in (input port clocked by clk)
+  Endpoint: out (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  jkdivbisqrt        TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 f
+  in (in)                                  0.00       0.25 f
+  U11/ZN (IND2D1BWP)                       0.05       0.30 f
+  U9/ZN (CKND2BWP)                         0.05       0.34 r
+  U10/ZN (CKND16BWP)                       0.06       0.40 f
+  out (out)                                0.00       0.40 f
+  data arrival time                                   0.40
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.40
+  -----------------------------------------------------------
+  slack (MET)                                         1.45
+
+
+1

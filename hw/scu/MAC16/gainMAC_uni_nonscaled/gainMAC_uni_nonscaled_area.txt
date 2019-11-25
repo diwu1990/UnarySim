@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : gainMAC_uni_nonscaled
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 13:44:47 2019
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
+
+Number of ports:                          261
+Number of nets:                          3194
+Number of cells:                         2808
+Number of combinational cells:           2039
+Number of sequential cells:               769
+Number of macros/black boxes:               0
+Number of buf/inv:                        430
+Number of references:                      35
+
+Combinational area:               2393.395260
+Buf/Inv area:                      231.789608
+Noncombinational area:            3667.532426
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                  6060.927686
+Total area:                 undefined
+1

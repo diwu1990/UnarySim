@@ -1,0 +1,48 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : muxADD_rng
+Version: N-2017.09-SP5
+Date   : Mon Aug 12 16:21:35 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: U_muxADD/out_reg
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: out (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  muxADD_rng         TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  U_muxADD/out_reg/CP (DFCNQD1BWP)         0.00       0.00 r
+  U_muxADD/out_reg/Q (DFCNQD1BWP)          0.14       0.14 r
+  U23/Z (CKBD16BWP)                        0.09       0.22 r
+  out (out)                                0.00       0.22 r
+  data arrival time                                   0.22
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.22
+  -----------------------------------------------------------
+  slack (MET)                                         1.63
+
+
+1

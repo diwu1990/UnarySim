@@ -1,0 +1,1 @@
+`define GWIDTH 4

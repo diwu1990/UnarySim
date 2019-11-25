@@ -1,0 +1,62 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : gainMAC_uni_nonscaled
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 13:44:48 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: genblk1[0].U_gMUL_uni/iB_buf_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: U_orADD/out_reg
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  gainMAC_uni_nonscaled
+                     TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  genblk1[0].U_gMUL_uni/iB_buf_reg[0]/CP (EDFCND1BWP)     0.00       0.00 r
+  genblk1[0].U_gMUL_uni/iB_buf_reg[0]/QN (EDFCND1BWP)     0.17       0.17 r
+  U2853/ZN (NR2XD0BWP)                                    0.03       0.20 f
+  U2653/Z (AN2XD1BWP)                                     0.04       0.25 f
+  U2915/Z (OA222D1BWP)                                    0.08       0.33 f
+  U1290/Z (AO221D1BWP)                                    0.13       0.45 f
+  U2869/ZN (OAI221D1BWP)                                  0.04       0.49 r
+  U2868/ZN (OAI221D1BWP)                                  0.07       0.57 f
+  U2316/ZN (MAOI22D0BWP)                                  0.07       0.63 r
+  U2998/Z (AO221D1BWP)                                    0.06       0.70 r
+  U2997/Z (OA21D1BWP)                                     0.05       0.75 r
+  U2322/ZN (OAI22D1BWP)                                   0.04       0.79 f
+  U2668/ZN (AOI221D4BWP)                                  0.16       0.95 r
+  U2328/ZN (IIND4D1BWP)                                   0.05       1.01 f
+  U_orADD/out_reg/D (DFCNQD1BWP)                          0.00       1.01 f
+  data arrival time                                                  1.01
+
+  clock clk (rise edge)                                   2.50       2.50
+  clock network delay (ideal)                             0.00       2.50
+  clock uncertainty                                      -0.15       2.35
+  U_orADD/out_reg/CP (DFCNQD1BWP)                         0.00       2.35 r
+  library setup time                                     -0.02       2.33
+  data required time                                                 2.33
+  --------------------------------------------------------------------------
+  data required time                                                 2.33
+  data arrival time                                                 -1.01
+  --------------------------------------------------------------------------
+  slack (MET)                                                        1.32
+
+
+1

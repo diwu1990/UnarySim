@@ -1,0 +1,76 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uMAC_uni_scaled
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 15:34:51 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: genblk1[4].U_uMUL_uni/U_SobolRNGDim1/sobolSeq_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: oC (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uMAC_uni_scaled    TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  genblk1[4].U_uMUL_uni/U_SobolRNGDim1/sobolSeq_reg[0]/CP (EDFCNQD1BWP)
+                                                          0.00       0.00 r
+  genblk1[4].U_uMUL_uni/U_SobolRNGDim1/sobolSeq_reg[0]/Q (EDFCNQD1BWP)
+                                                          0.13       0.13 f
+  U1587/ZN (NR2D1BWP)                                     0.05       0.18 r
+  U1608/ZN (INR2D1BWP)                                    0.07       0.25 r
+  U1288/Z (OA222D0BWP)                                    0.12       0.36 r
+  U1529/Z (AO221D1BWP)                                    0.05       0.42 r
+  U1163/ZN (OAI221D1BWP)                                  0.06       0.48 f
+  U1171/ZN (ND3D1BWP)                                     0.04       0.52 r
+  U1170/ZN (IOA21D1BWP)                                   0.03       0.55 f
+  U1206/ZN (MAOI222D1BWP)                                 0.06       0.62 r
+  U1164/ZN (MOAI22D1BWP)                                  0.06       0.68 r
+  U1606/ZN (ND2D1BWP)                                     0.05       0.73 f
+  U1954/ZN (XNR2D1BWP)                                    0.07       0.80 f
+  U1336/ZN (XNR2D1BWP)                                    0.09       0.89 r
+  U1199/Z (XOR2D2BWP)                                     0.09       0.98 f
+  U1332/ZN (MAOI22D1BWP)                                  0.05       1.03 r
+  U720/ZN (XNR2D1BWP)                                     0.08       1.11 f
+  U1196/ZN (XNR2D1BWP)                                    0.09       1.20 r
+  U1162/Z (XOR2D2BWP)                                     0.10       1.30 f
+  U1222/ZN (CKND1BWP)                                     0.02       1.33 r
+  U1223/ZN (CKND2D1BWP)                                   0.02       1.35 f
+  U1227/ZN (ND2D1BWP)                                     0.04       1.39 r
+  U1303/Z (XOR2D1BWP)                                     0.08       1.47 f
+  U_uSADD16/U7/CO (FA1D0BWP)                              0.12       1.59 f
+  U_uSADD16/U6/CO (FA1D1BWP)                              0.08       1.68 f
+  U1165/ZN (ND2D2BWP)                                     0.03       1.71 r
+  U1211/ZN (ND3D4BWP)                                     0.04       1.76 f
+  U1213/ZN (NR2XD4BWP)                                    0.04       1.80 r
+  U1249/ZN (INVD16BWP)                                    0.05       1.85 f
+  oC (out)                                                0.00       1.85 f
+  data arrival time                                                  1.85
+
+  clock clk (rise edge)                                   2.50       2.50
+  clock network delay (ideal)                             0.00       2.50
+  clock uncertainty                                      -0.15       2.35
+  output external delay                                  -0.50       1.85
+  data required time                                                 1.85
+  --------------------------------------------------------------------------
+  data required time                                                 1.85
+  data arrival time                                                 -1.85
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1

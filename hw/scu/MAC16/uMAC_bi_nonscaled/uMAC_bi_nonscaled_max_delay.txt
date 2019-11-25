@@ -1,0 +1,84 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uMAC_bi_nonscaled
+Version: N-2017.09-SP5
+Date   : Wed Aug 14 15:21:46 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: genblk1[9].U_uMUL_bi/iB_buf_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: U_uNSADD16/theoryOneBuf_reg[9]
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uMAC_bi_nonscaled  TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  genblk1[9].U_uMUL_bi/iB_buf_reg[0]/CP (EDFCND1BWP)      0.00       0.00 r
+  genblk1[9].U_uMUL_bi/iB_buf_reg[0]/Q (EDFCND1BWP)       0.11       0.11 r
+  U3055/ZN (INVD1BWP)                                     0.02       0.14 f
+  U1567/Z (OR2D1BWP)                                      0.06       0.20 f
+  U1566/Z (OR2D1BWP)                                      0.06       0.25 f
+  U1565/Z (AO222D1BWP)                                    0.12       0.38 f
+  U2901/ZN (OAI221D1BWP)                                  0.04       0.42 r
+  U2932/ZN (OAI221D1BWP)                                  0.08       0.49 f
+  U2931/ZN (OAI221D1BWP)                                  0.05       0.54 r
+  U2929/ZN (MAOI22D0BWP)                                  0.05       0.59 f
+  U2441/Z (AO221D1BWP)                                    0.13       0.72 f
+  U2440/Z (OA21D1BWP)                                     0.05       0.77 f
+  U2261/Z (OA22D1BWP)                                     0.07       0.84 f
+  U1548/Z (XOR2D1BWP)                                     0.08       0.92 f
+  U1527/ZN (XNR2D1BWP)                                    0.09       1.00 r
+  U1526/Z (XOR2D1BWP)                                     0.10       1.10 f
+  U1434/ZN (MAOI22D1BWP)                                  0.06       1.17 r
+  U1432/ZN (XNR2D1BWP)                                    0.09       1.26 f
+  U1431/ZN (XNR2D1BWP)                                    0.09       1.35 r
+  U1425/Z (XOR2D1BWP)                                     0.09       1.44 f
+  U2408/ZN (XNR2D1BWP)                                    0.07       1.51 f
+  U2407/ZN (IND3D1BWP)                                    0.09       1.60 f
+  U1414/Z (XOR2D1BWP)                                     0.09       1.70 f
+  U_uNSADD16/add_0_root_sub_0_root_sub_42/U1_3/CO (FA1D0BWP)
+                                                          0.12       1.81 f
+  U_uNSADD16/add_0_root_sub_0_root_sub_42/U1_4/CO (FA1D0BWP)
+                                                          0.08       1.90 f
+  U_uNSADD16/add_0_root_sub_0_root_sub_42/U1_5/CO (FA1D0BWP)
+                                                          0.08       1.98 f
+  U_uNSADD16/add_0_root_sub_0_root_sub_42/U1_6/CO (FA1D0BWP)
+                                                          0.08       2.07 f
+  U_uNSADD16/add_0_root_sub_0_root_sub_42/U1_7/CO (FA1D0BWP)
+                                                          0.08       2.15 f
+  U_uNSADD16/add_0_root_sub_0_root_sub_42/U1_8/CO (FA1D0BWP)
+                                                          0.09       2.24 f
+  U_uNSADD16/add_0_root_sub_0_root_sub_42/U1_9/Z (XOR3D1BWP)
+                                                          0.08       2.32 r
+  U_uNSADD16/theoryOneBuf_reg[9]/D (DFCNQD1BWP)           0.00       2.32 r
+  data arrival time                                                  2.32
+
+  clock clk (rise edge)                                   2.50       2.50
+  clock network delay (ideal)                             0.00       2.50
+  clock uncertainty                                      -0.15       2.35
+  U_uNSADD16/theoryOneBuf_reg[9]/CP (DFCNQD1BWP)          0.00       2.35 r
+  library setup time                                     -0.03       2.32
+  data required time                                                 2.32
+  --------------------------------------------------------------------------
+  data required time                                                 2.32
+  data arrival time                                                 -2.32
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1
