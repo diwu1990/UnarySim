@@ -25,11 +25,7 @@ module data_buf (
     end
 
     always_comb begin : proc_rd_bus
-        if (rd_en) begin
-            oData <= dataMem[rd_addr];
-        end else begin
-            oData <= oData;
-        end
+        oData <= dataMem[rd_addr];
     end
 
 endmodule
