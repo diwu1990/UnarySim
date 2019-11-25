@@ -52,9 +52,10 @@ The components currently supported or to be implemented are listed in the table 
 | Name                 | Date          | Reference     | Status                 |
 | -------------------- | ------------- | ------------- | ---------------------- |
 | BSGen                | Seq. 07, 2019 | [1]           | <ul><li>[x] </li></ul> |
-| BSReGen              |               | NA            | <ul><li>[ ] </li></ul> |
+| BSGenMulti           | Nov. 11, 2019 | [1]           | <ul><li>[x] </li></ul> |
 | RawScale             | Oct. 10, 2019 | NA            | <ul><li>[x] </li></ul> |
 | RNG                  | Seq. 07, 2019 | [2]           | <ul><li>[x] </li></ul> |
+| RNGMulti             | Nov. 11, 2019 | [2]           | <ul><li>[x] </li></ul> |
 | SourceGen            | Seq. 07, 2019 | [1]           | <ul><li>[x] </li></ul> |
 
 
@@ -81,11 +82,12 @@ The components currently supported or to be implemented are listed in the table 
 | division             |               | [5]           | <ul><li>[ ] </li></ul> |
 | exponentiation       |               |               | <ul><li>[ ] </li></ul> |
 | UnaryLinear          | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
+| GainesLinear         | Nov. 25, 2019 | [1]           | <ul><li>[x] </li></ul> |
 | max                  |               |               | <ul><li>[ ] </li></ul> |
 | min                  |               |               | <ul><li>[ ] </li></ul> |
 | UnaryMul             | Nov. 05, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | pool                 |               |               | <ul><li>[ ] </li></ul> |
-| relu                 | Nov. 23, 2019 | [6]           | <ul><li>[x] </li></ul> |
+| UnaryReLU            | Nov. 23, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | square root          |               | [5]           | <ul><li>[ ] </li></ul> |
 
 
