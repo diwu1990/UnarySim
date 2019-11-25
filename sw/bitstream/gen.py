@@ -2,7 +2,7 @@ import torch
 
 class RNG(torch.nn.Module):
     """
-    Random number generator to generate one random sequence
+    Random number generator to generate one random sequence, returns a tensor of size [2**bitwidth]
     """
     def __init__(self, bitwidth=8, dim=1, mode="Sobol"):
         super(RNG, self).__init__()
@@ -15,6 +15,26 @@ class RNG(torch.nn.Module):
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, dim-1].view(self.seq_len).mul_(self.seq_len).type(torch.long)
         elif self.mode == "Race":
             self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len).type(torch.long)
+        else:
+            raise ValueError("RNG mode is not implemented.")
+
+    def forward(self):
+        return self.rng_seq
+    
+
+class RNGMulti(torch.nn.Module):
+    """
+    Random number generator to generate multiple random sequences, returns a tensor of size [dim, 2**bitwidth]
+    """
+    def __init__(self, bitwidth=8, dim=1, mode="Sobol"):
+        super(RNGMulti, self).__init__()
+        self.dim = dim
+        self.mode = mode
+        self.seq_len = pow(2, bitwidth)
+        self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
+        if self.mode == "Sobol":
+            # get the requested dimension of sobol random number
+            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len).transpose(0, 1).mul_(self.seq_len).type(torch.long)
         else:
             raise ValueError("RNG mode is not implemented.")
 
