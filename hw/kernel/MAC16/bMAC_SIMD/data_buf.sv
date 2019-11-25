@@ -4,9 +4,9 @@ module data_buf (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
     input logic rd_en,
-    input logic rd_addr,
+    input logic [`ADDR_BW-1 : 0] rd_addr,
     input logic wr_en,
-    input logic wr_addr,
+    input logic [`ADDR_BW-1 : 0] wr_addr,
     input logic [`MAC_BW-1 : 0] iData,
     output logic [`MAC_BW-1 : 0] oData
 );

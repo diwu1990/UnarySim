@@ -13,3 +13,7 @@
 `ifndef COL_CNT
     `define COL_CNT 16
 `endif
+
+`ifndef ADDR_BW
+    `define ADDR_BW 4
+`endif
