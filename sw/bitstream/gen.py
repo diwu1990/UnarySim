@@ -26,7 +26,7 @@ class RNGMulti(torch.nn.Module):
     """
     Random number generator to generate multiple random sequences, returns a tensor of size [dim, 2**bitwidth]
     """
-    def __init__(self, bitwidth=8, dim=1, mode="Sobol"):
+    def __init__(self, bitwidth=8, dim=1, mode="Sobol", transpose=False):
         super(RNGMulti, self).__init__()
         self.dim = dim
         self.mode = mode
@@ -34,9 +34,11 @@ class RNGMulti(torch.nn.Module):
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         if self.mode == "Sobol":
             # get the requested dimension of sobol random number
-            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len).transpose(0, 1).mul_(self.seq_len).type(torch.long)
+            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len).mul_(self.seq_len).type(torch.long)
         else:
             raise ValueError("RNG mode is not implemented.")
+        if transpose is True:
+            self.rng_seq.transpose(0, 1)
 
     def forward(self):
         return self.rng_seq
@@ -98,6 +100,20 @@ class BSGen(torch.nn.Module):
     
     def forward(self, rng_idx):
         return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.int8)
+    
+    
+class BSGenMulti(torch.nn.Module):
+    """
+    Compare source data with rng_seq indexed with rng_idx to generate bit streams from source
+    """
+    def __init__(self, source, rng_seq, dim=0):
+        super(BSGenMulti, self).__init__()
+        self.source = source
+        self.rng_seq = rng_seq
+        self.dim = dim
+    
+    def forward(self, rng_idx):
+        return torch.gt(self.source, torch.gather(self.rng_seq, self.dim, rng_idx)).type(torch.int8)
     
     
 # class BSRegen(torch.nn.Module):

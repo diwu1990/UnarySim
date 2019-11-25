@@ -1,6 +1,6 @@
 import torch
 import math
-from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
+from UnarySim.sw.bitstream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
 
 class UnaryLinear(torch.nn.Module):
     """
@@ -163,7 +163,8 @@ class GainesLinear1(torch.nn.Module):
         self.bitwidth = bitwidth
         
         # random_sequence from sobol RNG
-        self.rng = RNG(self.bitwidth, rng_idx, "Sobol")()
+        self.rng = RNGMulti(self.bitwidth, in_features, "Sobol")()
+        self.rng_bias = RNG(self.bitwidth, in_features+1, "Sobol")()
         
         # define the convolution weight and bias
         self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode)()
@@ -172,10 +173,10 @@ class GainesLinear1(torch.nn.Module):
         
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
-        self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
+        self.buf_wght_bs = BSGenMulti(self.buf_wght, self.rng, dim=0)
         self.rng_wght_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.weight, dtype=torch.long), requires_grad=False)
         if self.has_bias is True:
-            self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
+            self.buf_bias_bs = BSGen(self.buf_bias, self.rng_bias)
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
@@ -281,7 +282,8 @@ class GainesLinear2(torch.nn.Module):
         self.bitwidth = bitwidth
         
         # random_sequence from sobol RNG
-        self.rng = RNG(self.bitwidth, 2, "Sobol")()
+        self.rng = RNGMulti(self.bitwidth, in_features, "Sobol")()
+        self.rng_bias = RNG(self.bitwidth, in_features+1, "Sobol")()
         
         # define the convolution weight and bias
         self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode)()
@@ -290,10 +292,10 @@ class GainesLinear2(torch.nn.Module):
         
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
-        self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
+        self.buf_wght_bs = BSGenMulti(self.buf_wght, self.rng, dim=0)
         self.rng_wght_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.weight, dtype=torch.long), requires_grad=False)
         if self.has_bias is True:
-            self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
+            self.buf_bias_bs = BSGen(self.buf_bias, self.rng_bias)
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
@@ -338,7 +340,8 @@ class GainesLinear2(torch.nn.Module):
 
 class GainesLinear3(torch.nn.Module):
     """
-    uMUL + gADD
+    uMUL + gADD: this version will not work well, due to same rng is used in uMUL, the accumulation
+    will be inaccurate.
     this module is the fully connected layer,
     its API is similar to the parent class (input/output feature count, bias flag), except:
     1) accumulation mode
@@ -455,3 +458,5 @@ class GainesLinear3(torch.nn.Module):
                 output = torch.gt(self.cnt, self.half_max)
 
         return output.type(torch.int8)
+    
+    
