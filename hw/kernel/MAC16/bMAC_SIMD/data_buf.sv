@@ -7,12 +7,12 @@ module data_buf (
     input logic [`ADDR_BW-1 : 0] rd_addr,
     input logic wr_en,
     input logic [`ADDR_BW-1 : 0] wr_addr,
-    input logic [`MAC_BW*`COL_BW-1 : 0] iData,
-    output logic [`MAC_BW*`COL_BW-1 : 0] oData
+    input logic [`MAC_BW*`COL_CNT-1 : 0] iData,
+    output logic [`MAC_BW*`COL_CNT-1 : 0] oData
 );
 
     // each read/write deals with one row of data
-    logic [`ROW_CNT-1 : 0][`MAC_BW*`COL_BW-1 : 0] dataMem;
+    logic [`ROW_CNT-1 : 0][`MAC_BW*`COL_CNT-1 : 0] dataMem;
 
     always_ff @(posedge clk or negedge rst_n) begin : proc_dataMem
         if(~rst_n) begin
