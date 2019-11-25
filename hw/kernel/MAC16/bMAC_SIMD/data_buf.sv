@@ -12,7 +12,7 @@ module data_buf (
 );
 
     // each read/write deals with one row of data
-    logic [`MAC_BW-1 : 0] dataMem [`ROW_CNT-1 : 0];
+    logic [`MAC_BW-1 : 0][`ROW_CNT-1 : 0] dataMem;
 
     always_ff @(posedge clk or negedge rst_n) begin : proc_dataMem
         if(~rst_n) begin
