@@ -1,0 +1,71 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : mac
+Version: P-2019.03
+Date   : Mon Nov 25 04:11:48 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: iA[0] (input port clocked by clk)
+  Endpoint: oC_reg[19] (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  mac                TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 r
+  iA[0] (in)                               0.00       0.25 r
+  U177/ZN (CKND2BWP)                       0.02       0.27 f
+  U282/ZN (NR3D0BWP)                       0.07       0.35 r
+  mult_29/S2_2_3/CO (FA1D0BWP)             0.15       0.49 r
+  mult_29/S2_3_3/CO (FA1D0BWP)             0.13       0.62 r
+  mult_29/S2_4_3/CO (FA1D0BWP)             0.13       0.75 r
+  mult_29/S2_5_3/CO (FA1D0BWP)             0.13       0.89 r
+  mult_29/S2_6_3/CO (FA1D0BWP)             0.13       1.02 r
+  mult_29/S4_3/S (FA1D0BWP)                0.16       1.18 f
+  U161/ZN (XNR2D1BWP)                      0.07       1.25 f
+  U234/ZN (CKND1BWP)                       0.03       1.28 r
+  U261/ZN (ND2D1BWP)                       0.04       1.32 f
+  U251/ZN (OAI21D0BWP)                     0.04       1.36 r
+  U157/Z (XOR2D1BWP)                       0.09       1.46 f
+  add_29/U1_10/CO (FA1D0BWP)               0.15       1.61 f
+  add_29/U1_11/CO (FA1D0BWP)               0.08       1.70 f
+  add_29/U1_12/CO (FA1D0BWP)               0.08       1.78 f
+  add_29/U1_13/CO (FA1D0BWP)               0.08       1.87 f
+  add_29/U1_14/CO (FA1D0BWP)               0.08       1.95 f
+  add_29/U1_15/CO (FA1D0BWP)               0.09       2.04 f
+  U275/ZN (INVD1BWP)                       0.04       2.08 r
+  U123/ZN (INR3D1BWP)                      0.04       2.11 f
+  U253/ZN (CKND2D1BWP)                     0.04       2.15 r
+  U118/Z (XOR2D1BWP)                       0.09       2.24 f
+  U312/ZN (OAI22D1BWP)                     0.06       2.30 r
+  oC_reg[19]/D (DFCNQD1BWP)                0.00       2.30 r
+  data arrival time                                   2.30
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  oC_reg[19]/CP (DFCNQD1BWP)               0.00       2.35 r
+  library setup time                      -0.04       2.31
+  data required time                                  2.31
+  -----------------------------------------------------------
+  data required time                                  2.31
+  data arrival time                                  -2.30
+  -----------------------------------------------------------
+  slack (MET)                                         0.01
+
+
+1
