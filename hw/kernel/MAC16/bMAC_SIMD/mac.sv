@@ -15,14 +15,14 @@ module mac (
     logic [2*`MAC_BW+3 : 0] iC_mac;
 
     always_comb begin : proc_iC_mac
-        iC_mac <= acc_en ? oC : iC
+        iC_mac <= acc_en ? oC : iC;
     end
 
     always_ff @(posedge clk or negedge rst_n) begin : proc_output
         if(~rst_n) begin
-            oA <= 0;
+            // oA <= 0;
             // oB <= 0;
-            // oC <= 0;
+            oC <= 0;
         end else begin
             // oA <= iA;
             // oB <= iB;
