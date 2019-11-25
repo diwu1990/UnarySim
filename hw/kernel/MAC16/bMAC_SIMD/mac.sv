@@ -1,6 +1,6 @@
 `include "param_def.sv"
 
-module MAC (
+module mac (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
     input logic [`MAC_BW-1 : 0] iA,
