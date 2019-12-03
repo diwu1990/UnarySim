@@ -47,3 +47,47 @@ class UnaryReLU(torch.nn.Module):
         elif self.rng is "Race":
             return self.UnaryReLU_forward_race(input)
 
+    
+    
+    
+    """
+    unary ReLU activation based on register
+    data is always in bipolar representation
+    first test on Sobol mode, still in test
+    """      
+    def __init__(self, buf_dep=4, bitwidth=8, rng="Sobol"):
+        super(UnaryReLU, self).__init__()
+        
+        if rng is "Sobol":
+            self.shadow_cnt = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
+            self.shift_array = torch.nn.Parameter(torch.zeros(bitwidth).type(torch.long), requires_grad=False)
+            self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(bitwidth / 2).type(torch.long), requires_grad=False)
+            
+#       elif rng is "Race":
+#             
+        else:
+            raise ValueError("UnaryReLU rng other than \"Sobol\" or \"Race\" is illegal.")
+        self.rng = rng
+        self.bitwidth = bitwidth
+    
+    def UnaryReLU_shift_forward_sobol(self, input):
+        
+        # update the shadow counter first
+        self.shadow_cnt.data = self.shift_array.sum(0)
+        
+        # check whether shadow_cnt is larger than or equal to half
+        half_prob_flag = torch.ge(self.shadow_cnt, self.buf_half).type(torch.int8)
+        
+        # when no flag, means negative, output 1 to get close to 1/2 (which is 0 in sc context)
+        output = input | (1 - half_prob_flag)
+
+        # update the register_array
+        for i in range(self.bitwidth-1):
+            shift_array.data[i] = shift_array[i+1]
+            shift_array.data[self.bitwidth-1] = input
+       
+        return output
+
+        
+        
+        
