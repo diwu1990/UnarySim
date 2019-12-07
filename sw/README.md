@@ -53,7 +53,7 @@ The components currently supported or to be implemented are listed in the table 
 | -------------------- | ------------- | ------------- | ---------------------- |
 | BSGen                | Seq. 07, 2019 | [1]           | <ul><li>[x] </li></ul> |
 | BSGenMulti           | Nov. 11, 2019 | [1]           | <ul><li>[x] </li></ul> |
-| RawScale             | Oct. 10, 2019 | NA            | <ul><li>[x] </li></ul> |
+| RawScale             | Dec. 07, 2019 | NA            | <ul><li>[x] </li></ul> |
 | RNG                  | Seq. 07, 2019 | [2]           | <ul><li>[x] </li></ul> |
 | RNGMulti             | Nov. 11, 2019 | [2]           | <ul><li>[x] </li></ul> |
 | SourceGen            | Seq. 07, 2019 | [1]           | <ul><li>[x] </li></ul> |
