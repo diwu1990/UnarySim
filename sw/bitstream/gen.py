@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 class RNG(torch.nn.Module):
     """
@@ -46,7 +47,8 @@ class RNGMulti(torch.nn.Module):
 
 class RawScale(torch.nn.Module):
     """
-    Scale raw data to source data to unary computing, which meets bipolar/unipolar requirements.
+    Scale raw data to source data in unary computing, which meets bipolar/unipolar requirements.
+    input percentile should be a number in range (0, 100].
     """
     def __init__(self, raw, mode="bipolar", percentile=100):
         super(RawScale, self).__init__()
@@ -54,17 +56,21 @@ class RawScale(torch.nn.Module):
         self.mode = mode
         
         # to do: add the percentile based scaling
-        self.percentile = percentile
-        
+        self.percentile_down = (100 - percentile)/2
+        self.percentile_up = 100 - self.percentile_down
+        self.clamp_min = np.percentile(raw.cpu(), self.percentile_down)
+        self.clamp_max = np.percentile(raw.cpu(), self.percentile_up)
+
         self.source = torch.nn.Parameter(torch.Tensor(raw.size()), requires_grad=False)
+        self.source.data = raw.clamp(self.clamp_min, self.clamp_max)
 
     def forward(self):
         if self.mode == "unipolar":
-            self.source.data = (self.raw - torch.min(self.raw))/(torch.max(self.raw) - torch.min(self.raw))
+            self.source.data = (self.source - torch.min(self.source))/(torch.max(self.source) - torch.min(self.source))
         elif self.mode == "bipolar":
-            self.source.data = (self.raw - torch.min(self.raw))/(torch.max(self.raw) - torch.min(self.raw)) * 2 - 1
+            self.source.data = (self.source - torch.min(self.source))/(torch.max(self.source) - torch.min(self.source)) * 2 - 1
         else:
-            raise ValueError("SourceGen mode is not implemented.")
+            raise ValueError("RawScale mode is not implemented.")
         return self.source
     
     
@@ -114,24 +120,4 @@ class BSGenMulti(torch.nn.Module):
     
     def forward(self, rng_idx):
         return torch.gt(self.source, torch.gather(self.rng_seq, self.dim, rng_idx)).type(torch.int8)
-    
-    
-# class BSRegen(torch.nn.Module):
-#     """
-#     collect input bit, compare buffered binary with rng_seq[rng_idx] to regenerate bit stream
-#     """
-#     def __init__(self, depth, rng_seq, mode="unipolar"):
-#         super(BSRegen, self).__init__()
-#         # self.in_shape = in_shape
-#         self.rng_seq = rng_seq
-#         self.half = pow(2,depth-1)
-#         self.upper = pow(2,depth)-1
-#         # self.cnt = torch.ones(in_shape).mul_(self.half).type(torch.long)
-#         self.cnt = self.half
-    
-#     def forward(self, in_bit, rng_idx):
-#         self.cnt = self.cnt + in_bit.type(torch.float).mul_(2).sub_(1)
-#         self.cnt.type(torch.long).clamp_(0, self.upper)
-#         # self.cnt.add_(in_bit.type(torch.long).mul_(2).sub_(1)).clamp_(0, self.upper)
-#         return torch.gt(self.cnt, self.rng_seq[rng_idx]).type(torch.int8)
     
