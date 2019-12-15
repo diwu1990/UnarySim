@@ -145,8 +145,12 @@ class NormStability(torch.nn.Module):
                 for val in range(lower[index_0].type(torch.long), 
                                  upper[index_0].type(torch.long)):
                     val_gcd = math.gcd(val, length_gcd)
-                    max_stab_len = min(max_stab_len, length_gcd/val_gcd)
-                self.max_stab[index_0] = 1 - max_stab_len/length_gcd
+                    min_len = length_gcd/val_gcd
+                    # find the best stability bit stream.
+                    for repeat in range(val_gcd):
+                        if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
+                            max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                self.max_stab[index_0] = 1 - max_stab_len/self.len
                 
         if dim == 2:
             for index_0 in range(self.in_shape[0]):
@@ -155,8 +159,12 @@ class NormStability(torch.nn.Module):
                     for val in range(lower[index_0][index_1].type(torch.long), 
                                      upper[index_0][index_1].type(torch.long)):
                         val_gcd = math.gcd(val, length_gcd)
-                        max_stab_len = min(max_stab_len, length_gcd/val_gcd)
-                    self.max_stab[index_0][index_1] = 1 - max_stab_len/length_gcd
+                        min_len = length_gcd/val_gcd
+                        # find the best stability bit stream.
+                        for repeat in range(val_gcd):
+                            if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
+                                max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                    self.max_stab[index_0][index_1] = 1 - max_stab_len/self.len
                     
         if dim == 3:
             for index_0 in range(self.in_shape[0]):
@@ -166,8 +174,12 @@ class NormStability(torch.nn.Module):
                         for val in range(lower[index_0][index_1][index_2].type(torch.long), 
                                          upper[index_0][index_1][index_2].type(torch.long)):
                             val_gcd = math.gcd(val, length_gcd)
-                            max_stab_len = min(max_stab_len, length_gcd/val_gcd)
-                        self.max_stab[index_0][index_1][index_2] = 1 - max_stab_len/length_gcd
+                            min_len = length_gcd/val_gcd
+                            # find the best stability bit stream.
+                            for repeat in range(val_gcd):
+                                if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
+                                    max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                        self.max_stab[index_0][index_1][index_2] = 1 - max_stab_len/self.len
                         
         if dim == 4:
             for index_0 in range(self.in_shape[0]):
@@ -178,8 +190,12 @@ class NormStability(torch.nn.Module):
                             for val in range(lower[index_0][index_1][index_2][index_3].type(torch.long), 
                                              upper[index_0][index_1][index_2][index_3].type(torch.long)):
                                 val_gcd = math.gcd(val, length_gcd)
-                                max_stab_len = min(max_stab_len, length_gcd/val_gcd)
-                            self.max_stab[index_0][index_1][index_2][index_3] = 1 - max_stab_len/length_gcd
+                                min_len = length_gcd/val_gcd
+                                # find the best stability bit stream.
+                                for repeat in range(val_gcd):
+                                    if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
+                                        max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                            self.max_stab[index_0][index_1][index_2][index_3] = 1 - max_stab_len/self.len
                             
         return self.stability()/self.max_stab
     
