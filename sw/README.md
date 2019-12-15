@@ -103,7 +103,7 @@ The components currently supported or to be implemented are listed in the table 
 | Correlation          | Seq. 07, 2019 | [3]           | <ul><li>[x] </li></ul> |
 | ProgressivePrecision | Seq. 07, 2019 | [7]           | <ul><li>[x] </li></ul> |
 | Stability            | Seq. 07, 2019 | [6]           | <ul><li>[x] </li></ul> |
-| NormStability        | Seq. 07, 2019 | NA            | <ul><li>[x] </li></ul> |
+| NormStability        | Dec. 14, 2019 | NA            | <ul><li>[x] </li></ul> |
 
 
 ### _'test'_ subdirectory
