@@ -137,7 +137,9 @@ class NormStability(torch.nn.Module):
         dim = len(self.in_shape)
         assert dim <= 4, "Input dimension larger than 4 is not implemented."
         length_gcd = pow(2, math.ceil(math.log2(self.len)))
+        # use ceil for lower to avoid 0
         lower = torch.ceil(self.min_prob*length_gcd)
+        # use ceil for upper to avoid the case that upper is smaller than lower, when bit stream length is small
         upper = torch.ceil(self.max_prob*length_gcd)
         if dim == 1:
             for index_0 in range(self.in_shape[0]):
@@ -150,7 +152,7 @@ class NormStability(torch.nn.Module):
                     for repeat in range(val_gcd):
                         if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
                             max_stab_len = min(max_stab_len, (repeat+1)*min_len)
-                self.max_stab[index_0] = 1 - max_stab_len/self.len
+                self.max_stab[index_0] = max(1 - max_stab_len/self.len, 0)
                 
         if dim == 2:
             for index_0 in range(self.in_shape[0]):
@@ -164,7 +166,7 @@ class NormStability(torch.nn.Module):
                         for repeat in range(val_gcd):
                             if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
                                 max_stab_len = min(max_stab_len, (repeat+1)*min_len)
-                    self.max_stab[index_0][index_1] = 1 - max_stab_len/self.len
+                    self.max_stab[index_0][index_1] = max(1 - max_stab_len/self.len, 0)
                     
         if dim == 3:
             for index_0 in range(self.in_shape[0]):
@@ -179,7 +181,7 @@ class NormStability(torch.nn.Module):
                             for repeat in range(val_gcd):
                                 if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
                                     max_stab_len = min(max_stab_len, (repeat+1)*min_len)
-                        self.max_stab[index_0][index_1][index_2] = 1 - max_stab_len/self.len
+                        self.max_stab[index_0][index_1][index_2] = max(1 - max_stab_len/self.len, 0)
                         
         if dim == 4:
             for index_0 in range(self.in_shape[0]):
@@ -195,7 +197,10 @@ class NormStability(torch.nn.Module):
                                 for repeat in range(val_gcd):
                                     if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
                                         max_stab_len = min(max_stab_len, (repeat+1)*min_len)
-                            self.max_stab[index_0][index_1][index_2][index_3] = 1 - max_stab_len/self.len
-                            
-        return self.stability()/self.max_stab
+                            self.max_stab[index_0][index_1][index_2][index_3] = max(1 - max_stab_len/self.len, 0)
+        
+        normstab = self.stability()/self.max_stab
+        normstab[torch.isnan(normstab)] = 0
+        
+        return normstab
     
