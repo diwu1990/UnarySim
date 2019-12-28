@@ -101,7 +101,7 @@ class Stability(torch.nn.Module):
         self.stable_len.add_(torch.gt(self.err.abs(), self.threshold).type(torch.float).mul_(self.len - self.stable_len))
         
     def forward(self):
-        self.stability = 1 - self.stable_len.add(1).clamp(1, self.len.item()).div(self.len)
+        self.stability = 1 - self.stable_len.clamp(1, self.len.item()).div(self.len)
         return self.stability
     
     
