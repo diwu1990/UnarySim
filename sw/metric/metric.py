@@ -127,6 +127,9 @@ class NormStability(torch.nn.Module):
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.in_shape = in_value.size()
         self.max_stab = torch.zeros_like(in_value)
+        self.max_stab_len = torch.ones_like(in_value)
+        self.max_stab_l_p = torch.ones_like(in_value)
+        self.max_stab_R = torch.ones_like(in_value)
 
     def Monitor(self, in_1):
         self.stability.Monitor(in_1)
@@ -136,71 +139,107 @@ class NormStability(torch.nn.Module):
         assert self.len != 0, "Input bit stream length can't be 0."
         dim = len(self.in_shape)
         assert dim <= 4, "Input dimension larger than 4 is not implemented."
-        length_gcd = pow(2, math.ceil(math.log2(self.len)))
+        L = pow(2, math.ceil(math.log2(self.len)))
         # use ceil for lower to avoid 0
-        lower = torch.ceil(self.min_prob*length_gcd)
+        P_low_L_all = torch.floor(self.min_prob*L).clamp(0, L)
         # use ceil for upper to avoid the case that upper is smaller than lower, when bit stream length is small
-        upper = torch.ceil(self.max_prob*length_gcd)
+        P_high_L_all = torch.ceil(self.max_prob*L).clamp(0, L)
+        
+        def search(P_low_L, P_high_L, L):
+            max_stab_len = L
+            max_stab_R = 1
+            max_stab_l_p = 1
+            for p_L in range(P_low_L, P_high_L+1):
+                l_p = L/math.gcd(p_L, L)
+
+                # one more bit 0
+                B_L = 0
+                if p_L == P_low_L:
+                    R_low = 1 if P_low_L <= B_L else L
+                else:
+                    R_low = (P_low_L - B_L)/l_p/(p_L - P_low_L)
+
+                if P_high_L == p_L:
+                    R_high = 1 if B_L <= P_high_L else L
+                else:
+                    R_high = (B_L - P_high_L)/l_p/(P_high_L - p_L)
+
+                R_0 = math.ceil(max(R_low, R_high))
+
+                # one more bit 1
+                B_L = L
+                if p_L == P_low_L:
+                    R_low = 1 if P_low_L <= B_L else L
+                else:
+                    R_low = (P_low_L - B_L)/l_p/(p_L - P_low_L)
+
+                if P_high_L == p_L:
+                    R_high = 1 if B_L <= P_high_L else L
+                else:
+                    R_high = (B_L - P_high_L)/l_p/(P_high_L - p_L)
+
+                R_L = math.ceil(max(R_low, R_high))
+
+                R = min(R_0, R_L)
+
+                if R*l_p < max_stab_len:
+                    max_stab_len = max(R*l_p, 1)
+                    max_stab_R = R
+                    max_stab_l_p = l_p
+            return max_stab_len, max_stab_R, max_stab_l_p
+        
         if dim == 1:
             for index_0 in range(self.in_shape[0]):
-                max_stab_len = length_gcd
-                for val in range(lower[index_0].type(torch.long), 
-                                 upper[index_0].type(torch.long)):
-                    val_gcd = math.gcd(val, length_gcd)
-                    min_len = length_gcd/val_gcd
-                    # find the best stability bit stream.
-                    for repeat in range(val_gcd):
-                        if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
-                            max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                P_low_L = P_low_L_all[index_0].type(torch.long).item()
+                P_high_L = P_high_L_all[index_0].type(torch.long).item()
+                max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
                 self.max_stab[index_0] = max(1 - max_stab_len/self.len, 0)
+                self.max_stab_len[index_0] = max_stab_len
+                self.max_stab_l_p[index_0] = max_stab_l_p
+                self.max_stab_R[index_0] = max_stab_R
                 
         if dim == 2:
             for index_0 in range(self.in_shape[0]):
                 for index_1 in range(self.in_shape[1]):
-                    max_stab_len = length_gcd
-                    for val in range(lower[index_0][index_1].type(torch.long), 
-                                     upper[index_0][index_1].type(torch.long)):
-                        val_gcd = math.gcd(val, length_gcd)
-                        min_len = length_gcd/val_gcd
-                        # find the best stability bit stream.
-                        for repeat in range(val_gcd):
-                            if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
-                                max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                    P_low_L = P_low_L_all[index_0][index_1].type(torch.long).item()
+                    P_high_L = P_high_L_all[index_0][index_1].type(torch.long).item()
+                    max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
                     self.max_stab[index_0][index_1] = max(1 - max_stab_len/self.len, 0)
-                    
+                    self.max_stab_len[index_0][index_1] = max_stab_len
+                    self.max_stab_l_p[index_0][index_1] = max_stab_l_p
+                    self.max_stab_R[index_0][index_1] = max_stab_R
+                
         if dim == 3:
             for index_0 in range(self.in_shape[0]):
                 for index_1 in range(self.in_shape[1]):
                     for index_2 in range(self.in_shape[2]):
-                        max_stab_len = length_gcd
-                        for val in range(lower[index_0][index_1][index_2].type(torch.long), 
-                                         upper[index_0][index_1][index_2].type(torch.long)):
-                            val_gcd = math.gcd(val, length_gcd)
-                            min_len = length_gcd/val_gcd
-                            # find the best stability bit stream.
-                            for repeat in range(val_gcd):
-                                if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
-                                    max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                        P_low_L = P_low_L_all[index_0][index_1][index_2].type(torch.long).item()
+                        P_high_L = P_high_L_all[index_0][index_1][index_2].type(torch.long).item()
+                        max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
                         self.max_stab[index_0][index_1][index_2] = max(1 - max_stab_len/self.len, 0)
+                        self.max_stab_len[index_0][index_1][index_2] = max_stab_len
+                        self.max_stab_l_p[index_0][index_1][index_2] = max_stab_l_p
+                        self.max_stab_R[index_0][index_1][index_2] = max_stab_R
                         
         if dim == 4:
             for index_0 in range(self.in_shape[0]):
                 for index_1 in range(self.in_shape[1]):
                     for index_2 in range(self.in_shape[2]):
                         for index_3 in range(self.in_shape[3]):
-                            max_stab_len = length_gcd
-                            for val in range(lower[index_0][index_1][index_2][index_3].type(torch.long), 
-                                             upper[index_0][index_1][index_2][index_3].type(torch.long)):
-                                val_gcd = math.gcd(val, length_gcd)
-                                min_len = length_gcd/val_gcd
-                                # find the best stability bit stream.
-                                for repeat in range(val_gcd):
-                                    if 1/((repeat+1)*min_len + 1) <= 2*self.threshold:
-                                        max_stab_len = min(max_stab_len, (repeat+1)*min_len)
+                            P_low_L = P_low_L_all[index_0][index_1][index_2][index_3].type(torch.long).item()
+                            P_high_L = P_high_L_all[index_0][index_1][index_2][index_3].type(torch.long).item()
+                            max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
                             self.max_stab[index_0][index_1][index_2][index_3] = max(1 - max_stab_len/self.len, 0)
+                            self.max_stab_len[index_0][index_1][index_2][index_3] = max_stab_len
+                            self.max_stab_l_p[index_0][index_1][index_2][index_3] = max_stab_l_p
+                            self.max_stab_R[index_0][index_1][index_2][index_3] = max_stab_R
         
         normstab = self.stability()/self.max_stab
         normstab[torch.isnan(normstab)] = 0
+        # some normstab is larger than 1.0,
+        # as the method based on the segmented uniform,
+        # which is an approximation of the best case
+        normstab.clamp_(0, 1)
         
         return normstab
     
