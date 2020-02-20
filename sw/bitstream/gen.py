@@ -1,6 +1,25 @@
 import torch
 import numpy as np
+from pylfsr import LFSR
 
+def get_lfsr_seq(bitwidth=8):
+    polylist = LFSR().get_fpolyList(m=bitwidth)
+    poly = polylist[np.random.randint(0, len(polylist), 1)[0]]
+    L = LFSR(fpoly=poly,initstate ='random')
+    lfsr_seq = []
+    for i in range(2**bitwidth):
+        value = 0
+        for j in range(bitwidth):
+            value = value + L.state[j]*2**(bitwidth-1-j)
+        lfsr_seq.append(value)
+        L.next()
+    return lfsr_seq
+
+
+def get_sysrand_seq(bitwidth=8):
+    return torch.randperm(2**bitwidth, dtype=torch.long)
+    
+    
 class RNG(torch.nn.Module):
     """
     Random number generator to generate one random sequence, returns a tensor of size [2**bitwidth]
@@ -16,6 +35,12 @@ class RNG(torch.nn.Module):
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, dim-1].view(self.seq_len).mul_(self.seq_len).type(torch.long)
         elif self.mode == "Race":
             self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len).type(torch.long)
+        elif self.mode == "LFSR":
+            lfsr_seq = get_lfsr_seq(bitwidth=bitwidth)
+            self.rng_seq.data = torch.tensor(lfsr_seq).type(torch.long)
+        elif self.mode == "SYS":
+            sysrand_seq = get_sysrand_seq(bitwidth=bitwidth)
+            self.rng_seq.data = sysrand_seq
         else:
             raise ValueError("RNG mode is not implemented.")
 
@@ -36,10 +61,21 @@ class RNGMulti(torch.nn.Module):
         if self.mode == "Sobol":
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len).mul_(self.seq_len).type(torch.long)
+        elif self.mode == "LFSR":
+            lfsr_seq = []
+            for i in range(dim):
+                lfsr_seq.append(get_lfsr_seq(bitwidth=bitwidth))
+            self.rng_seq.data = torch.tensor(lfsr_seq).type(torch.long).transpose(0, 1)
+        elif self.mode == "SYS":
+            sysrand_seq = get_sysrand_seq(bitwidth=bitwidth)
+            for i in range(dim-1):
+                temp_seq = get_sysrand_seq(bitwidth=bitwidth)
+                sysrand_seq = torch.stack((sysrand_seq, temp_seq), dim = 0)
+            self.rng_seq.data = sysrand_seq.transpose(0, 1)
         else:
             raise ValueError("RNG mode is not implemented.")
         if transpose is True:
-            self.rng_seq.transpose(0, 1)
+            self.rng_seq.data = self.rng_seq.data.transpose(0, 1)
 
     def forward(self):
         return self.rng_seq
