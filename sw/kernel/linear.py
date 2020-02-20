@@ -98,12 +98,11 @@ class UnaryLinear(torch.nn.Module):
 
     def forward(self, input):
         kernel_out_total = self.UnaryKernel_accumulation(input)
+        self.accumulator.data = self.accumulator.add(kernel_out_total)
         if self.scaled is True:
-            self.accumulator.data = self.accumulator.add(kernel_out_total)
             output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
             self.accumulator.sub_(output * self.acc_bound)
         else:
-            self.accumulator.data = self.accumulator.add(kernel_out_total)
             self.accumulator.sub_(self.offset)
             output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
             self.out_accumulator.data = self.out_accumulator.add(output)
