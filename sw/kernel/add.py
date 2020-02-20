@@ -39,25 +39,27 @@ class UnaryAdd(torch.nn.Module):
         self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
         
         if self.scaled is True:
-            self.output = torch.ge(self.accumulator, self.acc_bound.item()).type(torch.float)
-            self.accumulator.sub_(self.output * self.acc_bound)
+            output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
+            self.accumulator.sub_(output * self.acc_bound)
         else:
             self.accumulator.sub_(self.offset)
-            self.output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
-            self.out_accumulator.data = self.out_accumulator.add(self.output)
+            output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
+            self.out_accumulator.data = self.out_accumulator.add(output)
 
-        return self.output.type(torch.int8)
+        return output.type(torch.int8)
         
 
 class GainesAdd(torch.nn.Module):
     """
-    this module is for Gaines addition, just MUX-based adder.
+    this module is for Gaines addition.
+    1) MUX for scaled addition
+    2) OR gate for non-scaled addition
     """
     def __init__(self, 
                  mode="bipolar", 
                  scaled=True, 
                  acc_dim=0):
-        super(UnaryAdd, self).__init__()
+        super(GainesAdd, self).__init__()
         
         # data representation
         self.mode = mode
@@ -74,11 +76,11 @@ class GainesAdd(torch.nn.Module):
         self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
         
         if self.scaled is True:
-            self.output = torch.ge(self.accumulator, self.acc_bound.item()).type(torch.float)
-            self.accumulator.sub_(self.output * self.acc_bound)
+            output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
+            self.accumulator.sub_(output * self.acc_bound)
         else:
             self.accumulator.sub_(self.offset)
-            self.output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
-            self.out_accumulator.data = self.out_accumulator.add(self.output)
+            output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
+            self.out_accumulator.data = self.out_accumulator.add(output)
 
-        return self.output.type(torch.int8)
+        return output.type(torch.int8)
