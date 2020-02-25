@@ -133,7 +133,8 @@ class SourceGen(torch.nn.Module):
 
 class BSGen(torch.nn.Module):
     """
-    Compare source data with rng_seq[rng_idx] to generate bit stream from source
+    Compare source data with rng_seq[rng_idx] to generate bit streams from source
+    only one rng sequence is used here
     """
     def __init__(self, source, rng_seq):
         super(BSGen, self).__init__()
@@ -147,6 +148,8 @@ class BSGen(torch.nn.Module):
 class BSGenMulti(torch.nn.Module):
     """
     Compare source data with rng_seq indexed with rng_idx to generate bit streams from source
+    multiple rng sequences are used here
+    this BSGenMulti shares the random number along the dim
     """
     def __init__(self, source, rng_seq, dim=0):
         super(BSGenMulti, self).__init__()
