@@ -104,7 +104,54 @@ class Stability(torch.nn.Module):
         self.stability = 1 - self.stable_len.clamp(1, self.len.item()).div(self.len)
         return self.stability
     
-    
+
+def search_best_stab(P_low_L, P_high_L, L):
+    """
+    This function is used to search the best stability length, R and l_p
+    """
+    max_stab_len = L
+    max_stab_R = 1
+    max_stab_l_p = 1
+    for p_L in range(P_low_L, P_high_L+1):
+        l_p = L/math.gcd(p_L, L)
+
+        # one more bit 0
+        B_L = 0
+        if p_L == P_low_L:
+            R_low = 1 if P_low_L <= B_L else L
+        else:
+            R_low = (P_low_L - B_L)/l_p/(p_L - P_low_L)
+
+        if P_high_L == p_L:
+            R_high = 1 if B_L <= P_high_L else L
+        else:
+            R_high = (B_L - P_high_L)/l_p/(P_high_L - p_L)
+
+        R_0 = math.ceil(max(R_low, R_high))
+
+        # one more bit 1
+        B_L = L
+        if p_L == P_low_L:
+            R_low = 1 if P_low_L <= B_L else L
+        else:
+            R_low = (P_low_L - B_L)/l_p/(p_L - P_low_L)
+
+        if P_high_L == p_L:
+            R_high = 1 if B_L <= P_high_L else L
+        else:
+            R_high = (B_L - P_high_L)/l_p/(P_high_L - p_L)
+
+        R_L = math.ceil(max(R_low, R_high))
+
+        R = min(R_0, R_L)
+
+        if R*l_p < max_stab_len:
+            max_stab_len = max(R*l_p, 1)
+            max_stab_R = R
+            max_stab_l_p = l_p
+    return max_stab_len, max_stab_R, max_stab_l_p
+
+
 class NormStability(torch.nn.Module):
     """
     calculate the normalized value-independent stability, which is standard stability over maximum stability.
@@ -145,54 +192,11 @@ class NormStability(torch.nn.Module):
         # use ceil for upper to avoid the case that upper is smaller than lower, when bit stream length is small
         P_high_L_all = torch.ceil(self.max_prob*L).clamp(0, L)
         
-        def search(P_low_L, P_high_L, L):
-            max_stab_len = L
-            max_stab_R = 1
-            max_stab_l_p = 1
-            for p_L in range(P_low_L, P_high_L+1):
-                l_p = L/math.gcd(p_L, L)
-
-                # one more bit 0
-                B_L = 0
-                if p_L == P_low_L:
-                    R_low = 1 if P_low_L <= B_L else L
-                else:
-                    R_low = (P_low_L - B_L)/l_p/(p_L - P_low_L)
-
-                if P_high_L == p_L:
-                    R_high = 1 if B_L <= P_high_L else L
-                else:
-                    R_high = (B_L - P_high_L)/l_p/(P_high_L - p_L)
-
-                R_0 = math.ceil(max(R_low, R_high))
-
-                # one more bit 1
-                B_L = L
-                if p_L == P_low_L:
-                    R_low = 1 if P_low_L <= B_L else L
-                else:
-                    R_low = (P_low_L - B_L)/l_p/(p_L - P_low_L)
-
-                if P_high_L == p_L:
-                    R_high = 1 if B_L <= P_high_L else L
-                else:
-                    R_high = (B_L - P_high_L)/l_p/(P_high_L - p_L)
-
-                R_L = math.ceil(max(R_low, R_high))
-
-                R = min(R_0, R_L)
-
-                if R*l_p < max_stab_len:
-                    max_stab_len = max(R*l_p, 1)
-                    max_stab_R = R
-                    max_stab_l_p = l_p
-            return max_stab_len, max_stab_R, max_stab_l_p
-        
         if dim == 1:
             for index_0 in range(self.in_shape[0]):
                 P_low_L = P_low_L_all[index_0].type(torch.long).item()
                 P_high_L = P_high_L_all[index_0].type(torch.long).item()
-                max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
+                max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
                 self.max_stab[index_0] = max(1 - max_stab_len/self.len, 0)
                 self.max_stab_len[index_0] = max_stab_len
                 self.max_stab_l_p[index_0] = max_stab_l_p
@@ -203,7 +207,7 @@ class NormStability(torch.nn.Module):
                 for index_1 in range(self.in_shape[1]):
                     P_low_L = P_low_L_all[index_0][index_1].type(torch.long).item()
                     P_high_L = P_high_L_all[index_0][index_1].type(torch.long).item()
-                    max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
+                    max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
                     self.max_stab[index_0][index_1] = max(1 - max_stab_len/self.len, 0)
                     self.max_stab_len[index_0][index_1] = max_stab_len
                     self.max_stab_l_p[index_0][index_1] = max_stab_l_p
@@ -215,7 +219,7 @@ class NormStability(torch.nn.Module):
                     for index_2 in range(self.in_shape[2]):
                         P_low_L = P_low_L_all[index_0][index_1][index_2].type(torch.long).item()
                         P_high_L = P_high_L_all[index_0][index_1][index_2].type(torch.long).item()
-                        max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
+                        max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
                         self.max_stab[index_0][index_1][index_2] = max(1 - max_stab_len/self.len, 0)
                         self.max_stab_len[index_0][index_1][index_2] = max_stab_len
                         self.max_stab_l_p[index_0][index_1][index_2] = max_stab_l_p
@@ -228,7 +232,7 @@ class NormStability(torch.nn.Module):
                         for index_3 in range(self.in_shape[3]):
                             P_low_L = P_low_L_all[index_0][index_1][index_2][index_3].type(torch.long).item()
                             P_high_L = P_high_L_all[index_0][index_1][index_2][index_3].type(torch.long).item()
-                            max_stab_len, max_stab_R, max_stab_l_p = search(P_low_L, P_high_L, L)
+                            max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
                             self.max_stab[index_0][index_1][index_2][index_3] = max(1 - max_stab_len/self.len, 0)
                             self.max_stab_len[index_0][index_1][index_2][index_3] = max_stab_len
                             self.max_stab_l_p[index_0][index_1][index_2][index_3] = max_stab_l_p
