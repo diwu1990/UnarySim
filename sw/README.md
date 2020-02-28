@@ -11,8 +11,9 @@ Among those, components in **Bit Stream Manipulation** and **Unary Computing Ker
 
 ## Prerequisite
 1. PyTorch version >= 1.0
-2. Python version >= 3.0
+2. Python version >= 3.6
 3. [pylfsr](https://github.com/Nikeshbajaj/Linear_Feedback_Shift_Register)
+4. [CuPy](https://docs-cupy.chainer.org/en/stable/index.html)
 
 ## Data Representation
 UnarySim has five categories of data, with each having preferred data type in PyTorch.
@@ -114,7 +115,7 @@ This directory contains simple testing examples for above components, which are 
 ## Contribution
 Active contributor:
 1. [Di Wu](https://diwu1990.github.io/)
-2. Ruokai Yin
+2. [Ruokai Yin](https://ruokaiyin.github.io/)
 
 Please contact me (di.wu@ece.wisc.edu) if you are interested in contributing to this project!
 
@@ -125,6 +126,6 @@ Please contact me (di.wu@ece.wisc.edu) if you are interested in contributing to 
 [3] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
 [4] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.  
 [5] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.  
-[6] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," submitted for review.  
+[6] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
 [7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
 
