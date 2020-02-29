@@ -39,26 +39,8 @@ class UnaryMul(torch.nn.Module):
             if self.mode is "bipolar":
                 self.bs_inv = BSGen(self.source_gen, self.rng)
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
-
-        # support of in-stream mode will be updated later
-        # else:
-        #     # need to count for one in bs every cycle and update probability for non-static computation    
-        #     self.cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        #     self.gen_prob = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-
-        #     if self.mode is "unipolar":
-
-        #         # this time the source_gen and bs need to be update every time by the updated prob
-        #         self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"unipolar")()
-        #         self.bs = BSGen(self.source_gen,self.rng)
-        #         self.rng_idx = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-
-        #     else:
-        #         self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"bipolar")()
-        #         self.bs_0 = BSGen(self.source_gen,self.rng)
-        #         self.bs_1 = BSGen(self.source_gen,self.rng)
-        #         self.rng_idx_0 = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        #         self.rng_idx_1 = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        else:
+            raise ValueError("UnaryMul in-stream mode is not implemented.")
 
     def UnaryMul_forward(self, input_0, input_1=None):
         # currently only support static mode
@@ -78,41 +60,6 @@ class UnaryMul(torch.nn.Module):
                 return path_0 | path_1
             else:
                 raise ValueError("UnaryMul mode is not implemented.")
-            
-        # support of in-stream mode will be updated later 
-        # else:
-
-        #     if self.mode is "unipolar":    
-
-        #         self.cnt.data =self.cnt.add(input_1) # update the number of 1 in input_1 every cycle
-        #         self.gen_prob.data = self.cnt.div(self.bitwidth) # update probability
-
-        #         # update the source_gen and bit_stream_generator
-        #         self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"unipolar")
-        #         self.bs = BSGen(self.source_gen,self.rng)
-
-        #         output = input_0.mul(self.bs(self.rng_idx))
-        #         # as the enable signal, if input_0 is zero, no new bit will be generated
-        #         self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long)) 
-
-        #     else:
-        #         # update
-        #         self.cnt.data = self.cnt.add(input_1)
-        #         self.gen_prob.data = self.cnt.div(self.bitwidth) # update probability
-        #         self.source_gen = SourceGen(self.gen_prob,self.bitwidth,"bipolar")
-        #         self.bs_0 = BSGen(self.source_gen,self.rng)
-        #         self.bs_1 = BSGen(self.source_gen,self.rng)
-
-
-        #         gen_0 = 1 - self.bs_0(self.rng_idx_0)
-        #         self.rng_idx_0.data = self.rng_idx_0.add(1 - input_0.type(torch.long))
-        #         in_0 = input_0.mul(gen_0)
-
-        #         gen_1 = self.bs_1(self.rng_idx_1)
-        #         self.rng_idx_1.data = self.rng_idx_1.add(1 - input_0.type(torch.long))
-        #         in_1 = input_0.mul(gen_1)
-
-        #         output = in_1 | in_0
             
     def forward(self, input_0, input_1=None):
         return self.UnaryMul_forward(input_0, input_1)
