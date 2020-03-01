@@ -116,10 +116,11 @@ class SourceGen(torch.nn.Module):
     """
     Convert source problistic data to binary integer data
     """
-    def __init__(self, prob, bitwidth=8, mode="bipolar"):
+    def __init__(self, prob, bitwidth=8, mode="bipolar", randtype=torch.float):
         super(SourceGen, self).__init__()
         self.prob = prob
         self.mode = mode
+        self.randtype = randtype
         self.len = pow(2, bitwidth)
         self.binary = torch.nn.Parameter(torch.Tensor(prob.size()), requires_grad=False)
         if mode == "unipolar":
@@ -130,7 +131,7 @@ class SourceGen(torch.nn.Module):
             raise ValueError("SourceGen mode is not implemented.")
 
     def forward(self):
-        return self.binary
+        return self.binary.type(self.randtype)
     
 
 class BSGen(torch.nn.Module):
