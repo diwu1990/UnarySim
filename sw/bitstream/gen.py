@@ -17,27 +17,28 @@ def get_lfsr_seq(bitwidth=8):
 
 
 def get_sysrand_seq(bitwidth=8):
-    return torch.randperm(2**bitwidth, dtype=torch.long)
+    return torch.randperm(2**bitwidth)
     
     
 class RNG(torch.nn.Module):
     """
     Random number generator to generate one random sequence, returns a tensor of size [2**bitwidth]
     """
-    def __init__(self, bitwidth=8, dim=1, mode="Sobol"):
+    def __init__(self, bitwidth=8, dim=1, mode="Sobol", randtype=torch.float):
         super(RNG, self).__init__()
         self.dim = dim
         self.mode = mode
         self.seq_len = pow(2, bitwidth)
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
+        self.randtype = randtype
         if self.mode == "Sobol":
             # get the requested dimension of sobol random number
-            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, dim-1].view(self.seq_len).mul_(self.seq_len).type(torch.long)
+            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, dim-1].view(self.seq_len).mul_(self.seq_len)
         elif self.mode == "Race":
-            self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len).type(torch.long)
+            self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len)
         elif self.mode == "LFSR":
             lfsr_seq = get_lfsr_seq(bitwidth=bitwidth)
-            self.rng_seq.data = torch.tensor(lfsr_seq).type(torch.long)
+            self.rng_seq.data = torch.tensor(lfsr_seq)
         elif self.mode == "SYS":
             sysrand_seq = get_sysrand_seq(bitwidth=bitwidth)
             self.rng_seq.data = sysrand_seq
@@ -45,27 +46,28 @@ class RNG(torch.nn.Module):
             raise ValueError("RNG mode is not implemented.")
 
     def forward(self):
-        return self.rng_seq
+        return self.rng_seq.type(self.randtype)
     
 
 class RNGMulti(torch.nn.Module):
     """
     Random number generator to generate multiple random sequences, returns a tensor of size [dim, 2**bitwidth]
     """
-    def __init__(self, bitwidth=8, dim=1, mode="Sobol", transpose=False):
+    def __init__(self, bitwidth=8, dim=1, mode="Sobol", transpose=False, randtype=torch.float):
         super(RNGMulti, self).__init__()
         self.dim = dim
         self.mode = mode
         self.seq_len = pow(2, bitwidth)
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
+        self.randtype = randtype
         if self.mode == "Sobol":
             # get the requested dimension of sobol random number
-            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len).mul_(self.seq_len).type(torch.long)
+            self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len).mul_(self.seq_len)
         elif self.mode == "LFSR":
             lfsr_seq = []
             for i in range(dim):
                 lfsr_seq.append(get_lfsr_seq(bitwidth=bitwidth))
-            self.rng_seq.data = torch.tensor(lfsr_seq).type(torch.long).transpose(0, 1)
+            self.rng_seq.data = torch.tensor(lfsr_seq).transpose(0, 1)
         elif self.mode == "SYS":
             sysrand_seq = get_sysrand_seq(bitwidth=bitwidth)
             for i in range(dim-1):
@@ -78,7 +80,7 @@ class RNGMulti(torch.nn.Module):
             self.rng_seq.data = self.rng_seq.data.transpose(0, 1)
 
     def forward(self):
-        return self.rng_seq
+        return self.rng_seq.type(self.randtype)
     
 
 class RawScale(torch.nn.Module):
@@ -121,9 +123,9 @@ class SourceGen(torch.nn.Module):
         self.len = pow(2, bitwidth)
         self.binary = torch.nn.Parameter(torch.Tensor(prob.size()), requires_grad=False)
         if mode == "unipolar":
-            self.binary.data = self.prob.mul(self.len).round().type(torch.long)
+            self.binary.data = self.prob.mul(self.len).round()
         elif mode == "bipolar":
-            self.binary.data = self.prob.add(1).div(2).mul(self.len).round().type(torch.long)
+            self.binary.data = self.prob.add(1).div(2).mul(self.len).round()
         else:
             raise ValueError("SourceGen mode is not implemented.")
 
@@ -136,13 +138,14 @@ class BSGen(torch.nn.Module):
     Compare source data with rng_seq[rng_idx] to generate bit streams from source
     only one rng sequence is used here
     """
-    def __init__(self, source, rng_seq):
+    def __init__(self, source, rng_seq, bstype=torch.float):
         super(BSGen, self).__init__()
         self.source = source
         self.rng_seq = rng_seq
+        self.bstype = bstype
     
     def forward(self, rng_idx):
-        return torch.gt(self.source, self.rng_seq[rng_idx]).type(torch.int8)
+        return torch.gt(self.source, self.rng_seq[rng_idx.type(torch.long)]).type(self.bstype)
     
     
 class BSGenMulti(torch.nn.Module):
@@ -151,12 +154,13 @@ class BSGenMulti(torch.nn.Module):
     multiple rng sequences are used here
     this BSGenMulti shares the random number along the dim
     """
-    def __init__(self, source, rng_seq, dim=0):
+    def __init__(self, source, rng_seq, dim=0, bstype=torch.float):
         super(BSGenMulti, self).__init__()
         self.source = source
         self.rng_seq = rng_seq
         self.dim = dim
+        self.bstype = bstype
     
     def forward(self, rng_idx):
-        return torch.gt(self.source, torch.gather(self.rng_seq, self.dim, rng_idx)).type(torch.int8)
+        return torch.gt(self.source, torch.gather(self.rng_seq, self.dim, rng_idx.type(torch.long))).type(self.bstype)
     
