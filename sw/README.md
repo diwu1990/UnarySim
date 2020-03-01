@@ -13,7 +13,6 @@ Among those, components in **Bit Stream Manipulation** and **Unary Computing Ker
 1. PyTorch version >= 1.0
 2. Python version >= 3.6
 3. [pylfsr](https://github.com/Nikeshbajaj/Linear_Feedback_Shift_Register)
-4. [CuPy](https://docs-cupy.chainer.org/en/stable/index.html)
 
 ## Data Representation
 UnarySim has five categories of data, with each having preferred data type in PyTorch.
