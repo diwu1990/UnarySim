@@ -9,7 +9,8 @@ class UnaryAdd(torch.nn.Module):
                  bitwidth=8, 
                  mode="bipolar", 
                  scaled=True, 
-                 acc_dim=0):
+                 acc_dim=0,
+                 bstype=torch.float):
         super(UnaryAdd, self).__init__()
         
         # data bit width
@@ -21,6 +22,7 @@ class UnaryAdd(torch.nn.Module):
         # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.acc_dim.fill_(acc_dim)
+        self.bstype = bstype
         
         # upper bound for accumulation counter in non-scaled mode
         # it is the number of inputs, e.g., the size along the acc_dim dimension
@@ -46,8 +48,8 @@ class UnaryAdd(torch.nn.Module):
             output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
             self.out_accumulator.data = self.out_accumulator.add(output)
 
-        return output.type(torch.int8)
-        
+        return output.type(self.bstype)
+    
 
 class GainesAdd(torch.nn.Module):
     """
@@ -56,31 +58,34 @@ class GainesAdd(torch.nn.Module):
     2) OR gate for non-scaled addition
     """
     def __init__(self, 
+                 bitwidth=8, 
                  mode="bipolar", 
                  scaled=True, 
-                 acc_dim=0):
+                 acc_dim=0,
+                 bstype=torch.float):
         super(GainesAdd, self).__init__()
         
         # data representation
         self.mode = mode
         # whether it is scaled addition
         self.scaled = scaled
-        # dimension to do reduce sum
+        if self.mode is "bipolar" and self.scaled is False:
+            raise ValueError("Non-scaled addition for biploar data is not supported in Gaines approach.")
+         # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.acc_dim.fill_(acc_dim)
         
-    def forward(self, input):
-        self.acc_bound.fill_(input.size()[self.acc_dim.item()])
-        if self.mode is "bipolar":
-            self.offset.fill_((self.acc_bound.item()-1)/2)
-        self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
-        
+    def forward(self, input, randNum=0):
         if self.scaled is True:
-            output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
-            self.accumulator.sub_(output * self.acc_bound)
+            pass
+            # using a MUX for both unipolar and bipolar
+#             if torch.is_tensor(randNum):
+                
+#             randTensor = torch.zeros_like(input).fill_(randNum)
+#             output = torch.gather(input, self.acc_dim.item(), randTensor)
         else:
-            self.accumulator.sub_(self.offset)
-            output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
-            self.out_accumulator.data = self.out_accumulator.add(output)
-
+            # only support unipolar data using an OR gate
+            output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
+            
         return output.type(torch.int8)
+    
