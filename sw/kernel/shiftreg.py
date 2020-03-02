@@ -6,11 +6,13 @@ class ShiftReg(torch.nn.Module):
     it takes in unary bits and output shifter register value, as well as the total number of 1s in current shift register.
     """
     def __init__(self,
-                 depth=8):
+                 depth=8,
+                 bstype=torch.float):
         super(ShiftReg, self).__init__()
         self.depth = 8
-        self.sr = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        self.sr = torch.nn.Parameter(torch.zeros(1).type(bstype), requires_grad=False)
         self.init = True
+        self.bstype = bstype
 
     def ShiftReg_forward(self, input):
         if self.init is True:
