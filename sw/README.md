@@ -15,7 +15,7 @@ Among those, components in **Bit Stream Manipulation** and **Unary Computing Ker
 3. [pylfsr](https://github.com/Nikeshbajaj/Linear_Feedback_Shift_Register)
 
 ## Data Representation
-UnarySim has five categories of data, with each having preferred data type in PyTorch, all with format _**'torch.float'**_ by default.
+UnarySim has five categories of data, with each having default data type as _**'torch.float'**_ in PyTorch.
 
 1. **Source Data**: 
 The input source data in unary computing need to be ranging from _0_ to _1_ in **unipolar** format, or from _-1_ to _1_ in **bipolar** format. 
