@@ -35,7 +35,7 @@ Inside each logic kernel, there may exist buffers to record the its interal stat
 Those buffers can be counters or shift registers.
 
 5. **Metric Variable**: 
-Those are variables to compute specially designed performance metrics, which are usually floating point values.
+Those are variables to compute specially designed performance metrics.
 
 ## Directory Hierarchy
 This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
@@ -78,8 +78,9 @@ The components currently supported or to be implemented are listed in the table 
 | UnaryLinear          | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | UnaryReLU            | Nov. 23, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | nn_utils             | Nov. 25, 2019 | NA            | <ul><li>[x] </li></ul> |
-| GainesLinear         | Nov. 25, 2019 | [1]           | <ul><li>[x] </li></ul> |
+| GainesAdd            | Mar. 02, 2020 | [1]           | <ul><li>[x] </li></ul> |
 | GainesMul            | Dec. 06, 2019 | [1]           | <ul><li>[x] </li></ul> |
+| GainesLinear         | Nov. 25, 2019 | [1]           | <ul><li>[x] </li></ul> |
 | ShiftReg             | Dec. 06, 2019 | NA            | <ul><li>[x] </li></ul> |
 | comparison           |               |               | <ul><li>[ ] </li></ul> |
 | conv                 |               |               | <ul><li>[ ] </li></ul> |
@@ -92,7 +93,7 @@ The components currently supported or to be implemented are listed in the table 
 
 
 ### _'metric'_ subdirectory
-This directory contains the components for **Performance Metric**, which take bit streams as inputs and calculate certain performance metrics.
+This directory contains the components for **Performance Metric**, which take bit streams as input and calculate certain performance metrics.
 The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date          | Reference     | Status                 |
