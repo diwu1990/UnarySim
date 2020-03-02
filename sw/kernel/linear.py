@@ -20,10 +20,16 @@ class UnaryLinear(torch.nn.Module):
                  bitwidth=8, 
                  bias=True, 
                  mode="bipolar", 
-                 scaled=True):
+                 scaled=True,
+                 bstype=torch.float,
+                 buftype=torch.float,
+                 randtype=torch.float):
         super(UnaryLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
+        self.bstype = bstype
+        self.buftype = buftype
+        self.randtype = randtype
         
         # upper bound for accumulation counter in non-scaled mode
         self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -55,22 +61,22 @@ class UnaryLinear(torch.nn.Module):
         self.rng = RNG(self.bitwidth, 1, "Sobol")()
         
         # define the convolution weight and bias
-        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode)()
+        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, randtype=randtype)()
         if self.has_bias is True:
-            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode)()
+            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, randtype=randtype)()
 
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
-        self.buf_wght_bs = BSGen(self.buf_wght, self.rng)
+        self.buf_wght_bs = BSGen(self.buf_wght, self.rng, bstype=bstype)
         self.rng_wght_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.weight, dtype=torch.long), requires_grad=False)
         if self.has_bias is True:
-            self.buf_bias_bs = BSGen(self.buf_bias, self.rng)
+            self.buf_bias_bs = BSGen(self.buf_bias, self.rng, bstype=bstype)
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
         if self.mode is "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-            self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng)
+            self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng, bstype=bstype)
             self.rng_wght_idx_inv = torch.nn.Parameter(torch.zeros_like(self.kernel_inv.weight, dtype=torch.long), requires_grad=False)
 
         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -107,7 +113,7 @@ class UnaryLinear(torch.nn.Module):
             output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
             self.out_accumulator.data = self.out_accumulator.add(output)
 
-        return output.type(torch.int8)
+        return output.type(self.bstype)
         
         
 class GainesLinear1(torch.nn.Module):
