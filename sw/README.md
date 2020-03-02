@@ -15,31 +15,27 @@ Among those, components in **Bit Stream Manipulation** and **Unary Computing Ker
 3. [pylfsr](https://github.com/Nikeshbajaj/Linear_Feedback_Shift_Register)
 
 ## Data Representation
-UnarySim has five categories of data, with each having preferred data type in PyTorch.
+UnarySim has five categories of data, with each having preferred data type in PyTorch, all with format _**'torch.float'**_ by default.
 
 1. **Source Data**: 
 The input source data in unary computing need to be ranging from _0_ to _1_ in **unipolar** format, or from _-1_ to _1_ in **bipolar** format. 
 The input source data (_source_) is scaled to a certain range (as in _unipolar/bipolar_ format) from the raw data (_raw_) with respect to its maximum.
-More specifically, such a relationship is formulated as _source = raw / max(raw)_. Thus, the type of _source data_ is suggested to be _**'torch.float'**_.
+More specifically, such a relationship is formulated as _source = raw / max(raw)_.
 
 2. **Random Number**: 
 The random numbers (_rand_) are to be compared with the source data in order to generate the bit streams. To notice, source data is in _unipolar/bipolar_ format, while random numbers are integers. 
 To compare them, source data requires to scale up by the _bitwidth_ of random numbers. 
-At each cycle, if _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the bit stream will be generated; otherwise, a bit of logic 0 will be generated. 
-To support sufficiently long bit streams, the type of _random number_ is suggested to be _**'torch.long'**_.
+At each cycle, if _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the bit stream will be generated; otherwise, a bit of logic 0 will be generated.
 
 3. **Bit Stream**: 
-At each cycle, the bits in bit streams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation. 
-For the sake of execution efficiency, the type of _bit stream_ is suggested to be _**'torch.int8'**_.
+At each cycle, the bits in bit streams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation.
 
 4. **Bit Buffer**: 
 Inside each logic kernel, there may exist buffers to record the its interal state by monitoring the past bit streams, which could be extemely long. 
-Those buffers can be counters or shift registers. 
-To ensure the correctness (not overflowing), the type of _bit buffer_ is suggested to be _**'torch.long'**_.
+Those buffers can be counters or shift registers.
 
 5. **Metric Variable**: 
-Those are variables to compute specially designed performance metrics, which are usually floating point values. 
-To provide precise records of target metrics, the type of _metric variable_ is suggested to be _**'torch.float'**_.
+Those are variables to compute specially designed performance metrics, which are usually floating point values.
 
 ## Directory Hierarchy
 This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
