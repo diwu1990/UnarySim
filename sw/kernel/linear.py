@@ -31,7 +31,7 @@ class UnaryLinear(torch.nn.Module):
         self.buftype = buftype
         self.randtype = randtype
         
-        # upper bound for accumulation counter in non-scaled mode
+        # upper bound for accumulation counter in scaled mode
         self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.acc_bound.add_(in_features)
         if bias is True:
