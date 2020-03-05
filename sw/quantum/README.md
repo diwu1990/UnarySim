@@ -1,6 +1,6 @@
 # Overview
 
-This directory contains the unary computing based quantum simulation.
+This directory contains the unary computing based quantum simulator.
 
 1. File _linear_complex.py_ is for complex matrix multiplication.
 
