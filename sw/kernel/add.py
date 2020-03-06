@@ -1,5 +1,4 @@
 import torch
-from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
 
 class UnaryAdd(torch.nn.Module):
     """
@@ -71,21 +70,21 @@ class GainesAdd(torch.nn.Module):
         self.scaled = scaled
         if self.mode is "bipolar" and self.scaled is False:
             raise ValueError("Non-scaled addition for biploar data is not supported in Gaines approach.")
-         # dimension to do reduce sum
+        # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.acc_dim.fill_(acc_dim)
+        self.bstype = bstype
         
-    def forward(self, input, randNum=0):
+    def forward(self, input, randNum=None):
         if self.scaled is True:
-            pass
             # using a MUX for both unipolar and bipolar
-#             if torch.is_tensor(randNum):
-                
-#             randTensor = torch.zeros_like(input).fill_(randNum)
-#             output = torch.gather(input, self.acc_dim.item(), randTensor)
+            assert torch.is_tensor(randNum), "randNum should a tensor for scaled addition."
+            assert randNum.item() < input.size()[self.acc_dim.item()], "randNum should be smaller than the dimension size of addition."
+            # randNum should have only one element
+            output = torch.unbind(torch.index_select(input, self.acc_dim.item(), randNum.type(torch.long).view(1)), self.acc_dim.item())[0]
         else:
             # only support unipolar data using an OR gate
             output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
             
-        return output.type(torch.int8)
+        return output.type(self.bstype)
     
