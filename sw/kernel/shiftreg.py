@@ -14,7 +14,7 @@ class ShiftReg(torch.nn.Module):
         self.init = True
         self.bstype = bstype
 
-    def ShiftReg_forward(self, input):
+    def ShiftReg_forward(self, input, index=0):
         if self.init is True:
             new_shape = [1 for _ in range(len(input.shape))]
             new_shape.insert(0, self.depth)
@@ -25,14 +25,14 @@ class ShiftReg(torch.nn.Module):
         
         # do shifting
         # output
-        out = self.sr[0]
+        out = self.sr[index]
         # sum in current shift register
         cnt = torch.sum(self.sr, 0)
         self.sr.data = torch.roll(self.sr, -1, 0)
         self.sr.data[self.depth-1] = input.clone().detach()
         return out, cnt
 
-    def forward(self, input):
-        return self.ShiftReg_forward(input)
+    def forward(self, input, index=0):
+        return self.ShiftReg_forward(input, index)
 
     
