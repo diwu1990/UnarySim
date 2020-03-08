@@ -46,7 +46,7 @@ class RNG(torch.nn.Module):
             raise ValueError("RNG mode is not implemented.")
 
     def forward(self):
-        return self.rng_seq.type(self.randtype)
+        return self.rng_seq.type(self.randtype).floor()
     
 
 class RNGMulti(torch.nn.Module):
@@ -80,7 +80,7 @@ class RNGMulti(torch.nn.Module):
             self.rng_seq.data = self.rng_seq.data.transpose(0, 1)
 
     def forward(self):
-        return self.rng_seq.type(self.randtype)
+        return self.rng_seq.type(self.randtype).floor()
     
 
 class RawScale(torch.nn.Module):
