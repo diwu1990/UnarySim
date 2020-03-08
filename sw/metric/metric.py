@@ -59,6 +59,7 @@ class ProgressiveError(torch.nn.Module):
         super(ProgressiveError, self).__init__()
         self.in_value = in_value
         self.mode = mode
+        assert self.mode is "unipolar" or self.mode is "bipolar", "ProgressiveError mode is not implemented."
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.one_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.out_pp = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -69,10 +70,7 @@ class ProgressiveError(torch.nn.Module):
         self.len.data.add_(1)
 
     def forward(self):
-        if self.mode is "unipolar" or self.mode is "bipolar":
-            self.out_pp.data = self.one_cnt.div(self.len)
-        else:
-            raise ValueError("ProgressiveError mode is not implemented.")
+        self.out_pp.data = self.one_cnt.div(self.len)
         if self.mode is "bipolar":
             self.out_pp.data = self.out_pp.mul(2).sub(1)
         self.err.data = self.out_pp.sub(self.in_value)
