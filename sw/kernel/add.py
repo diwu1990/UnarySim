@@ -1,19 +1,17 @@
 import torch
+from UnarySim.sw.bitstream.gen import RNG
 
 class UnaryAdd(torch.nn.Module):
     """
     this module is for unary addition, including scaled/non-scaled, unipolar/bipolar.
     """
     def __init__(self, 
-                 bitwidth=8, 
                  mode="bipolar", 
                  scaled=True, 
                  acc_dim=0,
                  bstype=torch.float):
         super(UnaryAdd, self).__init__()
         
-        # data bit width
-        self.bitwidth = bitwidth
         # data representation
         self.mode = mode
         # whether it is scaled addition
@@ -57,11 +55,14 @@ class GainesAdd(torch.nn.Module):
     2) OR gate for non-scaled addition
     """
     def __init__(self, 
-                 bitwidth=8, 
                  mode="bipolar", 
                  scaled=True, 
-                 acc_dim=0,
-                 bstype=torch.float):
+                 acc_dim=0, 
+                 rng="Sobol", 
+                 rng_dim=5, 
+                 rng_width=8, 
+                 bstype=torch.float,
+                 randtype=torch.float):
         super(GainesAdd, self).__init__()
         
         # data representation
@@ -74,14 +75,17 @@ class GainesAdd(torch.nn.Module):
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.acc_dim.fill_(acc_dim)
         self.bstype = bstype
+        self.rng = RNG(rng_width, rng_dim, rng, randtype=randtype)()
+        self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
+        self.rng_len = self.rng.numel()
         
-    def forward(self, input, randNum=None):
+    def forward(self, input):
         if self.scaled is True:
-            # using a MUX for both unipolar and bipolar
-            assert torch.is_tensor(randNum), "randNum should a tensor for scaled addition."
+            randNum = self.rng[self.rng_idx.item()]
             assert randNum.item() < input.size()[self.acc_dim.item()], "randNum should be smaller than the dimension size of addition."
-            # randNum should have only one element
+            # using a MUX for both unipolar and bipolar
             output = torch.unbind(torch.index_select(input, self.acc_dim.item(), randNum.type(torch.long).view(1)), self.acc_dim.item())[0]
+            self.rng_idx.data = self.rng_idx.add(1)%self.rng_len
         else:
             # only support unipolar data using an OR gate
             output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
