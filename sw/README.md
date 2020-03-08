@@ -77,14 +77,16 @@ The components currently supported or to be implemented are listed in the table 
 | UnaryMul             | Nov. 05, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | UnaryLinear          | Seq. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
 | UnaryReLU            | Nov. 23, 2019 | [6]           | <ul><li>[x] </li></ul> |
+| CORDIV_kernel        | Mar. 08, 2020 | [5]           | <ul><li>[ ] </li></ul> |
+| UnaryDiv             | Mar. 08, 2020 | [5]           | <ul><li>[ ] </li></ul> |
 | nn_utils             | Nov. 25, 2019 | NA            | <ul><li>[x] </li></ul> |
 | GainesAdd            | Mar. 02, 2020 | [1]           | <ul><li>[x] </li></ul> |
 | GainesMul            | Dec. 06, 2019 | [1]           | <ul><li>[x] </li></ul> |
 | GainesLinear         | Nov. 25, 2019 | [1]           | <ul><li>[x] </li></ul> |
+| GainesDiv            | Mar. 08, 2020 | [1]           | <ul><li>[ ] </li></ul> |
 | ShiftReg             | Dec. 06, 2019 | NA            | <ul><li>[x] </li></ul> |
 | comparison           |               |               | <ul><li>[ ] </li></ul> |
 | conv                 |               |               | <ul><li>[ ] </li></ul> |
-| division             |               | [5]           | <ul><li>[ ] </li></ul> |
 | exponentiation       |               |               | <ul><li>[ ] </li></ul> |
 | max                  |               |               | <ul><li>[ ] </li></ul> |
 | min                  |               |               | <ul><li>[ ] </li></ul> |
