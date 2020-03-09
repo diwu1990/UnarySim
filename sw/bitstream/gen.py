@@ -23,6 +23,7 @@ def get_sysrand_seq(bitwidth=8):
 class RNG(torch.nn.Module):
     """
     Random number generator to generate one random sequence, returns a tensor of size [2**bitwidth]
+    returns a torch.nn.Parameter
     """
     def __init__(self, bitwidth=8, dim=1, mode="Sobol", randtype=torch.float):
         super(RNG, self).__init__()
@@ -44,14 +45,16 @@ class RNG(torch.nn.Module):
             self.rng_seq.data = sysrand_seq
         else:
             raise ValueError("RNG mode is not implemented.")
-
+        self.rng_seq.data = self.rng_seq.data.floor().type(self.randtype)
+        
     def forward(self):
-        return self.rng_seq.type(self.randtype).floor()
+        return self.rng_seq
     
 
 class RNGMulti(torch.nn.Module):
     """
     Random number generator to generate multiple random sequences, returns a tensor of size [dim, 2**bitwidth]
+    returns a torch.nn.Parameter
     """
     def __init__(self, bitwidth=8, dim=1, mode="Sobol", transpose=False, randtype=torch.float):
         super(RNGMulti, self).__init__()
@@ -78,15 +81,17 @@ class RNGMulti(torch.nn.Module):
             raise ValueError("RNG mode is not implemented.")
         if transpose is True:
             self.rng_seq.data = self.rng_seq.data.transpose(0, 1)
-
+        self.rng_seq.data = self.rng_seq.data.floor().type(self.randtype)
+        
     def forward(self):
-        return self.rng_seq.type(self.randtype).floor()
+        return self.rng_seq
     
 
 class RawScale(torch.nn.Module):
     """
     Scale raw data to source data in unary computing, which meets bipolar/unipolar requirements.
     input percentile should be a number in range (0, 100].
+    returns a torch.nn.Parameter
     """
     def __init__(self, raw, mode="bipolar", percentile=100):
         super(RawScale, self).__init__()
@@ -115,6 +120,7 @@ class RawScale(torch.nn.Module):
 class SourceGen(torch.nn.Module):
     """
     Convert source problistic data to binary integer data
+    returns a torch.nn.Parameter
     """
     def __init__(self, prob, bitwidth=8, mode="bipolar", randtype=torch.float):
         super(SourceGen, self).__init__()
@@ -129,9 +135,10 @@ class SourceGen(torch.nn.Module):
             self.binary.data = self.prob.add(1).div(2).mul(self.len).round()
         else:
             raise ValueError("SourceGen mode is not implemented.")
-
+        self.binary.data = self.binary.type(self.randtype)
+        
     def forward(self):
-        return self.binary.type(self.randtype)
+        return self.binary
     
 
 class BSGen(torch.nn.Module):
