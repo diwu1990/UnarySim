@@ -73,11 +73,9 @@ class GainesAdd(torch.nn.Module):
             raise ValueError("Non-scaled addition for biploar data is not supported in Gaines approach.")
         # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.acc_dim.fill_(acc_dim)
         self.bstype = bstype
         self.rng = RNG(rng_width, rng_dim, rng, randtype=randtype)()
         self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
-        self.rng_len = self.rng.numel()
         
     def forward(self, input):
         if self.scaled is True:
@@ -85,7 +83,7 @@ class GainesAdd(torch.nn.Module):
             assert randNum.item() < input.size()[self.acc_dim.item()], "randNum should be smaller than the dimension size of addition."
             # using a MUX for both unipolar and bipolar
             output = torch.unbind(torch.index_select(input, self.acc_dim.item(), randNum.type(torch.long).view(1)), self.acc_dim.item())[0]
-            self.rng_idx.data = self.rng_idx.add(1)%self.rng_len
+            self.rng_idx.data = self.rng_idx.add(1)%self.rng.numel()
         else:
             # only support unipolar data using an OR gate
             output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
