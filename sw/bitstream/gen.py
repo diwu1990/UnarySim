@@ -39,10 +39,10 @@ class RNG(torch.nn.Module):
             self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len)
         elif self.mode == "LFSR":
             lfsr_seq = get_lfsr_seq(bitwidth=bitwidth)
-            self.rng_seq.data = torch.tensor(lfsr_seq)
+            self.rng_seq.data = torch.tensor(lfsr_seq).type(torch.float)
         elif self.mode == "SYS":
             sysrand_seq = get_sysrand_seq(bitwidth=bitwidth)
-            self.rng_seq.data = sysrand_seq
+            self.rng_seq.data = sysrand_seq.type(torch.float)
         else:
             raise ValueError("RNG mode is not implemented.")
         self.rng_seq.data = self.rng_seq.data.floor().type(self.randtype)
