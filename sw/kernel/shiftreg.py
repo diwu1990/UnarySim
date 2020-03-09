@@ -9,7 +9,7 @@ class ShiftReg(torch.nn.Module):
                  depth=8,
                  bstype=torch.float):
         super(ShiftReg, self).__init__()
-        self.depth = 8
+        self.depth = depth
         self.sr = torch.nn.Parameter(torch.tensor([x%2 for x in range(0, depth)]).type(bstype), requires_grad=False)
         self.init = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
         self.bstype = bstype
