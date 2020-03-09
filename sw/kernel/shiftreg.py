@@ -11,17 +11,17 @@ class ShiftReg(torch.nn.Module):
         super(ShiftReg, self).__init__()
         self.depth = 8
         self.sr = torch.nn.Parameter(torch.tensor([x%2 for x in range(0, depth)]).type(bstype), requires_grad=False)
-        self.init = True
+        self.init = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
         self.bstype = bstype
 
     def ShiftReg_forward(self, input, mask=None, index=0):
-        if self.init is True:
+        if self.init.item() is True:
             new_shape = [1 for _ in range(len(input.shape))]
             new_shape.insert(0, self.depth)
             self.sr.data = input.repeat(new_shape)
             for i in range(self.depth):
                 self.sr[i].fill_(i%2)
-            self.init = False
+            self.init.data.fill_(False)
         
         # do shifting
         # output
