@@ -100,39 +100,35 @@ class CORDIV_kernel(torch.nn.Module):
 #         return output.type(self.bstype)
     
 
-# class GainesDiv(torch.nn.Module):
-#     """
-#     this module is for Gaines division.
-#     """
-#     def __init__(self, 
-#                  buf_dep=5, 
-#                  mode="bipolar", 
-#                  bstype=torch.float,
-#                  buftype=toch.float,
-#                  randtype=toch.float):
-#         super(GainesAdd, self).__init__()
+class GainesDiv(torch.nn.Module):
+    """
+    this module is for Gaines division.
+    """
+    def __init__(self, 
+                 buf_dep=5, 
+                 mode="bipolar", 
+                 bstype=torch.float,
+                 randtype=toch.float):
+        super(GainesDiv, self).__init__()
         
-#         # data representation
-#         self.mode = mode
-#         # whether it is scaled addition
-#         self.scaled = scaled
-#         if self.mode is "bipolar" and self.scaled is False:
-#             raise ValueError("Non-scaled addition for biploar data is not supported in Gaines approach.")
-#         # dimension to do reduce sum
-#         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-#         self.acc_dim.fill_(acc_dim)
-#         self.bstype = bstype
+        # data representation
+        self.mode = mode
+        # dimension to do reduce sum
+        self.scnt_max = torch.nn.Parameter(torch.tensor([2**buf_dep-1]).type(randtype), requires_grad=False)
+        self.scnt = torch.nn.Parameter(torch.tensor([2**(buf_dep-1)]).type(randtype), requires_grad=False)
+        self.bstype = bstype
+        self.randtype = randtype
         
-#     def forward(self, input, randNum=None):
-#         if self.scaled is True:
-#             # using a MUX for both unipolar and bipolar
-#             assert torch.is_tensor(randNum), "randNum should a tensor for scaled addition."
-#             assert randNum.item() < input.size()[self.acc_dim.item()], "randNum should be smaller than the dimension size of addition."
-#             # randNum should have only one element
-#             output = torch.unbind(torch.index_select(input, self.acc_dim.item(), randNum.type(torch.long).view(1)), self.acc_dim.item())[0]
-#         else:
-#             # only support unipolar data using an OR gate
-#             output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
+    def forward(self, dividend, divisor):
+        if self.scaled is True:
+            # using a MUX for both unipolar and bipolar
+            assert torch.is_tensor(randNum), "randNum should a tensor for scaled addition."
+            assert randNum.item() < input.size()[self.acc_dim.item()], "randNum should be smaller than the dimension size of addition."
+            # randNum should have only one element
+            output = torch.unbind(torch.index_select(input, self.acc_dim.item(), randNum.type(torch.long).view(1)), self.acc_dim.item())[0]
+        else:
+            # only support unipolar data using an OR gate
+            output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
             
-#         return output.type(self.bstype)
+        return output.type(self.bstype)
     
