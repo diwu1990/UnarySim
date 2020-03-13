@@ -12,8 +12,7 @@ class CORDIV_kernel(torch.nn.Module):
                  buf_dep=4, 
                  rng="Sobol", 
                  rng_dim=1, 
-                 bstype=torch.float,
-                 buftype=torch.float):
+                 bstype=torch.float):
         super(CORDIV_kernel, self).__init__()
         self.buf_dep = buf_dep
         self.sr = ShiftReg(buf_dep, bstype)
@@ -107,28 +106,44 @@ class GainesDiv(torch.nn.Module):
     def __init__(self, 
                  buf_dep=5, 
                  mode="bipolar", 
-                 bstype=torch.float,
-                 randtype=toch.float):
+                 rng="Sobol", 
+                 rng_dim=1, 
+                 bstype=torch.float):
         super(GainesDiv, self).__init__()
         
         # data representation
         self.mode = mode
-        # dimension to do reduce sum
-        self.scnt_max = torch.nn.Parameter(torch.tensor([2**buf_dep-1]).type(randtype), requires_grad=False)
-        self.scnt = torch.nn.Parameter(torch.tensor([2**(buf_dep-1)]).type(randtype), requires_grad=False)
+        self.scnt_max = torch.nn.Parameter(torch.tensor([2**buf_dep-1]).type(torch.float), requires_grad=False)
+        self.scnt = torch.nn.Parameter(torch.tensor([2**(buf_dep-1)]).type(torch.float), requires_grad=False)
+        self.rng = RNG(buf_dep, rng_dim, rng, torch.float)()
+        self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
+        self.divisor_d = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.bstype = bstype
-        self.randtype = randtype
         
     def forward(self, dividend, divisor):
-        if self.scaled is True:
-            # using a MUX for both unipolar and bipolar
-            assert torch.is_tensor(randNum), "randNum should a tensor for scaled addition."
-            assert randNum.item() < input.size()[self.acc_dim.item()], "randNum should be smaller than the dimension size of addition."
-            # randNum should have only one element
-            output = torch.unbind(torch.index_select(input, self.acc_dim.item(), randNum.type(torch.long).view(1)), self.acc_dim.item())[0]
+        # output is the same for both bipolar and unipolar
+        output = torch.gt(self.scnt, self.rng[self.rng_idx%self.rng.numel()]).type(torch.int8)
+        self.rng_idx.data = self.rng_idx + 1
+        output = output + torch.zeros_like(dividend, dtype=torch.int8)
+        
+        if self.mode is "unipolar":
+            dividend_eq_1 = torch.eq(dividend, 1)
+            prod = output & divisor.type(torch.int8)
+            prod_eq_1 = torch.eq(prod, 1)
+            inc = dividend_eq_1.type(torch.float)
+            dec = prod_eq_1.type(torch.float)
         else:
-            # only support unipolar data using an OR gate
-            output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
-            
+            dd_ds = 1 - (dividend.type(torch.int8) ^ divisor.type(torch.int8))
+            ds_ds = 1 - (self.divisor_d ^ divisor.type(torch.int8))
+            self.divisor_d.data = divisor.type(torch.int8)
+            ds_ds_out = 1 - (ds_ds ^ (1 - output))
+            inc = (dd_ds & ds_ds_out).type(torch.float)
+            dec = ((1 - dd_ds) & (1 - ds_ds_out)).type(torch.float)
+        
+        # scnt is also the same in terms of the up/down behavior and comparison
+        self.scnt.data = (inc * (self.scnt + 1) + (1 - inc) * self.scnt).view(dividend.size())
+        self.scnt.data = (dec * (self.scnt - 1) + (1 - dec) * self.scnt)
+        self.scnt.data = self.scnt.clamp(0, self.scnt_max.item())
+        
         return output.type(self.bstype)
     

@@ -84,7 +84,7 @@ class GainesMul(torch.nn.Module):
         if self.mode is "unipolar":
             return input_0.type(torch.int8) & input_1.type(torch.int8)
         elif self.mode is "bipolar":
-            return (input_0.type(torch.int8) & input_1.type(torch.int8)) | ((1-input_0.type(torch.int8)) & (1-input_1.type(torch.int8)))
+            return 1 - (input_0.type(torch.int8) ^ input_1.type(torch.int8))
         else:
             raise ValueError("UnaryMul mode is not implemented.")
             
