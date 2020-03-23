@@ -19,3 +19,23 @@ This folder includes the hardware implementation of operators in _'sw'_ subdirec
 [1] V. T. Lee, A. Alaghi, J. P. Hayes, V. Sathe, and L. Ceze, "Energy-efficient hybrid stochastic-binary neural networks for near-sensor computing", in *DATE* 2017.
 
 [2] V. T. Lee, A. Alaghi, R. Pamula, V. S. Sathe, L. Ceze and M. Oskin, "Architecture Considerations for Stochastic Computing Accelerators", in *TCAD* 2018.  
+
+## Citing
+If you find UnarySim or uGEMM is useful for your research, please use the following bibtex to cite us,
+
+```
+@inproceedings{diwu2020uGEMM,
+  title = {uGEMM: Unary Computing Architecture for GEMM Applications},
+  author = {Di Wu and Jingjie Li and Ruokai Yin and Hsuan Hsiao and Younghyun Kim and Joshua San Miguel},
+  booktitle = {Proceedings of the 46th International Symposium on Computer Architecture}
+  year = {2020},
+}
+```
+
+## Contribution
+Active contributor:
+1. [Di Wu](https://diwu1990.github.io/)
+2. [Ruokai Yin](https://ruokaiyin.github.io/)
+
+Please contact me (di.wu@ece.wisc.edu) if you are interested in contributing to this project!
+

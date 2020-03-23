@@ -109,25 +109,6 @@ The components currently supported or to be implemented are listed in the table 
 ### _'test'_ subdirectory
 This directory contains simple testing examples for above components, which are integrated with Jupyter-notebook.
 
-## Citing
-If you find UnarySim or uGEMM is useful for your research, please use the following bibtex to cite us,
-
-```
-@inproceedings{diwu2020uGEMM,
-  title = {uGEMM: Unary Computing Architecture for GEMM Applications},
-  author = {Di Wu and Jingjie Li and Ruokai Yin and Hsuan Hsiao and Younghyun Kim and Joshua San Miguel},
-  booktitle = {Proceedings of the 46th International Symposium on Computer Architecture}
-  year = {2020},
-}
-```
-
-## Contribution
-Active contributor:
-1. [Di Wu](https://diwu1990.github.io/)
-2. [Ruokai Yin](https://ruokaiyin.github.io/)
-
-Please contact me (di.wu@ece.wisc.edu) if you are interested in contributing to this project!
-
 
 ## Reference
 [1] B.R. Gaines, "Stochastic computing systems," in _Advances in Information Systems Science_ 1969.  
