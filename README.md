@@ -10,10 +10,10 @@ In general, a single unary computing kernel may not outperform the binary in ter
 This _**UnarySim**_ is a PyTorch-based cycle-accurate simulator for large scale unary computing.
 
 ### _'sw'_ subdirectory
-This folder includes the software implementation of multiple unary operators. Please inside for detail instructions to use _**UnarySim**_.
+This folder includes the software implementation of multiple unary operators. Please check inside for how to use _**UnarySim**_.
 
 ### _'hw'_ subdirectory
-This folder includes the hardware implementation of operator in _'sw'_ subdirectory. This folder is still incomplete.
+This folder includes the hardware implementation of operators in _'sw'_ subdirectory, and is still in progress.
 
 ## Reference
 [1] V. T. Lee, A. Alaghi, J. P. Hayes, V. Sathe, and L. Ceze, "Energy-efficient hybrid stochastic-binary neural networks for near-sensor computing", in *DATE* 2017.
