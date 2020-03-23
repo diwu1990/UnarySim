@@ -113,7 +113,7 @@ This directory contains simple testing examples for above components, which are 
 If you find UnarySim or uGEMM is useful for your research, please use the following bibtex to cite us,
 
 ```
-@inproceedings{uGEMM2020isca,
+@inproceedings{diwu2020uGEMM,
   title = {uGEMM: Unary Computing Architecture for GEMM Applications},
   author = {Di Wu and Jingjie Li and Ruokai Yin and Hsuan Hsiao and Younghyun Kim and Joshua San Miguel},
   booktitle = {Proceedings of the 46th International Symposium on Computer Architecture}
