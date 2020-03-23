@@ -109,6 +109,15 @@ The components currently supported or to be implemented are listed in the table 
 ### _'test'_ subdirectory
 This directory contains simple testing examples for above components, which are integrated with Jupyter-notebook.
 
+## Citation
+If you use this work for uGEMM simulation, please cite our paper published in 47th International Symposium on Computer Architecture (ISCA 2020) in which we developed and evaluated uGEMM.
+
+@inproceedings {uGEMM2020isca,
+  title = {uGEMM: Unary Computing Architecture for GEMM Applications},
+  author = {Di Wu and Jingjie Li and Ruokai Yin and Hsuan Hsiao and Younghyun Kim and Joshua San Miguel},
+  booktitle = {Proceedings of the 46th International Symposium on Computer Architecture}
+  year = {2020},
+}
 
 ## Contribution
 Active contributor:
