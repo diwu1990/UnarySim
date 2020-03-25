@@ -14,8 +14,12 @@ class Correlation(torch.nn.Module):
         self.paired_10_b = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.paired_11_a = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.in_1_d = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
-    def Monitor(self, in_1, in_2):
+    def Monitor(self, in_1, in_2=None):
+        if in_2 is None:
+            in_2 = self.in_1_d.clone().detach()
+            self.in_1_d.data = in_1.clone().detach()
         in_1_is_0 = torch.eq(in_1, 0).type(torch.float)
         in_1_is_1 = 1 - in_1_is_0
         in_2_is_0 = torch.eq(in_2, 0).type(torch.float)
