@@ -49,7 +49,7 @@ class UnaryReLU(torch.nn.Module):
             output = (torch.lt(self.sr_cnt, self.buf_dep_half).type(torch.int8) | input.type(torch.int8)).type(self.bstype)
         # update shiftreg
         _, self.sr_cnt.data = self.shiftreg(output)
-        return output
+        return output.type(self.bstype)
     
     def UnaryReLU_forward_tc(self, input):
         # check reach half total cycle
