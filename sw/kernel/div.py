@@ -1,5 +1,6 @@
 import torch
-from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
+from UnarySim.sw.bitstream.gen import RNG
+from UnarySim.sw.bitstream.shuffle import SkewedSync
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 import math
 
@@ -49,54 +50,55 @@ class CORDIV_kernel(torch.nn.Module):
         return quotient.type(self.bstype)
     
     
-# class UnaryDiv(torch.nn.Module):
-#     """
-#     this module is for unary division, including iscbdiv and jkdiv.
-#     """
-#     def __init__(self, 
-#                  buf_dep=8, 
-#                  mode="bipolar", 
-#                  scaled=True, 
-#                  acc_dim=0,
-#                  bstype=torch.float):
-#         super(UnaryAdd, self).__init__()
+class UnaryDiv(torch.nn.Module):
+    """
+    this module is for unary division, including iscbdiv and jkdiv.
+    """
+    def __init__(self, 
+                 buf_dep=4, 
+                 sync_dep=2, 
+                 mode="bipolar", 
+                 rng="Sobol", 
+                 rng_dim=1, 
+                 bstype=torch.float):
+        super(UnaryAdd, self).__init__()
         
-#         # data bit width
-#         self.bitwidth = bitwidth
-#         # data representation
-#         self.mode = mode
-#         # whether it is scaled addition
-#         self.scaled = scaled
-#         # dimension to do reduce sum
-#         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-#         self.acc_dim.fill_(acc_dim)
-#         self.bstype = bstype
+        # data bit width
+        self.bitwidth = bitwidth
+        # data representation
+        self.mode = mode
+        # whether it is scaled addition
+        self.scaled = scaled
+        # dimension to do reduce sum
+        self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        self.acc_dim.fill_(acc_dim)
+        self.bstype = bstype
         
-#         # upper bound for accumulation counter in non-scaled mode
-#         # it is the number of inputs, e.g., the size along the acc_dim dimension
-#         self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-#         # accumulation offset
-#         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        # upper bound for accumulation counter in non-scaled mode
+        # it is the number of inputs, e.g., the size along the acc_dim dimension
+        self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        # accumulation offset
+        self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
-#         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-#         if self.scaled is False:
-#             self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        if self.scaled is False:
+            self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
-#     def forward(self, input):
-#         self.acc_bound.fill_(input.size()[self.acc_dim.item()])
-#         if self.mode is "bipolar":
-#             self.offset.fill_((self.acc_bound.item()-1)/2)
-#         self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
+    def forward(self, input):
+        self.acc_bound.fill_(input.size()[self.acc_dim.item()])
+        if self.mode is "bipolar":
+            self.offset.fill_((self.acc_bound.item()-1)/2)
+        self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
         
-#         if self.scaled is True:
-#             output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
-#             self.accumulator.sub_(output * self.acc_bound)
-#         else:
-#             self.accumulator.sub_(self.offset)
-#             output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
-#             self.out_accumulator.data = self.out_accumulator.add(output)
+        if self.scaled is True:
+            output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
+            self.accumulator.sub_(output * self.acc_bound)
+        else:
+            self.accumulator.sub_(self.offset)
+            output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
+            self.out_accumulator.data = self.out_accumulator.add(output)
 
-#         return output.type(self.bstype)
+        return output.type(self.bstype)
     
 
 class GainesDiv(torch.nn.Module):
@@ -127,18 +129,19 @@ class GainesDiv(torch.nn.Module):
         output = output + torch.zeros_like(dividend, dtype=torch.int8)
         
         if self.mode is "unipolar":
-            dividend_eq_1 = torch.eq(dividend, 1)
-            prod = output & divisor.type(torch.int8)
-            prod_eq_1 = torch.eq(prod, 1)
-            inc = dividend_eq_1.type(torch.float)
-            dec = prod_eq_1.type(torch.float)
+            inc = dividend.type(torch.float)
+            dec = (output & divisor.type(torch.int8)).type(torch.float)
         else:
-            dd_ds = 1 - (dividend.type(torch.int8) ^ divisor.type(torch.int8))
-            ds_ds = 1 - (self.divisor_d ^ divisor.type(torch.int8))
-            self.divisor_d.data = divisor.type(torch.int8)
-            ds_ds_out = 1 - (ds_ds ^ (1 - output))
-            inc = (dd_ds & ds_ds_out).type(torch.float)
-            dec = ((1 - dd_ds) & (1 - ds_ds_out)).type(torch.float)
+            #　dd_ds = 1 - (dividend.type(torch.int8) ^ divisor.type(torch.int8))
+            #　ds_ds = 1 - (self.divisor_d ^ divisor.type(torch.int8))
+            #　self.divisor_d.data = divisor.type(torch.int8)
+            #　ds_ds_out = 1 - (ds_ds ^ (1 - output))
+            #　inc = (dd_ds & ds_ds_out).type(torch.float)
+            #　dec = ((1 - dd_ds) & (1 - ds_ds_out)).type(torch.float)
+            
+            #　following implementation is not good for accuracy due to fluctuation of negative output.
+            inc = dividend.type(torch.float)
+            dec = (1 - output ^ divisor.type(torch.int8)).type(torch.float)
         
         # scnt is also the same in terms of the up/down behavior and comparison
         self.scnt.data = (inc * (self.scnt + 1) + (1 - inc) * self.scnt).view(dividend.size())
