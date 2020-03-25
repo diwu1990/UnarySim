@@ -25,26 +25,26 @@ class RNG(torch.nn.Module):
     Random number generator to generate one random sequence, returns a tensor of size [2**bitwidth]
     returns a torch.nn.Parameter
     """
-    def __init__(self, bitwidth=8, dim=1, mode="Sobol", randtype=torch.float):
+    def __init__(self, bitwidth=8, dim=1, rng="Sobol", randtype=torch.float):
         super(RNG, self).__init__()
         self.dim = dim
-        self.mode = mode
+        self.rng = rng
         self.seq_len = pow(2, bitwidth)
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         self.randtype = randtype
-        if self.mode == "Sobol":
+        if self.rng == "Sobol":
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, dim-1].view(self.seq_len).mul_(self.seq_len)
-        elif self.mode == "Race":
+        elif self.rng == "Race":
             self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len)
-        elif self.mode == "LFSR":
+        elif self.rng == "LFSR":
             lfsr_seq = get_lfsr_seq(bitwidth=bitwidth)
             self.rng_seq.data = torch.tensor(lfsr_seq).type(torch.float)
-        elif self.mode == "SYS":
+        elif self.rng == "SYS":
             sysrand_seq = get_sysrand_seq(bitwidth=bitwidth)
             self.rng_seq.data = sysrand_seq.type(torch.float)
         else:
-            raise ValueError("RNG mode is not implemented.")
+            raise ValueError("RNG rng is not implemented.")
         self.rng_seq.data = self.rng_seq.data.floor().type(self.randtype)
         
     def forward(self):
@@ -56,29 +56,29 @@ class RNGMulti(torch.nn.Module):
     Random number generator to generate multiple random sequences, returns a tensor of size [dim, 2**bitwidth]
     returns a torch.nn.Parameter
     """
-    def __init__(self, bitwidth=8, dim=1, mode="Sobol", transpose=False, randtype=torch.float):
+    def __init__(self, bitwidth=8, dim=1, rng="Sobol", transpose=False, randtype=torch.float):
         super(RNGMulti, self).__init__()
         self.dim = dim
-        self.mode = mode
+        self.rng = rng
         self.seq_len = pow(2, bitwidth)
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         self.randtype = randtype
-        if self.mode == "Sobol":
+        if self.rng == "Sobol":
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len).mul_(self.seq_len)
-        elif self.mode == "LFSR":
+        elif self.rng == "LFSR":
             lfsr_seq = []
             for i in range(dim):
                 lfsr_seq.append(get_lfsr_seq(bitwidth=bitwidth))
-            self.rng_seq.data = torch.tensor(lfsr_seq).transpose(0, 1)
-        elif self.mode == "SYS":
+            self.rng_seq.data = torch.tensor(lfsr_seq).transpose(0, 1).type(torch.float)
+        elif self.rng == "SYS":
             sysrand_seq = get_sysrand_seq(bitwidth=bitwidth)
             for i in range(dim-1):
                 temp_seq = get_sysrand_seq(bitwidth=bitwidth)
                 sysrand_seq = torch.stack((sysrand_seq, temp_seq), dim = 0)
-            self.rng_seq.data = sysrand_seq.transpose(0, 1)
+            self.rng_seq.data = sysrand_seq.transpose(0, 1).type(torch.float)
         else:
-            raise ValueError("RNG mode is not implemented.")
+            raise ValueError("RNG rng is not implemented.")
         if transpose is True:
             self.rng_seq.data = self.rng_seq.data.transpose(0, 1)
         self.rng_seq.data = self.rng_seq.data.floor().type(self.randtype)
