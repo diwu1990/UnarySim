@@ -43,70 +43,59 @@ This directory contains four subdirectories, including _'bitstream'_, _'kernel'_
 ### _'bitstream'_ subdirectory
 This directory contains the components for **Bit Stream Manipulation**, which deal with the bit stream generation or shuffle for high performance and accuracy.
 
-1. File _gen.py_ is for **Bit Stream Generation**, which refers to generating the bit streams as the input of the computing kernels.
-The components currently supported or to be implemented are listed in the table below.
-
-| Name                 | Date          | Encode | Mode        | Reference | Status                 |
-| -------------------- | ------------- | ------ | ----------- | --------- | ---------------------- |
-| BSGen                | Seq. 07, 2019 | RC/TC  | Uni/Bipolar | [1]       | <ul><li>[x] </li></ul> |
-| BSGenMulti           | Nov. 11, 2019 | RC/TC  | Uni/Bipolar | [1]       | <ul><li>[x] </li></ul> |
-| RawScale             | Dec. 07, 2019 | RC/TC  | Uni/Bipolar | NA        | <ul><li>[x] </li></ul> |
-| RNG                  | Seq. 07, 2019 | RC/TC  | Uni/Bipolar | [2]       | <ul><li>[x] </li></ul> |
-| RNGMulti             | Nov. 11, 2019 | RC/TC  | Uni/Bipolar | [2]       | <ul><li>[x] </li></ul> |
-| SourceGen            | Seq. 07, 2019 | RC/TC  | Uni/Bipolar | [1]       | <ul><li>[x] </li></ul> |
-
-
-2. File _shuffle.py_ is for **Bit Stream Shuffle**, which refers to shuffling the bit streams for higher computational accuracy. This effect of shuffle can be measured by correlation between bit streams [3].
-The components currently supported or to be implemented are listed in the table below.
-
-| Name                 | Date          | Encode        | Reference     | Status                 |
-| -------------------- | ------------- | ------------- | ------------- | ---------------------- |
-| Decorr               |               | RC            | [4]           | <ul><li>[ ] </li></ul> |
-| DeSync               |               | RC            | [4]           | <ul><li>[ ] </li></ul> |
-| SkewedSync           | Seq. 07, 2019 | RC, TC        | [5]           | <ul><li>[x] </li></ul> |
-| Sync                 |               | RC, TC        | [4]           | <ul><li>[ ] </li></ul> |
+| Name                 | Date          | Encode | Mode   | Reference | Status                 |
+| -------------------- | ------------- | ------ | ------ | --------- | ---------------------- |
+| BSGen                | Seq. 07, 2019 | RC/TC  | Bi/Uni | [1]       | <ul><li>[x] </li></ul> |
+| BSGenMulti           | Nov. 11, 2019 | RC/TC  | Bi/Uni | [1]       | <ul><li>[x] </li></ul> |
+| RawScale             | Dec. 07, 2019 | RC/TC  | Bi/Uni | NA        | <ul><li>[x] </li></ul> |
+| RNG                  | Seq. 07, 2019 | RC/TC  | Bi/Uni | [2]       | <ul><li>[x] </li></ul> |
+| RNGMulti             | Nov. 11, 2019 | RC/TC  | Bi/Uni | [2]       | <ul><li>[x] </li></ul> |
+| SourceGen            | Seq. 07, 2019 | RC/TC  | Bi/Uni | [1]       | <ul><li>[x] </li></ul> |
+| Decorr               |               | RC/TC  | Bi/Uni | [4]       | <ul><li>[ ] </li></ul> |
+| DeSync               |               | RC/TC  | Bi/Uni | [4]       | <ul><li>[ ] </li></ul> |
+| SkewedSync           | Seq. 07, 2019 | RC/TC  | Bi/Uni | [5]       | <ul><li>[x] </li></ul> |
+| Sync                 |               | RC/TC  | Bi/Uni | [4]       | <ul><li>[ ] </li></ul> |
 
 
 ### _'kernel'_ subdirectory
 This directory contains the components for **Unary Computing Kernel**, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 The components currently supported or to be implemented are listed in the table below.
 
-| Name                 | Date          | Encode        | Reference     | Status                 |
-| -------------------- | ------------- | ------------- | ------------- | ---------------------- |
-| UnaryAbs             | Mar. 25, 2019 | RC, TC        | [6]           | <ul><li>[x] </li></ul> |
-| UnaryAdd             | Oct. 10, 2019 | RC, TC        | [6]           | <ul><li>[x] </li></ul> |
-| UnaryMul             | Nov. 05, 2019 | RC, TC        | [6]           | <ul><li>[x] </li></ul> |
-| UnaryLinear          | Seq. 27, 2019 | RC, TC        | [6]           | <ul><li>[x] </li></ul> |
-| UnaryReLU            | Nov. 23, 2019 | RC, TC        | [6]           | <ul><li>[x] </li></ul> |
-| CORDIV_kernel        | Mar. 08, 2020 | RC, TC        | [5]           | <ul><li>[x] </li></ul> |
-| UnaryDiv             | Mar. 25, 2020 | RC, TC        | [5]           | <ul><li>[ ] </li></ul> |
-| UnarySqrt            | Mar. 25, 2020 | RC, TC        | [5]           | <ul><li>[ ] </li></ul> |
-| nn_utils             | Nov. 25, 2019 | RC, TC        | NA            | <ul><li>[x] </li></ul> |
-| GainesAdd            | Mar. 02, 2020 | RC, TC        | [1]           | <ul><li>[x] </li></ul> |
-| GainesMul            | Dec. 06, 2019 | RC, TC        | [1]           | <ul><li>[x] </li></ul> |
-| GainesLinear         | Nov. 25, 2019 | RC, TC        | [1]           | <ul><li>[x] </li></ul> |
-| GainesDiv            | Mar. 08, 2020 | RC, TC        | [1]           | <ul><li>[x] </li></ul> |
-| GainesSqrt           | Mar. 24, 2020 | RC, TC        | [1]           | <ul><li>[x] </li></ul> |
-| ShiftReg             | Dec. 06, 2019 | RC, TC        | NA            | <ul><li>[x] </li></ul> |
-| abs                  |               |               | <ul><li>[ ] </li></ul> |
-| comparison           |               |               | <ul><li>[ ] </li></ul> |
-| conv                 |               |               | <ul><li>[ ] </li></ul> |
-| exponentiation       |               |               | <ul><li>[ ] </li></ul> |
-| max                  |               |               | <ul><li>[ ] </li></ul> |
-| min                  |               |               | <ul><li>[ ] </li></ul> |
-| pool                 |               |               | <ul><li>[ ] </li></ul> |
+| Name                 | Date          | Encode | Mode   | Reference     | Status                 |
+| -------------------- | ------------- | ------ | ------ | ------------- | ---------------------- |
+| UnaryAbs             | Mar. 25, 2019 | RC/TC  | Bi/Uni | [8]           | <ul><li>[x] </li></ul> |
+| UnaryAdd             | Oct. 10, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
+| UnaryMul             | Nov. 05, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
+| UnaryLinear          | Seq. 27, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
+| UnaryReLU            | Nov. 23, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
+| CORDIV_kernel        | Mar. 08, 2020 | RC/TC  | Bi/Uni | [5]           | <ul><li>[x] </li></ul> |
+| UnaryDiv             | Mar. 25, 2020 | RC/TC  | Bi/Uni | [5]           | <ul><li>[ ] </li></ul> |
+| UnarySqrt            | Mar. 25, 2020 | RC/TC  | Bi/Uni | [5]           | <ul><li>[ ] </li></ul> |
+| nn_utils             | Nov. 25, 2019 | RC/TC  | Bi/Uni | NA            | <ul><li>[x] </li></ul> |
+| GainesAdd            | Mar. 02, 2020 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
+| GainesMul            | Dec. 06, 2019 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
+| GainesLinear         | Nov. 25, 2019 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
+| GainesDiv            | Mar. 08, 2020 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
+| GainesSqrt           | Mar. 24, 2020 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
+| ShiftReg             | Dec. 06, 2019 | RC/TC  | Bi/Uni | NA            | <ul><li>[x] </li></ul> |
+| comparison           |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
+| conv                 |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
+| exponentiation       |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
+| max                  |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
+| min                  |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
+| pool                 |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
 
 
 ### _'metric'_ subdirectory
 This directory contains the components for **Performance Metric**, which take bit streams as input and calculate certain performance metrics.
 The components currently supported or to be implemented are listed in the table below.
 
-| Name                 | Date          | Reference     | Status                 |
-| -------------------- | ------------- | ------------- | ---------------------- |
-| Correlation          | Seq. 07, 2019 | [3]           | <ul><li>[x] </li></ul> |
-| ProgressivePrecision | Seq. 07, 2019 | [7]           | <ul><li>[x] </li></ul> |
-| Stability            | Dec. 27, 2019 | [6]           | <ul><li>[x] </li></ul> |
-| NormStability        | Dec. 18, 2019 | NA            | <ul><li>[x] </li></ul> |
+| Name                 | Date          | Encode | Mode   | Reference     | Status                 |
+| -------------------- | ------------- | ------ | ------ | ------------- | ---------------------- |
+| Correlation          | Seq. 07, 2019 | RC/TC  | Bi/Uni | [3]           | <ul><li>[x] </li></ul> |
+| ProgressivePrecision | Seq. 07, 2019 | RC/TC  | Bi/Uni | [7]           | <ul><li>[x] </li></ul> |
+| Stability            | Dec. 27, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
+| NormStability        | Dec. 18, 2019 | RC/TC  | Bi/Uni | NA            | <ul><li>[x] </li></ul> |
 
 
 ### _'test'_ subdirectory
@@ -121,4 +110,4 @@ This directory contains simple testing examples for above components, which are 
 [5] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.  
 [6] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
 [7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
-
+[8] P. Li and D. J. Lilja, "Using stochastic computing to implement digital image processing algorithms," in _ICCD_, 2011.
