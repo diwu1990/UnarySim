@@ -42,7 +42,7 @@ class SkewedSync(torch.nn.Module):
     "in-stream stochastic division and square root via correlation"
     all tensors are torch.nn.Parameter type so as to move to GPU for computing
     """
-    def __init__(self, depth=2, buftype=torch.float, bstype=torch.float):
+    def __init__(self, depth=2, bstype=torch.float, buftype=torch.float):
         super(SkewedSync, self).__init__()
         self.buftype=buftype
         self.bstype=bstype
