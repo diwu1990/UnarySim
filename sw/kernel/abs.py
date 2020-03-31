@@ -6,22 +6,22 @@ class UnaryAbs(torch.nn.Module):
     this module is to calculate the bipolar absolute value unary data, based on non-scaled unipolar unary addition.
     only works for rate-coded data.
     """
-    def __init__(self, buf_dep=8, bitwidth=8, shiftreg=False, bstype=torch.float, buftype=torch.float):
+    def __init__(self, depth=8, shiftreg=False, bstype=torch.float, buftype=torch.float):
         super(UnaryAbs, self).__init__()
-        self.buf_dep = buf_dep
-        self.buf_dep_half = torch.nn.Parameter(torch.zeros(1).fill_(buf_dep/2).type(buftype), requires_grad=False)
+        self.depth = depth
+        self.depth_half = torch.nn.Parameter(torch.zeros(1).fill_(depth/2).type(buftype), requires_grad=False)
         self.sr = shiftreg
         self.bstype = bstype
         self.buftype = buftype
         if shiftreg is True:
-            assert buf_dep <= 127, "When using shift register implementation, buffer depth should be less than 127."
-            self.shiftreg = ShiftReg(buf_dep, self.bstype)
+            assert depth <= 127, "When using shift register implementation, buffer depth should be less than 127."
+            self.shiftreg = ShiftReg(depth, self.bstype)
             self.sr_cnt = torch.nn.Parameter(torch.zeros(1).type(self.bstype), requires_grad=False)
             self.init = True
         else:
-            self.buf_max = torch.nn.Parameter(torch.zeros(1).fill_(2**buf_dep - 1).type(buftype), requires_grad=False)
-            self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(buf_dep - 1)).type(buftype), requires_grad=False)
-            self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(buf_dep - 1)).type(buftype), requires_grad=False)
+            self.buf_max = torch.nn.Parameter(torch.zeros(1).fill_(2**depth - 1).type(buftype), requires_grad=False)
+            self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
+            self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
     
     def UnaryAbs_forward_rc(self, input):
         # check whether acc is larger than or equal to half.
@@ -39,7 +39,7 @@ class UnaryAbs(torch.nn.Module):
             output = torch.ones_like(input).type(self.bstype)
             self.init = False
         else:
-            half_prob_flag = torch.ge(self.sr_cnt, self.buf_dep_half).type(torch.int8)
+            half_prob_flag = torch.ge(self.sr_cnt, self.depth_half).type(torch.int8)
             input_int8 = input.type(torch.int8)
             output = (half_prob_flag & input_int8) | ((1 - half_prob_flag) & (1 - input_int8))
         # update shiftreg

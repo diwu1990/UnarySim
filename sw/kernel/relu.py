@@ -7,23 +7,23 @@ class UnaryReLU(torch.nn.Module):
     data is always in bipolar representation
     the input bit streams are categorized into rate-coded and temporal-coded
     """
-    def __init__(self, buf_dep=8, bitwidth=8, encode="RC", shiftreg=False, bstype=torch.float, buftype=torch.float):
+    def __init__(self, depth=8, bitwidth=8, encode="RC", shiftreg=False, bstype=torch.float, buftype=torch.float):
         super(UnaryReLU, self).__init__()
-        self.buf_dep = buf_dep
-        self.buf_dep_half = torch.nn.Parameter(torch.zeros(1).fill_(buf_dep/2).type(buftype), requires_grad=False)
+        self.depth = depth
+        self.depth_half = torch.nn.Parameter(torch.zeros(1).fill_(depth/2).type(buftype), requires_grad=False)
         self.encode = encode
         self.sr = shiftreg
         self.bstype = bstype
         self.buftype = buftype
         if shiftreg is True:
-            assert buf_dep <= 127, "When using shift register implementation, buffer depth should be less than 127."
-            self.shiftreg = ShiftReg(buf_dep, self.bstype)
+            assert depth <= 127, "When using shift register implementation, buffer depth should be less than 127."
+            self.shiftreg = ShiftReg(depth, self.bstype)
             self.sr_cnt = torch.nn.Parameter(torch.zeros(1).type(self.bstype), requires_grad=False)
             self.init = True
         if encode is "RC":
-            self.buf_max = torch.nn.Parameter(torch.zeros(1).fill_(2**buf_dep - 1).type(buftype), requires_grad=False)
-            self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(buf_dep - 1)).type(buftype), requires_grad=False)
-            self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(buf_dep - 1)).type(buftype), requires_grad=False)
+            self.buf_max = torch.nn.Parameter(torch.zeros(1).fill_(2**depth - 1).type(buftype), requires_grad=False)
+            self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
+            self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
         elif encode is "TC":
             self.threshold = torch.nn.Parameter(torch.zeros(1).fill_(2**(bitwidth - 1)).type(buftype), requires_grad=False)
             self.acc = torch.nn.Parameter(torch.zeros(1).type(buftype), requires_grad=False)
@@ -46,7 +46,7 @@ class UnaryReLU(torch.nn.Module):
             output = torch.ones_like(input).type(self.bstype)
             self.init = False
         else:
-            output = (torch.lt(self.sr_cnt, self.buf_dep_half).type(torch.int8) | input.type(torch.int8)).type(self.bstype)
+            output = (torch.lt(self.sr_cnt, self.depth_half).type(torch.int8) | input.type(torch.int8)).type(self.bstype)
         # update shiftreg
         _, self.sr_cnt.data = self.shiftreg(output)
         return output.type(self.bstype)

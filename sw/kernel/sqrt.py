@@ -4,17 +4,17 @@ from UnarySim.sw.bitstream.shuffle import SkewedSync
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 import math
 
-    
 class UnarySqrt(torch.nn.Module):
     """
-    this module is for unary division, including iscbdiv and jkdiv.
+    this module is for unary square root, including iscbdiv-based and jkdiv-based.
     """
     def __init__(self, 
-                 buf_dep=4, 
-                 sync_dep=2, 
+                 depth=4, 
                  mode="bipolar", 
                  rng="Sobol", 
-                 rng_dim=1, 
+                 acc_emit=True, 
+                 acc_dep=3,
+                 jk_trace=True, 
                  bstype=torch.float):
         super(UnaryAdd, self).__init__()
         
@@ -61,7 +61,7 @@ class GainesSqrt(torch.nn.Module):
     this module is for Gaines square root.
     """
     def __init__(self, 
-                 buf_dep=5, 
+                 depth=5, 
                  mode="bipolar", 
                  rng="Sobol", 
                  rng_dim=1, 
@@ -70,9 +70,9 @@ class GainesSqrt(torch.nn.Module):
         
         # data representation
         self.mode = mode
-        self.scnt_max = torch.nn.Parameter(torch.tensor([2**buf_dep-1]).type(torch.float), requires_grad=False)
-        self.scnt = torch.nn.Parameter(torch.tensor([2**(buf_dep-1)]).type(torch.float), requires_grad=False)
-        self.rng = RNG(buf_dep, rng_dim, rng, torch.float)()
+        self.scnt_max = torch.nn.Parameter(torch.tensor([2**depth-1]).type(torch.float), requires_grad=False)
+        self.scnt = torch.nn.Parameter(torch.tensor([2**(depth-1)]).type(torch.float), requires_grad=False)
+        self.rng = RNG(depth, rng_dim, rng, torch.float)()
         self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         self.out_d = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.bstype = bstype
