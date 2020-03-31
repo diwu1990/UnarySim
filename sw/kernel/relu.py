@@ -36,7 +36,7 @@ class UnaryReLU(torch.nn.Module):
         half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
         # only when input is 0 and flag is 1, output 0; otherwise 1
         output = input.type(torch.int8) | (1 - half_prob_flag)
-        # update the accumulator
+        # update the accumulator based on output, thus acc update is after output generation
         self.acc.data = self.acc.add(output.mul(2).sub(1).type(self.buftype)).clamp(0, self.buf_max.item())
         return output.type(self.bstype)
     
@@ -47,7 +47,7 @@ class UnaryReLU(torch.nn.Module):
             self.init = False
         else:
             output = (torch.lt(self.sr_cnt, self.depth_half).type(torch.int8) | input.type(torch.int8)).type(self.bstype)
-        # update shiftreg
+        # update shiftreg based on output, thus shiftreg update is after output generation
         _, self.sr_cnt.data = self.shiftreg(output)
         return output.type(self.bstype)
     
@@ -60,7 +60,6 @@ class UnaryReLU(torch.nn.Module):
         half_prob_flag = torch.gt(self.acc, self.threshold).type(self.buftype)
         # if  1
         output = (1 - half_cycle_flag) * torch.ge(self.cycle, self.acc).type(self.buftype) + half_cycle_flag * half_prob_flag * input.type(self.buftype)
-        # update the accumulator
         return output.type(self.bstype)
 
     def forward(self, input):

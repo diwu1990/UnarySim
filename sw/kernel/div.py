@@ -3,6 +3,7 @@ from UnarySim.sw.bitstream.gen import RNG
 from UnarySim.sw.bitstream.shuffle import SkewedSync
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 from UnarySim.sw.kernel.abs import UnaryAbs
+from UnarySim.sw.kernel.add import UnaryAdd
 import math
 
 class CORDIV_kernel(torch.nn.Module):
@@ -13,12 +14,12 @@ class CORDIV_kernel(torch.nn.Module):
     def __init__(self, 
                  depth=4, 
                  rng="Sobol", 
-                 rng_dim=1, 
+                 rng_dim=4, 
                  bstype=torch.float):
         super(CORDIV_kernel, self).__init__()
         self.depth = depth
         self.sr = ShiftReg(depth, bstype)
-        self.rng = RNG(int(math.log2(depth)), rng_dim, rng, torch.float)()
+        self.rng = RNG(int(math.log2(depth)), rng_dim, rng, torch.long)()
         self.idx = torch.nn.Parameter(torch.zeros(1).type(torch.float), requires_grad=False)
         self.bstype = bstype
         self.init = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
@@ -36,17 +37,17 @@ class CORDIV_kernel(torch.nn.Module):
         
         # 2) always generating, no need to deal conditional probability
         divisor_eq_1 = torch.eq(divisor, 1).type(self.bstype)
-        historic_q = self.sr.sr[self.rng[self.idx.type(torch.long)%self.depth].type(torch.long)]
+        historic_q = self.sr.sr[self.rng[self.idx.type(torch.long)%self.depth]]
         self.idx.data = self.idx.add(1)
 
         quotient = (divisor_eq_1 * dividend + (1 - divisor_eq_1) * historic_q).view(dividend.size())
         
         # shift register update 
         # 1) update shift register based on whether divisor is valid
-        # dontcare1, dontcare2 = self.sr(quotient.type(self.bstype), mask=divisor_eq_1)
+        dontcare1, dontcare2 = self.sr(quotient.type(self.bstype), mask=divisor_eq_1)
         
         # 2) always update shift register
-        dontcare1, dontcare2 = self.sr(quotient.type(self.bstype), mask=None)
+        # dontcare1, dontcare2 = self.sr(quotient.type(self.bstype), mask=None)
 
         return quotient.type(self.bstype)
     
@@ -56,48 +57,42 @@ class UnaryDiv(torch.nn.Module):
     this module is for unary div, i.e., iscbdiv.
     """
     def __init__(self, 
-                 buf_dep=4, 
-                 sync_dep=2, 
+                 depth_abs=4, 
+                 depth_kernel=4, 
+                 depth_sync=2, 
                  shiftreg=False, 
                  mode="bipolar", 
                  rng="Sobol", 
-                 rng_dim=1, 
-                 bstype=torch.float):
-        super(UnaryAdd, self).__init__()
+                 rng_dim=4, 
+                 bstype=torch.float, 
+                 buftype=torch.float):
+        super(UnaryDiv, self).__init__()
         
-        # data bit width
-        self.bitwidth = bitwidth
         # data representation
         self.mode = mode
-        # whether it is scaled addition
-        self.scaled = scaled
-        # dimension to do reduce sum
-        self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.acc_dim.fill_(acc_dim)
         self.bstype = bstype
         
         if self.mode is "bipolar":
-            self.abs = UnaryAbs(depth=buf_dep, 
-                                bitwidth=bitwidth, 
-                                shiftreg=shiftreg, 
-                                bstype=bstype, 
-                                buftype=buftype)
+            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg, bstype=bstype, buftype=buftype)
+            self.abs_divisor = UnaryAbs(depth=depth_abs, shiftreg=shiftreg, bstype=bstype, buftype=buftype)
+            self.add = UnaryAdd(mode=mode, scaled=False, acc_dim=0, bstype=bstype)
             
-        self.ssync = SkewedSync(depth=sync_dep, 
-                                bstype=bstype, 
-                                buftype=buftype)
+        self.ssync = SkewedSync(depth=depth_sync, bstype=bstype, buftype=buftype)
+        self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, bstype=torch.float)
         
-    def bipolar_forward(self, divisor, dividend):
+    def bipolar_forward(self, dividend, divisor):
         pass
     
-    def unipolar_forward(self, divisor, dividend):
-        pass
+    def unipolar_forward(self, dividend, divisor):
+        dividend_sync, divisor_sync = self.ssync(dividend, divisor)
+        quotient = self.cordiv_kernel(dividend_sync, divisor_sync)
+        return quotient
 
-    def forward(self, divisor, dividend):
+    def forward(self, dividend, divisor):
         if self.mode is "bipolar":
-            output = self.bipolar_forward(divisor, dividend)
+            output = self.bipolar_forward(dividend, divisor)
         else:
-            output = self.unipolar_forward(divisor, dividend)
+            output = self.unipolar_forward(dividend, divisor)
         return output.type(self.bstype)
     
 

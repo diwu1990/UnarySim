@@ -22,23 +22,15 @@ class UnarySign(torch.nn.Module):
             self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
             self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
 
-    def UnarySign_forward_rc(self, input):
-        # check whether acc is less than half, i.e., bipolar zero.
-        output = torch.lt(self.acc, self.buf_half).type(self.bstype)
-        # update the accumulator
-        self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.buftype)).clamp(0, self.buf_max.item())
-        return output
-    
-    def UnarySign_forward_rc_sr(self, input):
-        # check whether sr sum is less than half, i.e., bipolar zero.
-        output = torch.lt(self.sr_cnt, self.depth_half).type(self.bstype)
-        # update shiftreg
-        _, self.sr_cnt.data = self.shiftreg(input)
-        return output
-
     def forward(self, input):
-        if self.sr is False:
-            return self.UnarySign_forward_rc(input)
+        if self.sr is True:
+            # update shiftreg based on input
+            _, self.sr_cnt.data = self.shiftreg(input)
+            half_prob_flag = torch.ge(self.sr_cnt, self.depth_half).type(torch.int8)
         else:
-            return self.UnarySign_forward_rc_sr(input)
-        
+            # update the accumulator based on input
+            self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.buftype)).clamp(0, self.buf_max.item())
+            half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
+        sign = 1 - half_prob_flag
+        return sign.type(self.bstype)
+    

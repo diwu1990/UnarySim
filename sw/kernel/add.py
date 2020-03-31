@@ -21,7 +21,7 @@ class UnaryAdd(torch.nn.Module):
         self.acc_dim.fill_(acc_dim)
         self.bstype = bstype
         
-        # upper bound for accumulation counter in non-scaled mode
+        # upper bound for accumulation counter in scaled mode
         # it is the number of inputs, e.g., the size along the acc_dim dimension
         self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         # accumulation offset
