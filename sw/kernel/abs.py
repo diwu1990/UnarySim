@@ -9,13 +9,13 @@ class UnaryAbs(torch.nn.Module):
     def __init__(self, depth=8, shiftreg=False, bstype=torch.float, buftype=torch.float):
         super(UnaryAbs, self).__init__()
         self.depth = depth
-        self.depth_half = torch.nn.Parameter(torch.zeros(1).fill_(depth/2).type(buftype), requires_grad=False)
         self.sr = shiftreg
         self.bstype = bstype
         self.buftype = buftype
         if shiftreg is True:
             assert depth <= 127, "When using shift register implementation, buffer depth should be less than 127."
             self.shiftreg = ShiftReg(depth, self.bstype)
+            self.depth_half = torch.nn.Parameter(torch.zeros(1).fill_(depth/2).type(buftype), requires_grad=False)
             self.sr_cnt = torch.nn.Parameter(torch.zeros(1).type(self.bstype), requires_grad=False)
             self.init = True
         else:
