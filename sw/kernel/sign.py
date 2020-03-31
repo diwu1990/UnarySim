@@ -23,14 +23,14 @@ class UnarySign(torch.nn.Module):
             self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
 
     def UnarySign_forward_rc(self, input):
-        # check whether acc is larger than or equal to half.
+        # check whether acc is less than half, i.e., bipolar zero.
         output = torch.lt(self.acc, self.buf_half).type(self.bstype)
         # update the accumulator
         self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.buftype)).clamp(0, self.buf_max.item())
         return output
     
     def UnarySign_forward_rc_sr(self, input):
-        # check whether sr sum is larger than or equal to half.
+        # check whether sr sum is less than half, i.e., bipolar zero.
         output = torch.lt(self.sr_cnt, self.depth_half).type(self.bstype)
         # update shiftreg
         _, self.sr_cnt.data = self.shiftreg(input)
