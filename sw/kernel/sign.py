@@ -17,7 +17,6 @@ class UnarySign(torch.nn.Module):
             assert depth <= 127, "When using shift register implementation, buffer depth should be less than 127."
             self.shiftreg = ShiftReg(depth, self.bstype)
             self.sr_cnt = torch.nn.Parameter(torch.zeros(1).type(self.bstype), requires_grad=False)
-            self.init = True
         else:
             self.buf_max = torch.nn.Parameter(torch.zeros(1).fill_(2**depth - 1).type(buftype), requires_grad=False)
             self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(buftype), requires_grad=False)
@@ -32,11 +31,7 @@ class UnarySign(torch.nn.Module):
     
     def UnarySign_forward_rc_sr(self, input):
         # check whether sr sum is larger than or equal to half.
-        if self.init is True:
-            output = torch.ones_like(input).type(self.bstype)
-            self.init = False
-        else:
-            output = torch.lt(self.sr_cnt, self.depth_half).type(self.bstype)
+        output = torch.lt(self.sr_cnt, self.depth_half).type(self.bstype)
         # update shiftreg
         _, self.sr_cnt.data = self.shiftreg(input)
         return output
@@ -46,3 +41,4 @@ class UnarySign(torch.nn.Module):
             return self.UnarySign_forward_rc(input)
         else:
             return self.UnarySign_forward_rc_sr(input)
+        
