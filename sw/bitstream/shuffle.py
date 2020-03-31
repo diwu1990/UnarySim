@@ -66,3 +66,45 @@ class SkewedSync(torch.nn.Module):
 
         self.cnt.data.add_(torch.eq(sum_in, 1).type(self.buftype).mul_(in_1.mul(2).sub(1))).clamp_(0, self.upper.item())
         return self.out_1, in_2
+
+
+class Bi2Uni(torch.nn.Module):
+    """
+    Format conversion from bipolar to unipolar with unary non-scaled addition
+    input need to be larger than 0
+    """
+    def __init__(self, bstype=torch.float):
+        super(Bi2Uni, self).__init__()
+        self.bstype = bstype
+        self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+
+    def forward(self, input):
+        # calculate 2*input-1, this is the resultant unipolar bit stream.
+        input_stack = torch.stack([input, input, torch.zeros_like(input)], dim=0)
+        # parallel counter
+        self.accumulator.data = self.accumulator.add(torch.sum(input_stack.type(torch.float), 0))
+        # offset substraction
+        self.accumulator.sub_(1)
+        # output generation
+        output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
+        self.out_accumulator.data = self.out_accumulator.add(output)
+        return output.type(self.bstype)
+    
+    
+class Uni2Bi(torch.nn.Module):
+    """
+    Format conversion from unipolar to bipolar with unary scaled addition
+    """
+    def __init__(self, bstype=torch.float):
+        super(Uni2Bi, self).__init__()
+        self.bstype = bstype
+        self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+
+    def forward(self, input):
+        input_stack = torch.stack([input, torch.ones_like(input)], dim=0)
+        self.accumulator.data = self.accumulator.add(torch.sum(input_stack.type(torch.float), 0))
+        output = torch.ge(self.accumulator, 2).type(torch.float)
+        self.accumulator.sub_(output * 2)
+        return output.type(self.bstype)
+    
