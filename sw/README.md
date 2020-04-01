@@ -51,10 +51,10 @@ This directory contains the components for **Bit Stream Manipulation**, which ma
 | RNG                  | Seq 07, 2019 | Both     | Both     | [2]       | <ul><li>[x] </li></ul> |
 | RNGMulti             | Nov 11, 2019 | Both     | Both     | [2]       | <ul><li>[x] </li></ul> |
 | SourceGen            | Seq 07, 2019 | Both     | Either   | [1]       | <ul><li>[x] </li></ul> |
-| Decorr               |              | Both     | Both     | [4]       | <ul><li>[ ] </li></ul> |
-| DeSync               |              | RC       | Both     | [4]       | <ul><li>[ ] </li></ul> |
-| SkewedSync           | Seq 07, 2019 | Both     | Both     | [5]       | <ul><li>[x] </li></ul> |
-| Sync                 |              | Both     | Both     | [4]       | <ul><li>[ ] </li></ul> |
+| Decorr               |              | Both     | Both     | [3]       | <ul><li>[ ] </li></ul> |
+| DeSync               |              | RC       | Both     | [3]       | <ul><li>[ ] </li></ul> |
+| SkewedSync           | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
+| Sync                 |              | Both     | Both     | [3]       | <ul><li>[ ] </li></ul> |
 | Bi2Uni               | Mar 31, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
 | Uni2Bi               | Mar 31, 2020 | RC       | Uni      | NA        | <ul><li>[x] </li></ul> |
 
@@ -65,15 +65,15 @@ The components currently supported or to be implemented are listed in the table 
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| UnaryAbs             | Mar 25, 2020 | RC       | Bi       | [8]       | <ul><li>[x] </li></ul> |
-| UnarySign            | Mar 31, 2020 | RC       | Bi       | [8]       | <ul><li>[x] </li></ul> |
-| UnaryAdd             | Oct 10, 2019 | Both     | Either   | [6]       | <ul><li>[x] </li></ul> |
-| UnaryMul             | Nov 05, 2019 | Both     | Either   | [6]       | <ul><li>[x] </li></ul> |
-| UnaryLinear          | Seq 27, 2019 | Both     | Either   | [6]       | <ul><li>[x] </li></ul> |
-| UnaryReLU            | Nov 23, 2019 | Either   | Either   | [6]       | <ul><li>[x] </li></ul> |
-| CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [5]       | <ul><li>[x] </li></ul> |
-| UnaryDiv             | Apr 01, 2020 | RC       | Either   | [5]       | <ul><li>[x] </li></ul> |
-| UnarySqrt            | Mar 25, 2020 | RC       | Either   | [5]       | <ul><li>[ ] </li></ul> |
+| UnaryAbs             | Mar 25, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
+| UnarySign            | Mar 31, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
+| UnaryAdd             | Oct 10, 2019 | Both     | Either   | [5]       | <ul><li>[x] </li></ul> |
+| UnaryMul             | Nov 05, 2019 | Both     | Either   | [5]       | <ul><li>[x] </li></ul> |
+| UnaryLinear          | Seq 27, 2019 | Both     | Either   | [5]       | <ul><li>[x] </li></ul> |
+| UnaryReLU            | Nov 23, 2019 | Either   | Either   | [5]       | <ul><li>[x] </li></ul> |
+| CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [4]       | <ul><li>[x] </li></ul> |
+| UnaryDiv             | Apr 01, 2020 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
+| UnarySqrt            | Mar 25, 2020 | RC       | Either   | [4]       | <ul><li>[ ] </li></ul> |
 | nn_utils             | Nov 25, 2019 | Both     | NA       | NA        | <ul><li>[x] </li></ul> |
 | GainesAdd            | Mar 02, 2020 | Both     | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesMul            | Dec 06, 2019 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
@@ -95,9 +95,9 @@ The components currently supported or to be implemented are listed in the table 
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| Correlation          | Seq 07, 2019 | Both     | Both     | [3]       | <ul><li>[x] </li></ul> |
+| Correlation          | Seq 07, 2019 | Both     | Both     | [6]       | <ul><li>[x] </li></ul> |
 | ProgressiveError     | Seq 07, 2019 | Both     | Either   | [7]       | <ul><li>[x] </li></ul> |
-| Stability            | Dec 27, 2019 | Both     | Either   | [6]       | <ul><li>[x] </li></ul> |
+| Stability            | Dec 27, 2019 | Both     | Either   | [5]       | <ul><li>[x] </li></ul> |
 | NormStability        | Dec 18, 2019 | Both     | Either   | NA        | <ul><li>[x] </li></ul> |
 | NSBuilder            | Mar 31, 2020 | Both     | Either   | NA        | <ul><li>[x] </li></ul> |
 
@@ -109,9 +109,9 @@ This directory contains simple testing examples for above components, which are 
 ## Reference
 [1] B.R. Gaines, "Stochastic computing systems," in _Advances in Information Systems Science_ 1969.  
 [2] S. Liu and J. Han, "Energy efficient stochastic computing with Sobol sequences," in _DATE_ 2017.  
-[3] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
-[4] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.  
-[5] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.  
-[6] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
+[3] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.  
+[4] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.  
+[5] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
+[6] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
 [7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
-[8] P. Li and D. J. Lilja, W. Qian, M. D. Riedel and . Bazargan,  "Logical Computation on Stochastic Bit Streams with Linear Finite-State Machines," in _IEEE TRANSACTIONS ON COMPUTERS_, 2014.
+[8] P. Li and D. J. Lilja, W. Qian, M. D. Riedel and K. Bazargan, "Logical Computation on Stochastic Bit Streams with Linear Finite-State Machines," in _IEEE TRANSACTIONS ON COMPUTERS_, 2014.  
