@@ -17,7 +17,9 @@ This folder includes the hardware implementation of operators in _'sw'_ subdirec
 
 ## Reference
 [1] V. T. Lee, A. Alaghi, J. P. Hayes, V. Sathe, and L. Ceze, "Energy-efficient hybrid stochastic-binary neural networks for near-sensor computing", in *DATE* 2017.
+
 [2] S. K. Khatamifard, M. H. Najafi, A. Ghoreyshi, U. R. Karpuzcu and D. J. Lilja, "On Memory System Design for Stochastic Computing", in *IEEE Computer Architecture Letters* 2018.
+
 [3] V. T. Lee, A. Alaghi, R. Pamula, V. S. Sathe, L. Ceze and M. Oskin, "Architecture Considerations for Stochastic Computing Accelerators", in *TCAD* 2018.  
 
 ## Citing
