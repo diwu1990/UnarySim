@@ -114,4 +114,4 @@ This directory contains simple testing examples for above components, which are 
 [5] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
 [6] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
 [7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
-[8] P. Li and D. J. Lilja, W. Qian, M. D. Riedel and K. Bazargan, "Logical Computation on Stochastic Bit Streams with Linear Finite-State Machines," in _IEEE TRANSACTIONS ON COMPUTERS_, 2014.  
+[8] P. Li and D. J. Lilja, W. Qian, M. D. Riedel and K. Bazargan, "Logical Computation on Stochastic Bit Streams with Linear Finite-State Machines," in _IEEE Transactions On Computers_, 2014.  
