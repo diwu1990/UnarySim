@@ -43,59 +43,62 @@ This directory contains four subdirectories, including _'bitstream'_, _'kernel'_
 ### _'bitstream'_ subdirectory
 This directory contains the components for **Bit Stream Manipulation**, which deal with the bit stream generation or shuffle for high performance and accuracy.
 
-| Name                 | Date          | Encode | Mode   | Reference | Status                 |
-| -------------------- | ------------- | ------ | ------ | --------- | ---------------------- |
-| BSGen                | Seq. 07, 2019 | RC/TC  | Bi/Uni | [1]       | <ul><li>[x] </li></ul> |
-| BSGenMulti           | Nov. 11, 2019 | RC/TC  | Bi/Uni | [1]       | <ul><li>[x] </li></ul> |
-| RawScale             | Dec. 07, 2019 | RC/TC  | Bi/Uni | NA        | <ul><li>[x] </li></ul> |
-| RNG                  | Seq. 07, 2019 | RC/TC  | Bi/Uni | [2]       | <ul><li>[x] </li></ul> |
-| RNGMulti             | Nov. 11, 2019 | RC/TC  | Bi/Uni | [2]       | <ul><li>[x] </li></ul> |
-| SourceGen            | Seq. 07, 2019 | RC/TC  | Bi/Uni | [1]       | <ul><li>[x] </li></ul> |
-| Decorr               |               | RC/TC  | Bi/Uni | [4]       | <ul><li>[ ] </li></ul> |
-| DeSync               |               | RC/TC  | Bi/Uni | [4]       | <ul><li>[ ] </li></ul> |
-| SkewedSync           | Seq. 07, 2019 | RC/TC  | Bi/Uni | [5]       | <ul><li>[x] </li></ul> |
-| Sync                 |               | RC/TC  | Bi/Uni | [4]       | <ul><li>[ ] </li></ul> |
-
+| Name                 | Date         | Encoding | Polarity | Reference | Status                 |
+| -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
+| BSGen                | Seq 07, 2019 | RC/TC    | Both     | [1]       | <ul><li>[x] </li></ul> |
+| BSGenMulti           | Nov 11, 2019 | RC/TC    | Both     | [1]       | <ul><li>[x] </li></ul> |
+| RawScale             | Dec 07, 2019 | RC/TC    | Either   | NA        | <ul><li>[x] </li></ul> |
+| RNG                  | Seq 07, 2019 | RC/TC    | Both     | [2]       | <ul><li>[x] </li></ul> |
+| RNGMulti             | Nov 11, 2019 | RC/TC    | Both     | [2]       | <ul><li>[x] </li></ul> |
+| SourceGen            | Seq 07, 2019 | RC/TC    | Either   | [1]       | <ul><li>[x] </li></ul> |
+| Decorr               |              | RC/TC    | Both     | [4]       | <ul><li>[ ] </li></ul> |
+| DeSync               |              | RC/TC    | Both     | [4]       | <ul><li>[ ] </li></ul> |
+| SkewedSync           | Seq 07, 2019 | RC/TC    | Both     | [5]       | <ul><li>[x] </li></ul> |
+| Sync                 |              | RC/TC    | Both     | [4]       | <ul><li>[ ] </li></ul> |
+| Bi2Uni               | Mar 31, 2020 | RC/TC    | Bi       | NA        | <ul><li>[x] </li></ul> |
+| Uni2Bi               | Mar 31, 2020 | RC/TC    | Uni      | NA        | <ul><li>[x] </li></ul> |
 
 ### _'kernel'_ subdirectory
 This directory contains the components for **Unary Computing Kernel**, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 The components currently supported or to be implemented are listed in the table below.
 
-| Name                 | Date          | Encode | Mode   | Reference     | Status                 |
-| -------------------- | ------------- | ------ | ------ | ------------- | ---------------------- |
-| UnaryAbs             | Mar. 25, 2019 | RC/TC  | Bi/Uni | [8]           | <ul><li>[x] </li></ul> |
-| UnaryAdd             | Oct. 10, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
-| UnaryMul             | Nov. 05, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
-| UnaryLinear          | Seq. 27, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
-| UnaryReLU            | Nov. 23, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
-| CORDIV_kernel        | Mar. 08, 2020 | RC/TC  | Bi/Uni | [5]           | <ul><li>[x] </li></ul> |
-| UnaryDiv             | Mar. 25, 2020 | RC/TC  | Bi/Uni | [5]           | <ul><li>[ ] </li></ul> |
-| UnarySqrt            | Mar. 25, 2020 | RC/TC  | Bi/Uni | [5]           | <ul><li>[ ] </li></ul> |
-| nn_utils             | Nov. 25, 2019 | RC/TC  | Bi/Uni | NA            | <ul><li>[x] </li></ul> |
-| GainesAdd            | Mar. 02, 2020 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
-| GainesMul            | Dec. 06, 2019 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
-| GainesLinear         | Nov. 25, 2019 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
-| GainesDiv            | Mar. 08, 2020 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
-| GainesSqrt           | Mar. 24, 2020 | RC/TC  | Bi/Uni | [1]           | <ul><li>[x] </li></ul> |
-| ShiftReg             | Dec. 06, 2019 | RC/TC  | Bi/Uni | NA            | <ul><li>[x] </li></ul> |
-| comparison           |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
-| conv                 |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
-| exponentiation       |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
-| max                  |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
-| min                  |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
-| pool                 |               | RC/TC  | Bi/Uni |               | <ul><li>[ ] </li></ul> |
+| Name                 | Date         | Encoding | Polarity | Reference | Status                 |
+| -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
+| UnaryAbs             | Mar 25, 2020 | RC       | Bi       | [8]       | <ul><li>[x] </li></ul> |
+| UnarySign            | Mar 31, 2020 | RC       | Bi       | [8]       | <ul><li>[x] </li></ul> |
+| UnaryAdd             | Oct 10, 2019 | RC/TC    | Either   | [6]       | <ul><li>[x] </li></ul> |
+| UnaryMul             | Nov 05, 2019 | RC/TC    | Either   | [6]       | <ul><li>[x] </li></ul> |
+| UnaryLinear          | Seq 27, 2019 | RC/TC    | Either   | [6]       | <ul><li>[x] </li></ul> |
+| UnaryReLU            | Nov 23, 2019 | RC/TC    | Either   | [6]       | <ul><li>[x] </li></ul> |
+| CORDIV_kernel        | Mar 08, 2020 | RC/TC    | Uni      | [5]       | <ul><li>[x] </li></ul> |
+| UnaryDiv             | Mar 25, 2020 | RC/TC    | Either   | [5]       | <ul><li>[ ] </li></ul> |
+| UnarySqrt            | Mar 25, 2020 | RC/TC    | Either   | [5]       | <ul><li>[ ] </li></ul> |
+| nn_utils             | Nov 25, 2019 | RC/TC    | NA       | NA        | <ul><li>[x] </li></ul> |
+| GainesAdd            | Mar 02, 2020 | RC/TC    | Either   | [1]       | <ul><li>[x] </li></ul> |
+| GainesMul            | Dec 06, 2019 | RC/TC    | Either   | [1]       | <ul><li>[x] </li></ul> |
+| GainesLinear         | Nov 25, 2019 | RC/TC    | Either   | [1]       | <ul><li>[x] </li></ul> |
+| GainesDiv            | Mar 08, 2020 | RC/TC    | Either   | [1]       | <ul><li>[x] </li></ul> |
+| GainesSqrt           | Mar 24, 2020 | RC/TC    | Either   | [1]       | <ul><li>[x] </li></ul> |
+| ShiftReg             | Dec 06, 2019 | RC/TC    | Both     | NA        | <ul><li>[x] </li></ul> |
+| comparison           |              | RC/TC    | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
+| conv                 |              | RC/TC    | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
+| exponentiation       |              | RC/TC    | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
+| max                  |              | RC/TC    | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
+| min                  |              | RC/TC    | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
+| pool                 |              | RC/TC    | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
 
 
 ### _'metric'_ subdirectory
 This directory contains the components for **Performance Metric**, which take bit streams as input and calculate certain performance metrics.
 The components currently supported or to be implemented are listed in the table below.
 
-| Name                 | Date          | Encode | Mode   | Reference     | Status                 |
-| -------------------- | ------------- | ------ | ------ | ------------- | ---------------------- |
-| Correlation          | Seq. 07, 2019 | RC/TC  | Bi/Uni | [3]           | <ul><li>[x] </li></ul> |
-| ProgressivePrecision | Seq. 07, 2019 | RC/TC  | Bi/Uni | [7]           | <ul><li>[x] </li></ul> |
-| Stability            | Dec. 27, 2019 | RC/TC  | Bi/Uni | [6]           | <ul><li>[x] </li></ul> |
-| NormStability        | Dec. 18, 2019 | RC/TC  | Bi/Uni | NA            | <ul><li>[x] </li></ul> |
+| Name                 | Date         | Encoding | Polarity | Reference | Status                 |
+| -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
+| Correlation          | Seq 07, 2019 | Both     | Both     | [3]       | <ul><li>[x] </li></ul> |
+| ProgressiveError     | Seq 07, 2019 | Both     | Either   | [7]       | <ul><li>[x] </li></ul> |
+| Stability            | Dec 27, 2019 | Both     | Either   | [6]       | <ul><li>[x] </li></ul> |
+| NormStability        | Dec 18, 2019 | Both     | Either   | NA        | <ul><li>[x] </li></ul> |
+| NSBuilder            | Mar 31, 2020 | Both     | Either   | NA        | <ul><li>[x] </li></ul> |
 
 
 ### _'test'_ subdirectory
