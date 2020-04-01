@@ -1,9 +1,8 @@
 import torch
 from UnarySim.sw.bitstream.gen import RNG
-from UnarySim.sw.bitstream.shuffle import SkewedSync
+from UnarySim.sw.bitstream.shuffle import SkewedSync, Bi2Uni, Uni2Bi
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 from UnarySim.sw.kernel.abs import UnaryAbs
-from UnarySim.sw.kernel.add import UnaryAdd
 import math
 
 class CORDIV_kernel(torch.nn.Module):
@@ -74,14 +73,23 @@ class UnaryDiv(torch.nn.Module):
         
         if self.mode is "bipolar":
             self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg, bstype=bstype, buftype=buftype)
-            self.abs_divisor = UnaryAbs(depth=depth_abs, shiftreg=shiftreg, bstype=bstype, buftype=buftype)
-            self.add = UnaryAdd(mode=mode, scaled=False, acc_dim=0, bstype=bstype)
+            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg, bstype=bstype, buftype=buftype)
+            self.bi2uni_dividend = Bi2Uni(bstype=bstype)
+            self.bi2uni_divisor  = Bi2Uni(bstype=bstype)
+            self.uni2bi_quotient = Uni2Bi(bstype=bstype)
             
         self.ssync = SkewedSync(depth=depth_sync, bstype=bstype, buftype=buftype)
         self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, bstype=torch.float)
         
     def bipolar_forward(self, dividend, divisor):
-        pass
+        sign_dividend, abs_dividend = self.abs_dividend(dividend)
+        sign_divisor, abs_divisor = self.abs_divisor(divisor)
+        uni_abs_dividend = self.bi2uni_dividend(abs_dividend)
+        uni_abs_divisor = self.bi2uni_divisor(abs_divisor)
+        uni_abs_quotient = self.unipolar_forward(uni_abs_dividend, uni_abs_divisor)
+        bi_abs_quotient = self.uni2bi_quotient(uni_abs_quotient)
+        bi_quotient = sign_dividend.type(torch.int8) ^ sign_divisor.type(torch.int8) ^ bi_abs_quotient.type(torch.int8)
+        return bi_quotient
     
     def unipolar_forward(self, dividend, divisor):
         dividend_sync, divisor_sync = self.ssync(dividend, divisor)

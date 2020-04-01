@@ -41,7 +41,7 @@ Those are variables to compute specially designed performance metrics.
 This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
 
 ### _'bitstream'_ subdirectory
-This directory contains the components for **Bit Stream Manipulation**, which deal with the bit stream generation or shuffle for high performance and accuracy.
+This directory contains the components for **Bit Stream Manipulation**, which manipulate the bit streams for high performance and accuracy.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
@@ -72,7 +72,7 @@ The components currently supported or to be implemented are listed in the table 
 | UnaryLinear          | Seq 27, 2019 | Both     | Either   | [6]       | <ul><li>[x] </li></ul> |
 | UnaryReLU            | Nov 23, 2019 | Either   | Either   | [6]       | <ul><li>[x] </li></ul> |
 | CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [5]       | <ul><li>[x] </li></ul> |
-| UnaryDiv             | Mar 25, 2020 | RC       | Either   | [5]       | <ul><li>[ ] </li></ul> |
+| UnaryDiv             | Apr 01, 2020 | RC       | Either   | [5]       | <ul><li>[x] </li></ul> |
 | UnarySqrt            | Mar 25, 2020 | RC       | Either   | [5]       | <ul><li>[ ] </li></ul> |
 | nn_utils             | Nov 25, 2019 | Both     | NA       | NA        | <ul><li>[x] </li></ul> |
 | GainesAdd            | Mar 02, 2020 | Both     | Either   | [1]       | <ul><li>[x] </li></ul> |
@@ -81,12 +81,12 @@ The components currently supported or to be implemented are listed in the table 
 | GainesDiv            | Mar 08, 2020 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesSqrt           | Mar 24, 2020 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
 | ShiftReg             | Dec 06, 2019 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
-| comparison           |              |          | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
-| conv                 |              |          | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
-| exponentiation       |              |          | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
-| max                  |              |          | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
-| min                  |              |          | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
-| pool                 |              |          | Bi/Uni   |           | <ul><li>[ ] </li></ul> |
+| comparison           |              |          |          |           | <ul><li>[ ] </li></ul> |
+| conv                 |              |          |          |           | <ul><li>[ ] </li></ul> |
+| exponentiation       |              |          |          |           | <ul><li>[ ] </li></ul> |
+| max                  |              |          |          |           | <ul><li>[ ] </li></ul> |
+| min                  |              |          |          |           | <ul><li>[ ] </li></ul> |
+| pool                 |              |          |          |           | <ul><li>[ ] </li></ul> |
 
 
 ### _'metric'_ subdirectory
