@@ -22,24 +22,25 @@ class CORDIV_kernel(torch.nn.Module):
         self.idx = torch.nn.Parameter(torch.zeros(1).type(torch.float), requires_grad=False)
         self.bstype = bstype
         self.init = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
+        self.historic_q = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
         
     def forward(self, dividend, divisor):
         # generate the random number to index the shift register
         # 1) generate based on divisor value, conditional probability
         # if self.init.item() is True:
-        #     historic_q = torch.gather(self.sr.sr, 0, self.rng[self.idx.type(torch.long)%self.depth].type(torch.long))
+        #     self.historic_q = torch.gather(self.sr.sr, 0, self.rng[self.idx.type(torch.long)%self.depth].type(torch.long))
         #     self.init.data.fill_(False)
         # else:
-        #     historic_q = torch.gather(self.sr.sr, 0, torch.unsqueeze(self.rng[self.idx.type(torch.long)%self.depth].type(torch.long), 0))
+        #     self.historic_q = torch.gather(self.sr.sr, 0, torch.unsqueeze(self.rng[self.idx.type(torch.long)%self.depth].type(torch.long), 0))
         # divisor_eq_1 = torch.eq(divisor, 1).type(self.bstype)
         # self.idx.data = self.idx.add(divisor_eq_1)
         
         # 2) always generating, no need to deal conditional probability
         divisor_eq_1 = torch.eq(divisor, 1).type(self.bstype)
-        historic_q = self.sr.sr[self.rng[self.idx.type(torch.long)%self.depth]]
+        self.historic_q.data = self.sr.sr[self.rng[self.idx.type(torch.long)%self.depth]]
         self.idx.data = self.idx.add(1)
-
-        quotient = (divisor_eq_1 * dividend + (1 - divisor_eq_1) * historic_q).view(dividend.size())
+        
+        quotient = (divisor_eq_1 * dividend + (1 - divisor_eq_1) * self.historic_q).view(dividend.size())
         
         # shift register update 
         # 1) update shift register based on whether divisor is valid
@@ -79,7 +80,7 @@ class UnaryDiv(torch.nn.Module):
             self.uni2bi_quotient = Uni2Bi(bstype=bstype)
             
         self.ssync = SkewedSync(depth=depth_sync, bstype=bstype, buftype=buftype)
-        self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, bstype=torch.float)
+        self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, bstype=bstype)
         
     def bipolar_forward(self, dividend, divisor):
         sign_dividend, abs_dividend = self.abs_dividend(dividend)
