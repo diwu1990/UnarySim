@@ -74,13 +74,14 @@ The components currently supported or to be implemented are listed in the table 
 | CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [4]       | <ul><li>[x] </li></ul> |
 | UnaryDiv             | Apr 01, 2020 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
 | UnarySqrt            | Mar 25, 2020 | RC       | Either   | [4]       | <ul><li>[ ] </li></ul> |
-| nn_utils             | Nov 25, 2019 | Both     | NA       | NA        | <ul><li>[x] </li></ul> |
 | GainesAdd            | Mar 02, 2020 | Both     | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesMul            | Dec 06, 2019 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesLinear         | Nov 25, 2019 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesDiv            | Mar 08, 2020 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesSqrt           | Mar 24, 2020 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
-| ShiftReg             | Dec 06, 2019 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
+| nn_utils             | Nov 25, 2019 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
+| JKFF                 | Apr 01, 2020 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
+| ShiftReg             | Dec 06, 2019 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
 | comparison           |              |          |          |           | <ul><li>[ ] </li></ul> |
 | conv                 |              |          |          |           | <ul><li>[ ] </li></ul> |
 | exponentiation       |              |          |          |           | <ul><li>[ ] </li></ul> |
