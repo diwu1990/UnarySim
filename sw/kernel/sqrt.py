@@ -30,7 +30,6 @@ class UnarySqrt(torch.nn.Module):
         if emit is True:
             self.trace_emit = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
             self.emit_acc_max = torch.nn.Parameter(torch.zeros(1).fill_(2**depth_emit-1).type(torch.int8), requires_grad=False)
-            print(self.emit_acc_max.item())
             self.emit_acc = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
             self.unidiv_emit = UnaryDiv(depth_abs=4, 
                                         depth_kernel=depth, 
