@@ -73,7 +73,7 @@ The components currently supported or to be implemented are listed in the table 
 | UnaryReLU            | Nov 23, 2019 | Either   | Either   | [5]       | <ul><li>[x] </li></ul> |
 | CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [4]       | <ul><li>[x] </li></ul> |
 | UnaryDiv             | Apr 01, 2020 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
-| UnarySqrt            | Mar 25, 2020 | RC       | Either   | [4]       | <ul><li>[ ] </li></ul> |
+| UnarySqrt            | Apr 02, 2020 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
 | GainesAdd            | Mar 02, 2020 | Both     | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesMul            | Dec 06, 2019 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
 | GainesLinear         | Nov 25, 2019 | RC       | Either   | [1]       | <ul><li>[x] </li></ul> |
