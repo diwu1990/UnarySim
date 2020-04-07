@@ -60,7 +60,7 @@ class UnaryDiv(torch.nn.Module):
                  depth_abs=4, 
                  depth_kernel=4, 
                  depth_sync=2, 
-                 shiftreg=False, 
+                 shiftreg_abs=False, 
                  mode="bipolar", 
                  rng="Sobol", 
                  rng_dim=4, 
@@ -73,8 +73,8 @@ class UnaryDiv(torch.nn.Module):
         self.bstype = bstype
         
         if self.mode is "bipolar":
-            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg, bstype=bstype, buftype=buftype)
-            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg, bstype=bstype, buftype=buftype)
+            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, bstype=bstype, buftype=buftype)
+            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, bstype=bstype, buftype=buftype)
             self.bi2uni_dividend = Bi2Uni(bstype=bstype)
             self.bi2uni_divisor  = Bi2Uni(bstype=bstype)
             self.uni2bi_quotient = Uni2Bi(bstype=bstype)
@@ -136,16 +136,16 @@ class GainesDiv(torch.nn.Module):
             inc = dividend.type(torch.float)
             dec = (output & divisor.type(torch.int8)).type(torch.float)
         else:
-            #　dd_ds = 1 - (dividend.type(torch.int8) ^ divisor.type(torch.int8))
-            #　ds_ds = 1 - (self.divisor_d ^ divisor.type(torch.int8))
-            #　self.divisor_d.data = divisor.type(torch.int8)
-            #　ds_ds_out = 1 - (ds_ds ^ (1 - output))
-            #　inc = (dd_ds & ds_ds_out).type(torch.float)
-            #　dec = ((1 - dd_ds) & (1 - ds_ds_out)).type(torch.float)
+            dd_ds = 1 - (dividend.type(torch.int8) ^ divisor.type(torch.int8))
+            ds_ds = 1 - (self.divisor_d ^ divisor.type(torch.int8))
+            self.divisor_d.data = divisor.type(torch.int8)
+            ds_ds_out = 1 - (ds_ds ^ (1 - output))
+            inc = (dd_ds & ds_ds_out).type(torch.float)
+            dec = ((1 - dd_ds) & (1 - ds_ds_out)).type(torch.float)
             
             #　following implementation is not good for accuracy due to fluctuation of negative output.
-            inc = dividend.type(torch.float)
-            dec = (1 - output ^ divisor.type(torch.int8)).type(torch.float)
+            # inc = dividend.type(torch.float)
+            # dec = (1 - output ^ divisor.type(torch.int8)).type(torch.float)
         
         # scnt is also the same in terms of the up/down behavior and comparison
         self.scnt.data = (inc * (self.scnt + 1) + (1 - inc) * self.scnt).view(dividend.size())
