@@ -1,6 +1,6 @@
 import torch
 import math
-from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
+from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 
 class Correlation(torch.nn.Module):
     """
@@ -329,7 +329,7 @@ class NSbuilder(torch.nn.Module):
         self.rng = RNG(
             bitwidth=depth,
             dim=rng_dim,
-            mode=rng,
+            rng=rng,
             randtype=randtype)()
 
         self.src_st = None

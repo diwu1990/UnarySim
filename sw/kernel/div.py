@@ -1,6 +1,6 @@
 import torch
-from UnarySim.sw.bitstream.gen import RNG
-from UnarySim.sw.bitstream.shuffle import SkewedSync, Bi2Uni, Uni2Bi
+from UnarySim.sw.stream.gen import RNG
+from UnarySim.sw.stream.shuffle import SkewedSync, Bi2Uni, Uni2Bi
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 from UnarySim.sw.kernel.abs import UnaryAbs
 import math

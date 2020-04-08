@@ -1,5 +1,5 @@
 import torch
-from UnarySim.sw.bitstream.gen import RNG, SourceGen, BSGen
+from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 
 class UnaryMul(torch.nn.Module):
     """
@@ -28,7 +28,7 @@ class UnaryMul(torch.nn.Module):
         self.rng = RNG(
             bitwidth=self.bitwidth,
             dim=1,
-            mode="Sobol",
+            rng="Sobol",
             randtype=self.randtype)()
         
         # currently only support static mode

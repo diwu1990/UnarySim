@@ -1,5 +1,5 @@
 import torch
-from UnarySim.sw.bitstream.gen import RNG
+from UnarySim.sw.stream.gen import RNG
 
 class UnaryAdd(torch.nn.Module):
     """

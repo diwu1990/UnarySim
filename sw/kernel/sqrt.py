@@ -1,6 +1,6 @@
 import torch
-from UnarySim.sw.bitstream.gen import RNG
-from UnarySim.sw.bitstream.shuffle import Bi2Uni, Uni2Bi
+from UnarySim.sw.stream.gen import RNG
+from UnarySim.sw.stream.shuffle import Bi2Uni, Uni2Bi
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 from UnarySim.sw.kernel.jkff import JKFF
 from UnarySim.sw.kernel.div import CORDIV_kernel, UnaryDiv

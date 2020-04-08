@@ -1,6 +1,6 @@
 import torch
 import math
-from UnarySim.sw.bitstream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
+from UnarySim.sw.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
 
 class UnaryLinear(torch.nn.Module):
     """

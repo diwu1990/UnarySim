@@ -38,9 +38,9 @@ Those buffers can be counters or shift registers.
 Those are variables to compute specially designed performance metrics.
 
 ## Directory Hierarchy
-This directory contains four subdirectories, including _'bitstream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
+This directory contains four subdirectories, including _'stream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
 
-### _'bitstream'_ subdirectory
+### _'stream'_ subdirectory
 This directory contains the components for **Bit Stream Manipulation**, which manipulate the bit streams for high performance and accuracy.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
