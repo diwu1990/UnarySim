@@ -34,7 +34,7 @@ class UnarySqrt(torch.nn.Module):
             self.unidiv_emit = UnaryDiv(depth_abs=4, 
                                         depth_kernel=depth, 
                                         depth_sync=2, 
-                                        shiftreg=False, 
+                                        shiftreg_abs=False, 
                                         mode="unipolar", 
                                         rng=rng, 
                                         rng_dim=rng_dim, 
