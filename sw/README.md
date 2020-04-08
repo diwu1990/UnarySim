@@ -3,11 +3,11 @@
 This directory contains the required components for cycle-accurate software simulation for unary computing. UnarySim is based on [PyTorch](https://pytorch.org/), a deep learning framework from Facebook, such that the simulation can be done on either CPU or GPU efficiently.
 
 The components included in UnarySim belong to three categories, including 
-1. **Bit Stream Manipulation**
-2. **Unary Computing Kernel**
+1. **Stream Manipulation**
+2. **Computing Kernel**
 3. **Performance Metric**
 
-Among those, components in **Bit Stream Manipulation** and **Unary Computing Kernel** can pysically exist in real hardware, while those from **Performance Metric** is usually for performance analysis.
+Among those, components in **Stream Manipulation** and **Unary Computing Kernel** can pysically exist in real hardware, while those from **Performance Metric** is usually for performance analysis.
 
 ## Prerequisite
 1. PyTorch version >= 1.0
@@ -30,7 +30,7 @@ At each cycle, if _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the b
 3. **Bit Stream**: 
 At each cycle, the bits in bit streams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation.
 
-4. **Bit Buffer**: 
+4. **Buffer**: 
 Inside each logic kernel, there may exist buffers to record the its interal state by monitoring the past bit streams, which could be extemely long. 
 Those buffers can be counters or shift registers.
 
@@ -41,7 +41,7 @@ Those are variables to compute specially designed performance metrics.
 This directory contains four subdirectories, including _'stream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
 
 ### _'stream'_ subdirectory
-This directory contains the components for **Bit Stream Manipulation**, which manipulate the bit streams for high performance and accuracy.
+This directory contains the components for **Stream Manipulation**, which manipulate the bit streams for high performance and accuracy.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
