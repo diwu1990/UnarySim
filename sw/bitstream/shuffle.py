@@ -53,9 +53,8 @@ class SkewedSync(torch.nn.Module):
         self.cnt_not_max = torch.nn.Parameter(torch.Tensor(1).type(self.bstype), requires_grad=False)
         
     def forward(self, in_1, in_2):
-        # input and output are int8 type tensor
-        # numerator can have larger or same shape as denominator
         # assume input 1 is smaller than input 2, and input 2 is kept unchanged at output
+        # output 1 is a unary bit stream.
         sum_in = in_1 + in_2
         if list(self.cnt.size()) != list(sum_in.size()):
             self.cnt.data = torch.zeros_like(sum_in).type(self.buftype)
@@ -106,4 +105,4 @@ class Uni2Bi(torch.nn.Module):
         output = torch.ge(self.accumulator, 2).type(torch.float)
         self.accumulator.sub_(output * 2)
         return output.type(self.bstype)
-    
+        
