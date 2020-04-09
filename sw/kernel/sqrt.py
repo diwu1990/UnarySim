@@ -1,6 +1,7 @@
 import torch
 from UnarySim.sw.stream.gen import RNG
 from UnarySim.sw.stream.shuffle import Bi2Uni, Uni2Bi
+from UnarySim.sw.stream.shuffle_int import SkewedSyncInt
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 from UnarySim.sw.kernel.jkff import JKFF
 from UnarySim.sw.kernel.div import CORDIV_kernel, UnaryDiv
@@ -13,36 +14,44 @@ class UnarySqrt(torch.nn.Module):
     def __init__(self, 
                  mode="bipolar", 
                  jk_trace=True, 
-                 depth=4, 
+                 depth_kernel=4, 
                  rng="Sobol", 
                  rng_dim=4, 
                  emit=True, 
-                 depth_emit=3, 
+                 depth_emit=5, 
+                 depth_sync=4, # indicate the maximum accumulator depth
                  stype=torch.float):
         super(UnarySqrt, self).__init__()
         
-        assert math.ceil(math.log2(depth)) == math.floor(math.log2(depth)) , "Input depth needs to be power of 2."
-        assert depth_emit<=7 , "Input depth_emit needs to less than 7."
+        assert math.ceil(math.log2(depth_kernel)) == math.floor(math.log2(depth_kernel)) , "Input depth_kernel needs to be power of 2."
+        assert depth_emit<=31 , "Input depth_emit needs to less than 31."
         self.mode = mode
         self.stype = stype
         self.jk_trace = jk_trace
         self.emit = emit
         if emit is True:
-            self.trace_emit = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-            self.emit_acc_max = torch.nn.Parameter(torch.zeros(1).fill_(2**depth_emit-1).type(torch.int8), requires_grad=False)
-            self.emit_acc = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-            self.unidiv_emit = UnaryDiv(depth_abs=4, 
-                                        depth_kernel=depth, 
-                                        depth_sync=2, 
-                                        shiftreg_abs=False, 
-                                        mode="unipolar", 
-                                        rng=rng, 
-                                        rng_dim=rng_dim, 
-                                        stype=torch.int8, 
-                                        buftype=torch.float)
+            self.trace_emit = torch.nn.Parameter(torch.zeros(1).type(torch.int), requires_grad=False)
+            self.emit_acc_max = torch.nn.Parameter(torch.zeros(1).fill_(2**depth_emit-1).type(torch.int), requires_grad=False)
+            self.emit_acc = torch.nn.Parameter(torch.zeros(1).type(torch.int), requires_grad=False)
+            
+            # following modules use skewedsyncint in UnaryDiv, and can output digit stream
+            self.ssyncint = SkewedSyncInt(depth=depth_sync, stype=torch.int, buftype=torch.float)
+            self.cordiv_kernel_emit = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, stype=torch.int)
+            
+            # follow module uses skewedsync in UnaryDiv, and can only output bit stream
+            # self.unidiv_emit = UnaryDiv(depth_abs=4, 
+            #                             depth_kernel=depth, 
+            #                             depth_sync=2, 
+            #                             shiftreg_abs=False, 
+            #                             mode="unipolar", 
+            #                             rng=rng, 
+            #                             rng_dim=rng_dim, 
+            #                             stype=torch.int, 
+            #                             buftype=torch.float)
+            
             if mode is "bipolar":
-                self.bi2uni_emit = Bi2Uni(stype=torch.int8)
-                self.uni2bi_emit = Uni2Bi(stype=torch.int8)
+                self.bi2uni_emit = Bi2Uni(stype=torch.int)
+                self.uni2bi_emit = Uni2Bi(stype=torch.int)
         else:
             self.trace = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
             if mode is "bipolar":
@@ -50,7 +59,7 @@ class UnarySqrt(torch.nn.Module):
             if jk_trace is True:
                 self.jkff = JKFF(stype=torch.int8)
             else:
-                self.cordiv_kernel = CORDIV_kernel(depth=depth, rng=rng, rng_dim=rng_dim, stype=torch.int8)
+                self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, stype=torch.int8)
                 self.dff = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         
     def bipolar_trace(self, output):
@@ -83,8 +92,22 @@ class UnarySqrt(torch.nn.Module):
         # use UnaryDiv
         dividend = 1 - output
         divisor = output
-        trace_emit = self.unidiv_emit(dividend, divisor)
+        
+        # for using skewedsyncint
+        dividend_sync, divisor_sync = self.ssyncint(dividend, divisor)
+        
+        # use cordiv output
+        trace_emit = self.cordiv_kernel_emit(dividend_sync, divisor_sync)
+        
+        # use cordiv historical output
+        # _ = self.cordiv_kernel_emit(dividend_sync, divisor_sync)
+        # trace_emit = self.cordiv_kernel_emit.historic_q[0]
+        
+        # for using skewedsync
+        # trace_emit = self.unidiv_emit(dividend, divisor)
+        
         self.emit_acc.data = self.emit_acc.add(trace_emit)
+        
         return trace_emit
 
     def forward(self, input):
@@ -98,10 +121,10 @@ class UnarySqrt(torch.nn.Module):
             if self.mode is "bipolar":
                 in_bs = self.bi2uni_emit(input)
                 
-                emit_acc_gt_0 = torch.gt(self.emit_acc, 0).type(torch.int8)
+                emit_acc_gt_0 = torch.gt(self.emit_acc, 0).type(torch.int)
                 # only when emit_acc is greater than 0 and input is 0, emitting is enabled.
-                emit_en = (1 - in_bs.type(torch.int8)) & emit_acc_gt_0
-                out_bs = in_bs.type(torch.int8) + emit_en
+                emit_en = (1 - in_bs.type(torch.int)) & emit_acc_gt_0
+                out_bs = in_bs.type(torch.int) + emit_en
                 # update emit_acc based on output
                 dontcare = self.unipolar_trace_emit(out_bs)
                 # update emit_acc based on emit_en
@@ -109,10 +132,10 @@ class UnarySqrt(torch.nn.Module):
                 
                 output = self.uni2bi_emit(out_bs)
             else:
-                emit_acc_gt_0 = torch.gt(self.emit_acc, 0).type(torch.int8)
+                emit_acc_gt_0 = torch.gt(self.emit_acc, 0).type(torch.int)
                 # only when emit_acc is greater than 0 and input is 0, emitting is enabled.
-                emit_en = (1 - input.type(torch.int8)) & emit_acc_gt_0
-                output = input.type(torch.int8) + emit_en
+                emit_en = (1 - input.type(torch.int)) & emit_acc_gt_0
+                output = input.type(torch.int) + emit_en
                 # update emit_acc based on output
                 dontcare = self.unipolar_trace_emit(output)
                 # update emit_acc based on emit_en
