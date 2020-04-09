@@ -7,12 +7,12 @@ class ShiftReg(torch.nn.Module):
     """
     def __init__(self,
                  depth=8,
-                 bstype=torch.float):
+                 stype=torch.float):
         super(ShiftReg, self).__init__()
         self.depth = depth
-        self.sr = torch.nn.Parameter(torch.tensor([x%2 for x in range(0, depth)]).type(bstype), requires_grad=False)
+        self.sr = torch.nn.Parameter(torch.tensor([x%2 for x in range(0, depth)]).type(stype), requires_grad=False)
         self.init = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
-        self.bstype = bstype
+        self.stype = stype
 
     def ShiftReg_forward(self, input, mask=None, index=0):
         if self.init.item() is True:
@@ -33,7 +33,7 @@ class ShiftReg(torch.nn.Module):
             self.sr.data[self.depth-1] = input.clone().detach()
         else:
             assert mask.size() == input.size(), "size of the enable mask unmatches that of input"
-            mask_val = mask.type(self.bstype)
+            mask_val = mask.type(self.stype)
             sr_shift = torch.roll(self.sr, -1, 0)
             sr_shift[self.depth-1] = input.clone().detach()
             sr_no_shift = self.sr.clone().detach()

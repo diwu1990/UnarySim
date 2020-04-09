@@ -146,14 +146,14 @@ class BSGen(torch.nn.Module):
     Compare source data with rng_seq[rng_idx] to generate bit streams from source
     only one rng sequence is used here
     """
-    def __init__(self, source, rng_seq, bstype=torch.float):
+    def __init__(self, source, rng_seq, stype=torch.float):
         super(BSGen, self).__init__()
         self.source = source
         self.rng_seq = rng_seq
-        self.bstype = bstype
+        self.stype = stype
     
     def forward(self, rng_idx):
-        return torch.gt(self.source, self.rng_seq[rng_idx.type(torch.long)]).type(self.bstype)
+        return torch.gt(self.source, self.rng_seq[rng_idx.type(torch.long)]).type(self.stype)
     
     
 class BSGenMulti(torch.nn.Module):
@@ -162,13 +162,13 @@ class BSGenMulti(torch.nn.Module):
     multiple rng sequences are used here
     this BSGenMulti shares the random number along the dim
     """
-    def __init__(self, source, rng_seq, dim=0, bstype=torch.float):
+    def __init__(self, source, rng_seq, dim=0, stype=torch.float):
         super(BSGenMulti, self).__init__()
         self.source = source
         self.rng_seq = rng_seq
         self.dim = dim
-        self.bstype = bstype
+        self.stype = stype
     
     def forward(self, rng_idx):
-        return torch.gt(self.source, torch.gather(self.rng_seq, self.dim, rng_idx.type(torch.long))).type(self.bstype)
+        return torch.gt(self.source, torch.gather(self.rng_seq, self.dim, rng_idx.type(torch.long))).type(self.stype)
     

@@ -18,13 +18,13 @@ class UnarySqrt(torch.nn.Module):
                  rng_dim=4, 
                  emit=True, 
                  depth_emit=3, 
-                 bstype=torch.float):
+                 stype=torch.float):
         super(UnarySqrt, self).__init__()
         
         assert math.ceil(math.log2(depth)) == math.floor(math.log2(depth)) , "Input depth needs to be power of 2."
         assert depth_emit<=7 , "Input depth_emit needs to less than 7."
         self.mode = mode
-        self.bstype = bstype
+        self.stype = stype
         self.jk_trace = jk_trace
         self.emit = emit
         if emit is True:
@@ -38,19 +38,19 @@ class UnarySqrt(torch.nn.Module):
                                         mode="unipolar", 
                                         rng=rng, 
                                         rng_dim=rng_dim, 
-                                        bstype=torch.int8, 
+                                        stype=torch.int8, 
                                         buftype=torch.float)
             if mode is "bipolar":
-                self.bi2uni_emit = Bi2Uni(bstype=torch.int8)
-                self.uni2bi_emit = Uni2Bi(bstype=torch.int8)
+                self.bi2uni_emit = Bi2Uni(stype=torch.int8)
+                self.uni2bi_emit = Uni2Bi(stype=torch.int8)
         else:
             self.trace = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
             if mode is "bipolar":
-                self.bi2uni = Bi2Uni(bstype=torch.int8)
+                self.bi2uni = Bi2Uni(stype=torch.int8)
             if jk_trace is True:
-                self.jkff = JKFF(bstype=torch.int8)
+                self.jkff = JKFF(stype=torch.int8)
             else:
-                self.cordiv_kernel = CORDIV_kernel(depth=depth, rng=rng, rng_dim=rng_dim, bstype=torch.int8)
+                self.cordiv_kernel = CORDIV_kernel(depth=depth, rng=rng, rng_dim=rng_dim, stype=torch.int8)
                 self.dff = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         
     def bipolar_trace(self, output):
@@ -117,7 +117,7 @@ class UnarySqrt(torch.nn.Module):
                 dontcare = self.unipolar_trace_emit(output)
                 # update emit_acc based on emit_en
                 self.emit_acc.data = self.emit_acc.sub(emit_en).clamp(0, self.emit_acc_max.item())
-        return output.type(self.bstype)
+        return output.type(self.stype)
     
 
 class GainesSqrt(torch.nn.Module):
@@ -129,7 +129,7 @@ class GainesSqrt(torch.nn.Module):
                  mode="bipolar", 
                  rng="Sobol", 
                  rng_dim=1, 
-                 bstype=torch.float):
+                 stype=torch.float):
         super(GainesSqrt, self).__init__()
         
         # data representation
@@ -139,7 +139,7 @@ class GainesSqrt(torch.nn.Module):
         self.rng = RNG(depth, rng_dim, rng, torch.float)()
         self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         self.out_d = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.bstype = bstype
+        self.stype = stype
         
     def forward(self, input):
         # output is the same for both bipolar and unipolar
@@ -167,5 +167,5 @@ class GainesSqrt(torch.nn.Module):
         self.scnt.data = (dec * (self.scnt - 1) + (1 - dec) * self.scnt)
         self.scnt.data = self.scnt.clamp(0, self.scnt_max.item())
         
-        return output.type(self.bstype)
+        return output.type(self.stype)
     

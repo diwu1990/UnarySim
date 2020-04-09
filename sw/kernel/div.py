@@ -14,13 +14,13 @@ class CORDIV_kernel(torch.nn.Module):
                  depth=4, 
                  rng="Sobol", 
                  rng_dim=4, 
-                 bstype=torch.float):
+                 stype=torch.float):
         super(CORDIV_kernel, self).__init__()
         self.depth = depth
-        self.sr = ShiftReg(depth, bstype)
+        self.sr = ShiftReg(depth, stype)
         self.rng = RNG(int(math.log2(depth)), rng_dim, rng, torch.long)()
         self.idx = torch.nn.Parameter(torch.zeros(1).type(torch.float), requires_grad=False)
-        self.bstype = bstype
+        self.stype = stype
         self.init = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
         self.historic_q = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
         
@@ -32,11 +32,11 @@ class CORDIV_kernel(torch.nn.Module):
         #     self.init.data.fill_(False)
         # else:
         #     self.historic_q = torch.gather(self.sr.sr, 0, torch.unsqueeze(self.rng[self.idx.type(torch.long)%self.depth].type(torch.long), 0))
-        # divisor_eq_1 = torch.eq(divisor, 1).type(self.bstype)
+        # divisor_eq_1 = torch.eq(divisor, 1).type(self.stype)
         # self.idx.data = self.idx.add(divisor_eq_1)
         
         # 2) always generating, no need to deal conditional probability
-        divisor_eq_1 = torch.eq(divisor, 1).type(self.bstype)
+        divisor_eq_1 = torch.eq(divisor, 1).type(self.stype)
         self.historic_q.data = self.sr.sr[self.rng[self.idx.type(torch.long)%self.depth]]
         self.idx.data = self.idx.add(1)
         
@@ -44,12 +44,12 @@ class CORDIV_kernel(torch.nn.Module):
         
         # shift register update 
         # 1) update shift register based on whether divisor is valid
-        dontcare1, dontcare2 = self.sr(quotient.type(self.bstype), mask=divisor_eq_1)
+        dontcare1, dontcare2 = self.sr(quotient.type(self.stype), mask=divisor_eq_1)
         
         # 2) always update shift register
-        # dontcare1, dontcare2 = self.sr(quotient.type(self.bstype), mask=None)
+        # dontcare1, dontcare2 = self.sr(quotient.type(self.stype), mask=None)
 
-        return quotient.type(self.bstype)
+        return quotient.type(self.stype)
     
     
 class UnaryDiv(torch.nn.Module):
@@ -64,23 +64,23 @@ class UnaryDiv(torch.nn.Module):
                  mode="bipolar", 
                  rng="Sobol", 
                  rng_dim=4, 
-                 bstype=torch.float, 
+                 stype=torch.float, 
                  buftype=torch.float):
         super(UnaryDiv, self).__init__()
         
         # data representation
         self.mode = mode
-        self.bstype = bstype
+        self.stype = stype
         
         if self.mode is "bipolar":
-            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, bstype=bstype, buftype=buftype)
-            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, bstype=bstype, buftype=buftype)
-            self.bi2uni_dividend = Bi2Uni(bstype=bstype)
-            self.bi2uni_divisor  = Bi2Uni(bstype=bstype)
-            self.uni2bi_quotient = Uni2Bi(bstype=bstype)
+            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, buftype=buftype)
+            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, buftype=buftype)
+            self.bi2uni_dividend = Bi2Uni(stype=stype)
+            self.bi2uni_divisor  = Bi2Uni(stype=stype)
+            self.uni2bi_quotient = Uni2Bi(stype=stype)
             
-        self.ssync = SkewedSync(depth=depth_sync, bstype=bstype, buftype=buftype)
-        self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, bstype=bstype)
+        self.ssync = SkewedSync(depth=depth_sync, stype=stype, buftype=buftype)
+        self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, stype=stype)
         
     def bipolar_forward(self, dividend, divisor):
         sign_dividend, abs_dividend = self.abs_dividend(dividend)
@@ -102,7 +102,7 @@ class UnaryDiv(torch.nn.Module):
             output = self.bipolar_forward(dividend, divisor)
         else:
             output = self.unipolar_forward(dividend, divisor)
-        return output.type(self.bstype)
+        return output.type(self.stype)
     
 
 class GainesDiv(torch.nn.Module):
@@ -114,7 +114,7 @@ class GainesDiv(torch.nn.Module):
                  mode="bipolar", 
                  rng="Sobol", 
                  rng_dim=1, 
-                 bstype=torch.float):
+                 stype=torch.float):
         super(GainesDiv, self).__init__()
         
         # data representation
@@ -124,7 +124,7 @@ class GainesDiv(torch.nn.Module):
         self.rng = RNG(depth, rng_dim, rng, torch.float)()
         self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         self.divisor_d = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.bstype = bstype
+        self.stype = stype
         
     def forward(self, dividend, divisor):
         # output is the same for both bipolar and unipolar
@@ -152,5 +152,5 @@ class GainesDiv(torch.nn.Module):
         self.scnt.data = (dec * (self.scnt - 1) + (1 - dec) * self.scnt)
         self.scnt.data = self.scnt.clamp(0, self.scnt_max.item())
         
-        return output.type(self.bstype)
+        return output.type(self.stype)
     

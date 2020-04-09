@@ -12,14 +12,14 @@ class UnaryMul(torch.nn.Module):
                  mode="bipolar",
                  static=True,
                  input_prob_1=None,
-                 bstype=torch.float,
+                 stype=torch.float,
                  randtype=torch.float):
         super(UnaryMul, self).__init__()
         
         self.bitwidth = bitwidth
         self.mode = mode
         self.static = static
-        self.bstype = bstype
+        self.stype = stype
         self.randtype = randtype
         # the probability of input_1 used in static computation
         self.input_prob_1 = input_prob_1
@@ -66,7 +66,7 @@ class UnaryMul(torch.nn.Module):
                 raise ValueError("UnaryMul mode is not implemented.")
             
     def forward(self, input_0, input_1=None):
-        return self.UnaryMul_forward(input_0, input_1).type(self.bstype)
+        return self.UnaryMul_forward(input_0, input_1).type(self.stype)
 
     
 class GainesMul(torch.nn.Module):
@@ -75,10 +75,10 @@ class GainesMul(torch.nn.Module):
     """
     def __init__(self,
                  mode="bipolar",
-                 bstype=torch.float):
+                 stype=torch.float):
         super(GainesMul, self).__init__()
         self.mode = mode
-        self.bstype = bstype
+        self.stype = stype
 
     def UnaryMul_forward(self, input_0, input_1):
         if self.mode is "unipolar":
@@ -89,6 +89,6 @@ class GainesMul(torch.nn.Module):
             raise ValueError("UnaryMul mode is not implemented.")
             
     def forward(self, input_0, input_1):
-        return self.UnaryMul_forward(input_0, input_1).type(self.bstype)
+        return self.UnaryMul_forward(input_0, input_1).type(self.stype)
     
     

@@ -9,7 +9,7 @@ class UnaryAdd(torch.nn.Module):
                  mode="bipolar", 
                  scaled=True, 
                  acc_dim=0,
-                 bstype=torch.float):
+                 stype=torch.float):
         super(UnaryAdd, self).__init__()
         
         # data representation
@@ -19,7 +19,7 @@ class UnaryAdd(torch.nn.Module):
         # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.acc_dim.fill_(acc_dim)
-        self.bstype = bstype
+        self.stype = stype
         
         # upper bound for accumulation counter in scaled mode
         # it is the number of inputs, e.g., the size along the acc_dim dimension
@@ -45,7 +45,7 @@ class UnaryAdd(torch.nn.Module):
             output = torch.gt(self.accumulator, self.out_accumulator).type(torch.float)
             self.out_accumulator.data = self.out_accumulator.add(output)
 
-        return output.type(self.bstype)
+        return output.type(self.stype)
     
 
 class GainesAdd(torch.nn.Module):
@@ -61,7 +61,7 @@ class GainesAdd(torch.nn.Module):
                  rng="Sobol", 
                  rng_dim=5, 
                  rng_width=8, 
-                 bstype=torch.float,
+                 stype=torch.float,
                  randtype=torch.float):
         super(GainesAdd, self).__init__()
         
@@ -73,7 +73,7 @@ class GainesAdd(torch.nn.Module):
             raise ValueError("Non-scaled addition for biploar data is not supported in Gaines approach.")
         # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.bstype = bstype
+        self.stype = stype
         self.rng = RNG(rng_width, rng_dim, rng, randtype=randtype)()
         self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         
@@ -88,5 +88,5 @@ class GainesAdd(torch.nn.Module):
             # only support unipolar data using an OR gate
             output = torch.gt(torch.sum(input, self.acc_dim.item()), 0)
             
-        return output.type(self.bstype)
+        return output.type(self.stype)
     

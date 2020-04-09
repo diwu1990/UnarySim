@@ -291,7 +291,7 @@ class NSbuilder(torch.nn.Module):
                  value=None,
                  rng_dim=1,
                  rng="Sobol",
-                 bstype=torch.float,
+                 stype=torch.float,
                  randtype=torch.float):
         super(NSbuilder, self).__init__()
         
@@ -303,7 +303,7 @@ class NSbuilder(torch.nn.Module):
         self.val_shape = self.val.size()
         self.val_dim = len(self.val_shape)
 
-        self.bstype = bstype
+        self.stype = stype
         self.randtype = randtype
 
         self.T = threshold
@@ -531,7 +531,7 @@ class NSbuilder(torch.nn.Module):
                             self.st_gen[index_0][index_1][index_2][index_3] = st_gen
                             self.output[index_0][index_1][index_2][index_3] = output[index_0][index_1][index_2][index_3].item()
 
-        return self.output.type(self.bstype)
+        return self.output.type(self.stype)
 
     def forward(self):
         return self.NSbuilder_forward()

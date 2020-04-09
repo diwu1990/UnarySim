@@ -16,14 +16,14 @@ class UnaryLinearComplex(torch.nn.Module):
                  weight_i=None, 
                  bitwidth=8, 
                  scaled=False,
-                 bstype=torch.float,
+                 stype=torch.float,
                  buftype=torch.float,
                  randtype=torch.float):
         super(UnaryLinearComplex, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.scaled = scaled
-        self.bstype = bstype
+        self.stype = stype
         
         # upper bound for accumulation counter in scaled mode
         self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -46,45 +46,45 @@ class UnaryLinearComplex(torch.nn.Module):
         # define the kernel linear for different parts
         # 1. real feature and real weight
         self.kernel_1_fr_wr       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_1_fr_wr  = BSGen(self.buf_wght_r, self.rng, bstype=bstype)
+        self.buf_wght_bs_1_fr_wr  = BSGen(self.buf_wght_r, self.rng, stype=stype)
         self.rng_wght_idx_1_fr_wr = torch.nn.Parameter(torch.zeros_like(self.kernel_1_fr_wr.weight, 
                                                                         dtype=torch.long), requires_grad=False)
 
         self.kernel_0_fr_wr       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_0_fr_wr  = BSGen(self.buf_wght_r, self.rng, bstype=bstype)
+        self.buf_wght_bs_0_fr_wr  = BSGen(self.buf_wght_r, self.rng, stype=stype)
         self.rng_wght_idx_0_fr_wr = torch.nn.Parameter(torch.zeros_like(self.kernel_0_fr_wr.weight, 
                                                                         dtype=torch.long), requires_grad=False)
         
         # 2. real feature and image weight
         self.kernel_1_fr_wi       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_1_fr_wi  = BSGen(self.buf_wght_i, self.rng, bstype=bstype)
+        self.buf_wght_bs_1_fr_wi  = BSGen(self.buf_wght_i, self.rng, stype=stype)
         self.rng_wght_idx_1_fr_wi = torch.nn.Parameter(torch.zeros_like(self.kernel_1_fr_wi.weight, 
                                                                         dtype=torch.long), requires_grad=False)
 
         self.kernel_0_fr_wi       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_0_fr_wi  = BSGen(self.buf_wght_i, self.rng, bstype=bstype)
+        self.buf_wght_bs_0_fr_wi  = BSGen(self.buf_wght_i, self.rng, stype=stype)
         self.rng_wght_idx_0_fr_wi = torch.nn.Parameter(torch.zeros_like(self.kernel_0_fr_wi.weight, 
                                                                         dtype=torch.long), requires_grad=False)
         
         # 3. image feature and real weight
         self.kernel_1_fi_wr       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_1_fi_wr  = BSGen(self.buf_wght_r, self.rng, bstype=bstype)
+        self.buf_wght_bs_1_fi_wr  = BSGen(self.buf_wght_r, self.rng, stype=stype)
         self.rng_wght_idx_1_fi_wr = torch.nn.Parameter(torch.zeros_like(self.kernel_1_fi_wr.weight, 
                                                                         dtype=torch.long), requires_grad=False)
 
         self.kernel_0_fi_wr       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_0_fi_wr  = BSGen(self.buf_wght_r, self.rng, bstype=bstype)
+        self.buf_wght_bs_0_fi_wr  = BSGen(self.buf_wght_r, self.rng, stype=stype)
         self.rng_wght_idx_0_fi_wr = torch.nn.Parameter(torch.zeros_like(self.kernel_0_fi_wr.weight, 
                                                                         dtype=torch.long), requires_grad=False)
         
         # 4. image feature and image weight
         self.kernel_1_fi_wi       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_1_fi_wi  = BSGen(self.buf_wght_i, self.rng, bstype=bstype)
+        self.buf_wght_bs_1_fi_wi  = BSGen(self.buf_wght_i, self.rng, stype=stype)
         self.rng_wght_idx_1_fi_wi = torch.nn.Parameter(torch.zeros_like(self.kernel_1_fi_wi.weight, 
                                                                         dtype=torch.long), requires_grad=False)
 
         self.kernel_0_fi_wi       = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-        self.buf_wght_bs_0_fi_wi  = BSGen(self.buf_wght_i, self.rng, bstype=bstype)
+        self.buf_wght_bs_0_fi_wi  = BSGen(self.buf_wght_i, self.rng, stype=stype)
         self.rng_wght_idx_0_fi_wi = torch.nn.Parameter(torch.zeros_like(self.kernel_0_fi_wi.weight, 
                                                                         dtype=torch.long), requires_grad=False)
         
@@ -164,7 +164,7 @@ class UnaryLinearComplex(torch.nn.Module):
             output_i = torch.gt(self.accumulator_i, self.out_accumulator_i).type(torch.float)
             self.out_accumulator_i.data = self.out_accumulator_i.add(output_i)
 
-        return output_r.type(self.bstype), output_i.type(self.bstype)
+        return output_r.type(self.stype), output_i.type(self.stype)
         
 
 class LinearComplex(torch.nn.Module):
