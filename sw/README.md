@@ -1,7 +1,6 @@
 # Overview
 
-This directory contains the required components for cycle-accurate software simulation for unary computing. UnarySim is based on [PyTorch](https://pytorch.org/), a deep learning framework from Facebook, such that the simulation can be done on either CPU or GPU efficiently.
-
+This directory contains the components to simulate unary computing in a cycle-accurate manner. 
 The components included in UnarySim belong to three categories, including 
 1. **Stream Manipulation**
 2. **Computing Kernel**
@@ -23,16 +22,15 @@ The input source data (_source_) is scaled to a certain range (as in _unipolar/b
 More specifically, such a relationship is formulated as _source = raw / max(raw)_.
 
 2. **Random Number**: 
-The random numbers (_rand_) are to be compared with the source data in order to generate the bit streams. To notice, source data is in _unipolar/bipolar_ format, while random numbers are integers. 
+The random numbers (_rand_) are to be compared with the source data in order to generate the data streams. To notice, source data is in _unipolar/bipolar_ format, while random numbers are integers. 
 To compare them, source data requires to scale up by the _bitwidth_ of random numbers. 
-At each cycle, if _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the bit stream will be generated; otherwise, a bit of logic 0 will be generated.
+At each cycle, if _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the stream will be generated; otherwise, a bit of logic 0 will be generated.
 
-3. **Bit Stream**: 
-At each cycle, the bits in bit streams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation.
+3. **Stream**: 
+At each cycle, the data in the streams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation.
 
 4. **Buffer**: 
-Inside each logic kernel, there may exist buffers to record the its interal state by monitoring the past bit streams, which could be extemely long. 
-Those buffers can be counters or shift registers.
+Inside each logic kernel, there may exist buffers, like counters or shift registers, to compute future data by monitoring the past data streams. 
 
 5. **Metric Variable**: 
 Those are variables to compute specially designed performance metrics.
@@ -41,7 +39,7 @@ Those are variables to compute specially designed performance metrics.
 This directory contains four subdirectories, including _'stream'_, _'kernel'_,  _'metric'_ and _'test'_, covering three components mentioned above.
 
 ### _'stream'_ subdirectory
-This directory contains the components for **Stream Manipulation**, which manipulate the bit streams for high performance and accuracy.
+This directory contains the components for **Stream Manipulation**, which manipulate the data streams for high performance and accuracy.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
@@ -60,7 +58,7 @@ This directory contains the components for **Stream Manipulation**, which manipu
 
 
 ### _'kernel'_ subdirectory
-This directory contains the components for **Unary Computing Kernel**, which take bit streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
+This directory contains the components for **Unary Computing Kernel**, which take data streams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |

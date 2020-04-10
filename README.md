@@ -1,5 +1,5 @@
 ## Unary Computing
-_**Unary computing**_ is a type of computing paradigm based on serial bits in streams, rather than parallel data in conventional binary computing. 
+_**Unary computing**_ is a type of computing paradigm based on serial data in streams, rather than parallel data in conventional binary computing. 
 The unary computing kernels are much simpler than conventional binary counterparts, but spend more cycles for a single operation. 
 
 In general, a single unary computing kernel may not outperform the binary in terms of energy efficiency. However, at the system level, there are two advantages in unary computing over binary computing with respect to the system input.
@@ -7,7 +7,7 @@ In general, a single unary computing kernel may not outperform the binary in ter
 2. If the system input is already binary, due to the higher computing density resulting from simple logic, unary computing can achieve even higher energy efficiency than binary computing when the computational intensity reaches a certain threshold [3].
 
 ## UnarySim
-This _**UnarySim**_ is a PyTorch-based cycle-accurate simulator for large scale unary computing.
+This _**UnarySim**_ is a PyTorch-based cycle-accurate simulator for large scale unary computing, compatible to both CPU and GPU with high efficiency.
 
 ### _'sw'_ subdirectory
 This folder includes the software implementation of multiple unary operators. Please check inside for how to use _**UnarySim**_.
