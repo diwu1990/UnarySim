@@ -14,12 +14,12 @@ class UnarySqrt(torch.nn.Module):
     def __init__(self, 
                  mode="bipolar", 
                  jk_trace=True, 
-                 depth_kernel=4, 
+                 depth_kernel=1, 
                  rng="Sobol", 
                  rng_dim=4, 
                  emit=True, 
-                 depth_emit=5, 
-                 depth_sync=4, # indicate the maximum accumulator depth
+                 depth_emit=3, 
+                 depth_sync=2, # indicate the maximum accumulator depth
                  stype=torch.float):
         super(UnarySqrt, self).__init__()
         
@@ -79,11 +79,12 @@ class UnarySqrt(torch.nn.Module):
             divisor = self.dff + dividend
             
             # use historic quotient as trace
-            # trace = self.cordiv_kernel.historic_q
+            # trace = self.cordiv_kernel.historic_q[0]
             # _ = self.cordiv_kernel(dividend, divisor)
             
             # use actual quotient as trace
             trace = self.cordiv_kernel(dividend, divisor)
+            
             self.dff.data = 1 - self.dff
         return trace
     
@@ -103,21 +104,12 @@ class UnarySqrt(torch.nn.Module):
         # _ = self.cordiv_kernel_emit(dividend_sync, divisor_sync)
         # trace_emit = self.cordiv_kernel_emit.historic_q[0]
         
-        # for using skewedsync
-        # trace_emit = self.unidiv_emit(dividend, divisor)
-        
         self.emit_acc.data = self.emit_acc.add(trace_emit)
         
         return trace_emit
 
     def forward(self, input):
-        if self.emit is False:
-            output = ((1 - self.trace) & input.type(torch.int8)) + self.trace
-            if self.mode is "bipolar":
-                self.trace.data = self.bipolar_trace(output)
-            else:
-                self.trace.data = self.unipolar_trace(output)
-        else:
+        if self.emit is True:
             if self.mode is "bipolar":
                 in_bs = self.bi2uni_emit(input)
                 
@@ -140,6 +132,12 @@ class UnarySqrt(torch.nn.Module):
                 dontcare = self.unipolar_trace_emit(output)
                 # update emit_acc based on emit_en
                 self.emit_acc.data = self.emit_acc.sub(emit_en).clamp(0, self.emit_acc_max.item())
+        else:
+            output = ((1 - self.trace) & input.type(torch.int8)) + self.trace
+            if self.mode is "bipolar":
+                self.trace.data = self.bipolar_trace(output)
+            else:
+                self.trace.data = self.unipolar_trace(output)
         return output.type(self.stype)
     
 
