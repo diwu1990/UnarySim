@@ -22,7 +22,7 @@ class CORDIV_kernel(torch.nn.Module):
         self.idx = torch.nn.Parameter(torch.zeros(1).type(torch.float), requires_grad=False)
         self.stype = stype
         self.init = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
-        self.historic_q = torch.nn.Parameter(torch.ones(1).type(torch.bool), requires_grad=False)
+        self.historic_q = torch.nn.Parameter(torch.ones(1).type(stype), requires_grad=False)
         
     def forward(self, dividend, divisor):
         # generate the random number to index the shift register
