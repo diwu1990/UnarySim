@@ -9,6 +9,7 @@ class CORDIV_kernel(torch.nn.Module):
     """
     the kernel of the correlated divivison
     this kernel is for unipolar only
+    dividend and divisor have to synchronized
     """
     def __init__(self, 
                  depth=4, 
