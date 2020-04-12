@@ -16,9 +16,9 @@ class UnaryLinearComplex(torch.nn.Module):
                  weight_i=None, 
                  bitwidth=8, 
                  scaled=False,
-                 stype=torch.float,
-                 buftype=torch.float,
-                 randtype=torch.float):
+                 btype=torch.float,
+                 rtype=torch.float,
+                 stype=torch.float):
         super(UnaryLinearComplex, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -37,11 +37,11 @@ class UnaryLinearComplex(torch.nn.Module):
         self.bitwidth = bitwidth
         
         # random_sequence from sobol RNG, only one type of RNG is required
-        self.rng = RNG(self.bitwidth, 1, "Sobol", randtype)()
+        self.rng = RNG(self.bitwidth, 1, "Sobol", rtype)()
         
         # define the convolution weight and bias
-        self.buf_wght_r = SourceGen(weight_r, bitwidth=self.bitwidth, mode="bipolar", randtype=randtype)()
-        self.buf_wght_i = SourceGen(weight_i, bitwidth=self.bitwidth, mode="bipolar", randtype=randtype)()
+        self.buf_wght_r = SourceGen(weight_r, bitwidth=self.bitwidth, mode="bipolar", rtype=rtype)()
+        self.buf_wght_i = SourceGen(weight_i, bitwidth=self.bitwidth, mode="bipolar", rtype=rtype)()
 
         # define the kernel linear for different parts
         # 1. real feature and real weight
