@@ -61,8 +61,8 @@ class GainesAdd(torch.nn.Module):
                  rng="Sobol", 
                  rng_dim=5, 
                  rng_width=8, 
-                 stype=torch.float,
-                 randtype=torch.float):
+                 rtype=torch.float, 
+                 stype=torch.float):
         super(GainesAdd, self).__init__()
         
         # data representation
@@ -74,7 +74,7 @@ class GainesAdd(torch.nn.Module):
         # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.stype = stype
-        self.rng = RNG(rng_width, rng_dim, rng, randtype=randtype)()
+        self.rng = RNG(rng_width, rng_dim, rng, rtype=rtype)()
         self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         
     def forward(self, input):

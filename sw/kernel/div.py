@@ -65,8 +65,8 @@ class UnaryDiv(torch.nn.Module):
                  mode="bipolar", 
                  rng="Sobol", 
                  rng_dim=4, 
-                 stype=torch.float, 
-                 buftype=torch.float):
+                 btype=torch.float, 
+                 stype=torch.float):
         super(UnaryDiv, self).__init__()
         
         # data representation
@@ -74,13 +74,13 @@ class UnaryDiv(torch.nn.Module):
         self.stype = stype
         
         if self.mode is "bipolar":
-            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, buftype=buftype)
-            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, buftype=buftype)
+            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
+            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
             self.bi2uni_dividend = Bi2Uni(stype=stype)
             self.bi2uni_divisor  = Bi2Uni(stype=stype)
             self.uni2bi_quotient = Uni2Bi(stype=stype)
             
-        self.ssync = SkewedSync(depth=depth_sync, stype=stype, buftype=buftype)
+        self.ssync = SkewedSync(depth=depth_sync, stype=stype, btype=btype)
         self.cordiv_kernel = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, stype=stype)
         
     def bipolar_forward(self, dividend, divisor):

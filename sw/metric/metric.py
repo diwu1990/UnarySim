@@ -291,8 +291,8 @@ class NSbuilder(torch.nn.Module):
                  value=None,
                  rng_dim=1,
                  rng="Sobol",
-                 stype=torch.float,
-                 randtype=torch.float):
+                 rtype=torch.float,
+                 stype=torch.float):
         super(NSbuilder, self).__init__()
         
         self.depth = depth
@@ -304,7 +304,7 @@ class NSbuilder(torch.nn.Module):
         self.val_dim = len(self.val_shape)
 
         self.stype = stype
-        self.randtype = randtype
+        self.rtype = rtype
 
         self.T = threshold
         self.L = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
@@ -330,7 +330,7 @@ class NSbuilder(torch.nn.Module):
             bitwidth=depth,
             dim=rng_dim,
             rng=rng,
-            randtype=randtype)()
+            rtype=rtype)()
 
         self.src_st = None
         self.src_ns = None
@@ -449,8 +449,8 @@ class NSbuilder(torch.nn.Module):
         self.new_ns_val.data = self.new_ns_one / self.new_ns_len   
         self.new_st_val.data = self.new_st_one / self.new_st_len            
 
-        self.src_st = SourceGen(self.new_st_val, self.depth, self.mode, self.randtype)()
-        self.src_ns = SourceGen(self.new_ns_val, self.depth, self.mode, self.randtype)()
+        self.src_st = SourceGen(self.new_st_val, self.depth, self.mode, self.rtype)()
+        self.src_ns = SourceGen(self.new_ns_val, self.depth, self.mode, self.rtype)()
         self.bs_st = BSGen(self.src_st, self.rng)
         self.bs_ns = BSGen(self.src_ns, self.rng)
 

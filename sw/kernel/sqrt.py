@@ -35,7 +35,7 @@ class UnarySqrt(torch.nn.Module):
             self.emit_acc = torch.nn.Parameter(torch.zeros(1).type(torch.int), requires_grad=False)
             
             # following modules use skewedsyncint in UnaryDiv, and can output digit stream
-            self.ssyncint = SkewedSyncInt(depth=depth_sync, stype=torch.int, buftype=torch.float)
+            self.ssyncint = SkewedSyncInt(depth=depth_sync, stype=torch.int, btype=torch.float)
             self.cordiv_kernel_emit = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, stype=torch.int)
             
             # follow module uses skewedsync in UnaryDiv, and can only output bit stream
@@ -47,7 +47,7 @@ class UnarySqrt(torch.nn.Module):
             #                             rng=rng, 
             #                             rng_dim=rng_dim, 
             #                             stype=torch.int, 
-            #                             buftype=torch.float)
+            #                             btype=torch.float)
             
             if mode is "bipolar":
                 self.bi2uni_emit = Bi2Uni(stype=torch.int)

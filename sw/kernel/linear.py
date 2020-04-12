@@ -20,16 +20,16 @@ class UnaryLinear(torch.nn.Module):
                  bitwidth=8, 
                  bias=True, 
                  mode="bipolar", 
-                 scaled=True,
-                 stype=torch.float,
-                 buftype=torch.float,
-                 randtype=torch.float):
+                 scaled=True, 
+                 btype=torch.float, 
+                 rtype=torch.float, 
+                 stype=torch.float):
         super(UnaryLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.stype = stype
-        self.buftype = buftype
-        self.randtype = randtype
+        self.btype = btype
+        self.rtype = rtype
         
         # upper bound for accumulation counter in scaled mode
         self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -61,9 +61,9 @@ class UnaryLinear(torch.nn.Module):
         self.rng = RNG(self.bitwidth, 1, "Sobol")()
         
         # define the convolution weight and bias
-        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, randtype=randtype)()
+        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
         if self.has_bias is True:
-            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, randtype=randtype)()
+            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
 
         # define the kernel linear
         self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)

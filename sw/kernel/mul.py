@@ -12,15 +12,15 @@ class UnaryMul(torch.nn.Module):
                  mode="bipolar",
                  static=True,
                  input_prob_1=None,
-                 stype=torch.float,
-                 randtype=torch.float):
+                 rtype=torch.float,
+                 stype=torch.float):
         super(UnaryMul, self).__init__()
         
         self.bitwidth = bitwidth
         self.mode = mode
         self.static = static
         self.stype = stype
-        self.randtype = randtype
+        self.rtype = rtype
         # the probability of input_1 used in static computation
         self.input_prob_1 = input_prob_1
         
@@ -29,12 +29,12 @@ class UnaryMul(torch.nn.Module):
             bitwidth=self.bitwidth,
             dim=1,
             rng="Sobol",
-            randtype=self.randtype)()
+            rtype=self.rtype)()
         
         # currently only support static mode
         if self.static is True:
             # directly create an unchange bitstream generator for static computation
-            self.source_gen = SourceGen(self.input_prob_1, self.bitwidth, self.mode, self.randtype)()
+            self.source_gen = SourceGen(self.input_prob_1, self.bitwidth, self.mode, self.rtype)()
             self.bs = BSGen(self.source_gen, self.rng, torch.int8)
             # rng_idx is used later as an enable signal, get update every cycled
             self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
