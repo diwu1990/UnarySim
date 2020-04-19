@@ -1,5 +1,5 @@
 module Bi2Uni # (
-    parameter DEP=4
+    parameter DEP=3
 ) (
     input clk,    // Clock
     input rst_n,  // Asynchronous reset active low
