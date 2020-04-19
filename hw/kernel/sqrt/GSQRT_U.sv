@@ -1,7 +1,6 @@
-module GSQRT_U 
-    # (
-        parameter BW=5
-    ) (
+module GSQRT_U # (
+    parameter BW=5
+) (
     input clk,    // Clock
     input rst_n,  // Asynchronous reset active low
     input [BW:0] randNum, 
