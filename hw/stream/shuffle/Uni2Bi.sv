@@ -1,4 +1,4 @@
-module Uni2Bi # (
+module Uni2Bi (
     input clk,    // Clock
     input rst_n,  // Asynchronous reset active low
     input in,
