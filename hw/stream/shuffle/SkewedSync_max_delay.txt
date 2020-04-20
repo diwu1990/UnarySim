@@ -1,0 +1,50 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : SkewedSync
+Version: P-2019.03
+Date   : Sun Apr 19 22:04:17 2020
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: in0 (input port clocked by clk)
+  Endpoint: out0 (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  SkewedSync         TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 f
+  in0 (in)                                 0.00       0.25 f
+  U28/ZN (INVD1BWP)                        0.05       0.30 r
+  U23/Z (XOR2D1BWP)                        0.10       0.40 f
+  U29/Z (OA22D2BWP)                        0.11       0.51 f
+  U30/ZN (INVD16BWP)                       0.07       0.58 r
+  out0 (out)                               0.00       0.58 r
+  data arrival time                                   0.58
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.58
+  -----------------------------------------------------------
+  slack (MET)                                         1.27
+
+
+1
