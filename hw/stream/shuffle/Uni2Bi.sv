@@ -1,9 +1,10 @@
 module Uni2Bi (
-    input clk,    // Clock
-    input rst_n,  // Asynchronous reset active low
-    input in,
-    output out
+    input logic clk,    // Clock
+    input logic rst_n,  // Asynchronous reset active low
+    input logic in,
+    output logic out
 );
+
     // bipolar: output = (input + 1)/2
     logic [1:0] in_acc;
     logic [1:0] pc;

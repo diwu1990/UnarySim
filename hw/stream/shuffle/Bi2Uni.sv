@@ -1,11 +1,12 @@
 module Bi2Uni # (
     parameter DEP=3
 ) (
-    input clk,    // Clock
-    input rst_n,  // Asynchronous reset active low
-    input in,
-    output out
+    input logic clk,    // Clock
+    input logic rst_n,  // Asynchronous reset active low
+    input logic in,
+    output logic out
 );
+
     // bipolar: output = 2 * input - 1
     logic [DEP-1:0] diff_acc;
     logic [1:0] pc;

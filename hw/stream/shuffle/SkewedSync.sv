@@ -1,16 +1,15 @@
 module SkewedSync # (
     parameter DEP=2
 ) (
-    input clk,    // Clock
-    input rst_n,  // Asynchronous reset active low
-    input in0,
-    input in1,
+    input logic clk,    // Clock
+    input logic rst_n,  // Asynchronous reset active low
+    input logic in0,
+    input logic in1,
     output logic out0,
     output logic out1
 );
 
     logic [DEP-1:0] cnt;
-
     logic cntFull;
     logic cntEmpty;
     logic in_ne;
