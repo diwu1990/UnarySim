@@ -1,12 +1,10 @@
 module JKFF (
-    input clk,    // Clock
-    input rst_n,  // Asynchronous reset active low
-    input J,
-    input K,
-    output out
+    input logic clk,    // Clock
+    input logic rst_n,  // Asynchronous reset active low
+    input logic J,
+    input logic K,
+    output logic out
 );
-    
-    logic out;
 
     always_ff @(posedge clk or negedge rst_n) begin : proc_out
         if(~rst_n) begin
