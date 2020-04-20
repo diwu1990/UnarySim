@@ -1,14 +1,14 @@
 module GSQRT_U # (
-    parameter BW=5
+    parameter BW=6
 ) (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
-    input logic [BW:0] randNum, 
+    input logic [BW-1:0] randNum, 
     input logic in, 
     output logic out
 );
     
-    logic [BW:0] cnt;
+    logic [BW-1:0] cnt;
     logic inc;
     logic dec;
     logic out_d1;
