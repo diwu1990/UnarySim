@@ -6,7 +6,7 @@ Report : timing
         -max_paths 1
 Design : Bi2Uni
 Version: P-2019.03
-Date   : Sun Apr 19 18:52:13 2020
+Date   : Sun Apr 19 22:45:49 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc

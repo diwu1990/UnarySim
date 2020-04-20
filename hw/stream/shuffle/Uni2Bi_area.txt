@@ -3,7 +3,7 @@
 Report : area
 Design : Uni2Bi
 Version: P-2019.03
-Date   : Sun Apr 19 18:50:01 2020
+Date   : Sun Apr 19 22:45:14 2020
 ****************************************
 
 Information: Updating design information... (UID-85)

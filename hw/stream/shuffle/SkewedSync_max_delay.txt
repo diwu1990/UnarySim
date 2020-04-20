@@ -6,7 +6,7 @@ Report : timing
         -max_paths 1
 Design : SkewedSync
 Version: P-2019.03
-Date   : Sun Apr 19 22:04:17 2020
+Date   : Sun Apr 19 22:43:28 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc

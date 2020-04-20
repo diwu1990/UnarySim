@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : Uni2Bi
 Version: P-2019.03
-Date   : Sun Apr 19 18:50:03 2020
+Date   : Sun Apr 19 22:45:15 2020
 ****************************************
 
 
