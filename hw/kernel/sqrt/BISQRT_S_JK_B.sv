@@ -4,10 +4,10 @@
 module BISQRT_S_JK_B # (
     parameter DEP=3
 ) (
-    input clk,    // Clock
-    input rst_n,  // Asynchronous reset active low
-    input in,
-    output out
+    input logic clk,    // Clock
+    input logic rst_n,  // Asynchronous reset active low
+    input logic in,
+    output logic out
 );
     
     logic [1:0] mux;
