@@ -13,7 +13,7 @@ module SkewedSync # (
 
     logic cntFull;
     logic cntEmpty;
-    logic in_eq;
+    logic in_ne;
 
     assign cntFull = &cnt;
     assign cntEmpty = ~|cnt;
