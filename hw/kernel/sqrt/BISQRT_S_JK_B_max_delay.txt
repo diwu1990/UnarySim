@@ -4,22 +4,22 @@ Report : timing
         -path full
         -delay max
         -max_paths 1
-Design : GSQRT_B
+Design : BISQRT_S_JK_B
 Version: P-2019.03
-Date   : Sun Apr 19 22:39:36 2020
+Date   : Sun Apr 19 22:34:55 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
-  Startpoint: randNum[0] (input port clocked by clk)
+  Startpoint: in (input port clocked by clk)
   Endpoint: out (output port clocked by clk)
   Path Group: clk
   Path Type: max
 
   Des/Clust/Port     Wire Load Model       Library
   ------------------------------------------------
-  GSQRT_B            TSMC32K_Lowk_Conservative
+  BISQRT_S_JK_B      TSMC32K_Lowk_Conservative
                                            tcbn40lpbwptc
 
   Point                                    Incr       Path
@@ -27,17 +27,12 @@ Wire Load Model Mode: segmented
   clock clk (rise edge)                    0.00       0.00
   clock network delay (ideal)              0.00       0.00
   input external delay                     0.25       0.25 f
-  randNum[0] (in)                          0.00       0.25 f
-  U69/ZN (NR2XD0BWP)                       0.04       0.29 r
-  U72/ZN (IOA21D1BWP)                      0.07       0.36 r
-  U75/ZN (OAI221D1BWP)                     0.06       0.42 f
-  U73/Z (OA221D1BWP)                       0.07       0.49 f
-  U36/Z (AO221D1BWP)                       0.12       0.61 f
-  U57/Z (OA221D1BWP)                       0.06       0.67 f
-  U54/Z (AO21D2BWP)                        0.10       0.77 f
-  U55/ZN (INVD16BWP)                       0.07       0.84 r
-  out (out)                                0.00       0.84 r
-  data arrival time                                   0.84
+  in (in)                                  0.00       0.25 f
+  U17/ZN (IAO21D1BWP)                      0.07       0.32 f
+  U15/ZN (CKND2BWP)                        0.05       0.36 r
+  U16/ZN (CKND16BWP)                       0.06       0.42 f
+  out (out)                                0.00       0.42 f
+  data arrival time                                   0.42
 
   clock clk (rise edge)                    2.50       2.50
   clock network delay (ideal)              0.00       2.50
@@ -46,9 +41,9 @@ Wire Load Model Mode: segmented
   data required time                                  1.85
   -----------------------------------------------------------
   data required time                                  1.85
-  data arrival time                                  -0.84
+  data arrival time                                  -0.42
   -----------------------------------------------------------
-  slack (MET)                                         1.01
+  slack (MET)                                         1.43
 
 
 1

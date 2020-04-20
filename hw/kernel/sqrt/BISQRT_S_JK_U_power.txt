@@ -5,9 +5,9 @@ Warning: Design has unannotated sequential cell outputs. (PWR-415)
 ****************************************
 Report : power
         -analysis_effort low
-Design : GSQRT_U
+Design : BISQRT_S_JK_U
 Version: P-2019.03
-Date   : Sun Apr 19 22:40:32 2020
+Date   : Sun Apr 19 22:34:08 2020
 ****************************************
 
 
@@ -21,7 +21,7 @@ Wire Load Model Mode: segmented
 
 Design        Wire Load Model            Library
 ------------------------------------------------
-GSQRT_U                TSMC32K_Lowk_Conservative
+BISQRT_S_JK_U          TSMC32K_Lowk_Conservative
                                          tcbn40lpbwptc
 
 
@@ -34,12 +34,12 @@ Power-specific unit information :
     Leakage Power Units = 1nW
 
 
-  Cell Internal Power  =  17.1639 uW   (80%)
-  Net Switching Power  =   4.4054 uW   (20%)
+  Cell Internal Power  =   3.2887 uW   (52%)
+  Net Switching Power  =   3.0424 uW   (48%)
                          ---------
-Total Dynamic Power    =  21.5693 uW  (100%)
+Total Dynamic Power    =   6.3311 uW  (100%)
 
-Cell Leakage Power     =   7.4231 nW
+Cell Leakage Power     =   1.4611 nW
 
 
                  Internal         Switching           Leakage            Total
@@ -49,9 +49,9 @@ io_pad             0.0000            0.0000            0.0000            0.0000 
 memory             0.0000            0.0000            0.0000            0.0000  (   0.00%)
 black_box          0.0000            0.0000            0.0000            0.0000  (   0.00%)
 clock_network      0.0000            0.0000            0.0000            0.0000  (   0.00%)
-register       1.5717e-02        2.6575e-04            2.1176        1.5985e-02  (  74.09%)
+register       2.6652e-03        2.0324e-04            0.2916        2.8687e-03  (  45.30%)
 sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
-combinational  1.4466e-03        4.1396e-03            5.3055        5.5916e-03  (  25.91%)
+combinational  6.2353e-04        2.8392e-03            1.1695        3.4639e-03  (  54.70%)
 --------------------------------------------------------------------------------------------------
-Total          1.7164e-02 mW     4.4054e-03 mW         7.4231 nW     2.1577e-02 mW
+Total          3.2887e-03 mW     3.0424e-03 mW         1.4611 nW     6.3326e-03 mW
 1
