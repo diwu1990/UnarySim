@@ -5,8 +5,8 @@ module SkewedSync # (
     input rst_n,  // Asynchronous reset active low
     input in0,
     input in1,
-    output out0,
-    output out1
+    output logic out0,
+    output logic out1
 );
 
     logic [DEP-1:0] cnt;
@@ -41,12 +41,12 @@ module SkewedSync # (
     always_comb begin : proc_out0
         if (in_ne) begin
             if(in0) begin
-                out0 = cntFull ? 1 : 0;
+                out0 <= cntFull ? 1 : 0;
             end else begin
-                out0 = cntEmpty ? 0 : 1;
+                out0 <= cntEmpty ? 0 : 1;
             end
         end else begin
-            out0 = in0;
+            out0 <= in0;
         end
     end
 
