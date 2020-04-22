@@ -1,4 +1,4 @@
-module GDIV_U # (
+module GDIV_B # (
     parameter BW=6
 ) (
     input logic clk,    // Clock
