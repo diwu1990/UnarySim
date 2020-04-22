@@ -1,7 +1,7 @@
 module CORDIV_kernel #(
     parameter BW=1,
-    parameter DEP=2,
-    parameter DEPLOG=1
+    parameter DEP=4,
+    parameter DEPLOG=2
 ) (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
