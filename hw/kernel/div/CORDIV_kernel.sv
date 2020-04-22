@@ -61,10 +61,11 @@ module CORDIV_kernel #(
 
     always_ff @(posedge clk or negedge rst_n) begin : proc_sr
         if(~rst_n) begin
-            sr[0] <= 0;
             sr[1] <= 1;
+            sr[0] <= 0;
         end else begin
-            sr <= {quotient, sr[1]};
+            sr[1] <= quotient;
+            sr[0] <= sr[1]
         end
     end
 
