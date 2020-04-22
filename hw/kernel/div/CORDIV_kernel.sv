@@ -65,7 +65,7 @@ module CORDIV_kernel #(
             sr[0] <= 0;
         end else begin
             sr[1] <= quotient;
-            sr[0] <= sr[1]
+            sr[0] <= sr[1];
         end
     end
 
