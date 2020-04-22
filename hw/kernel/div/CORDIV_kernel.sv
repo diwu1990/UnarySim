@@ -1,5 +1,5 @@
 module CORDIV_kernel #(
-    parameter DEP=1,
+    parameter DEP=2,
     parameter DEPLOG=1
 ) (
     input logic clk,    // Clock
