@@ -60,7 +60,13 @@ module BISQRT_O_U #(
 
     assign temp = acc_emit + quotient;
     assign temp_non_0 = |temp;
-    assign out = (~in) & temp_non_0;
+    always_ff @(posedge clk or negedge rst_n) begin : proc_out
+        if(~rst_n) begin
+            out <= 0;
+        end else begin
+            out <= (~in) & temp_non_0;
+        end
+    end
 
     assign sum = temp - out;
     assign sum_overflow = sum[DEP_EMIT];
