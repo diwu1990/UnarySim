@@ -6,13 +6,13 @@ Report : timing
         -max_paths 1
 Design : GSQRT_U
 Version: P-2019.03
-Date   : Sun Apr 19 22:40:32 2020
+Date   : Wed Apr 22 19:54:41 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
-  Startpoint: randNum[0] (input port clocked by clk)
+  Startpoint: randNum[1] (input port clocked by clk)
   Endpoint: out (output port clocked by clk)
   Path Group: clk
   Path Type: max
@@ -27,17 +27,16 @@ Wire Load Model Mode: segmented
   clock clk (rise edge)                    0.00       0.00
   clock network delay (ideal)              0.00       0.00
   input external delay                     0.25       0.25 f
-  randNum[0] (in)                          0.00       0.25 f
-  U77/ZN (NR2XD0BWP)                       0.04       0.29 r
-  U78/ZN (ND2D1BWP)                        0.04       0.33 f
-  U67/ZN (AOI222D4BWP)                     0.17       0.50 r
-  U65/ZN (AOI221D1BWP)                     0.02       0.52 f
-  U51/Z (OA22D1BWP)                        0.07       0.59 f
-  U28/Z (AO221D1BWP)                       0.12       0.71 f
-  U55/Z (OA21D2BWP)                        0.07       0.78 f
-  U56/ZN (INVD16BWP)                       0.07       0.85 r
-  out (out)                                0.00       0.85 r
-  data arrival time                                   0.85
+  randNum[1] (in)                          0.00       0.25 f
+  U61/ZN (INR2D1BWP)                       0.04       0.29 f
+  U47/ZN (OAI32D2BWP)                      0.06       0.34 r
+  U63/ZN (NR2XD0BWP)                       0.05       0.39 f
+  U52/Z (OA222D1BWP)                       0.09       0.48 f
+  U25/Z (AO221D1BWP)                       0.13       0.61 f
+  U45/Z (OA21D2BWP)                        0.07       0.68 f
+  U46/ZN (INVD16BWP)                       0.07       0.75 r
+  out (out)                                0.00       0.75 r
+  data arrival time                                   0.75
 
   clock clk (rise edge)                    2.50       2.50
   clock network delay (ideal)              0.00       2.50
@@ -46,9 +45,9 @@ Wire Load Model Mode: segmented
   data required time                                  1.85
   -----------------------------------------------------------
   data required time                                  1.85
-  data arrival time                                  -0.85
+  data arrival time                                  -0.75
   -----------------------------------------------------------
-  slack (MET)                                         1.00
+  slack (MET)                                         1.10
 
 
 1
