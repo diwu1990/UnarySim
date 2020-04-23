@@ -12,7 +12,7 @@ module Abs # (
 
     always_ff @(posedge clk or negedge rst_n) begin : proc_cnt
         if(~rst_n) begin
-            cnt <= 1'b1 << (DEP-1);
+            cnt <= {1'b1, {{DEP-1}{1'b0}}};
         end else begin
             if(value & ~&cnt) begin
                 cnt <= cnt + 1;
@@ -24,7 +24,7 @@ module Abs # (
         end
     end
 
-    assign sign = ~cnt[DEP-1];
+    assign sign = cnt < {1'b1, {{DEP-1}{1'b0}}};
     assign abs = value ^ sign;
 
 endmodule
