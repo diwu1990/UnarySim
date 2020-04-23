@@ -8,12 +8,11 @@ module Abs # (
     output logic abs
 );
     
-    logic [DEP-1:0] cnt;
+    logic unsigned [DEP-1:0] cnt;
 
     always_ff @(posedge clk or negedge rst_n) begin : proc_cnt
         if(~rst_n) begin
-            cnt[DEP-1] <= 1;
-            cnt[DEP-2:0] <= 0;
+            cnt <= {1'b1, {{DEP-1}{1'b0}}};
         end else begin
             if(value & ~&cnt) begin
                 cnt <= cnt + 1;
