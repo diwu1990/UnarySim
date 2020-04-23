@@ -1,0 +1,48 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : Abs
+Version: P-2019.03
+Date   : Wed Apr 22 22:00:12 2020
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: value (input port clocked by clk)
+  Endpoint: abs (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  Abs                TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 f
+  value (in)                               0.00       0.25 f
+  U35/Z (XOR2D0BWP)                        0.09       0.34 r
+  U34/Z (CKBD16BWP)                        0.09       0.43 r
+  abs (out)                                0.00       0.43 r
+  data arrival time                                   0.43
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.43
+  -----------------------------------------------------------
+  slack (MET)                                         1.42
+
+
+1
