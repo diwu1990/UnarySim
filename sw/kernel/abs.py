@@ -7,7 +7,7 @@ class UnaryAbs(torch.nn.Module):
     only works for rate-coded data.
     """
     def __init__(self, 
-                 depth=8, 
+                 depth=3, 
                  shiftreg=False, 
                  btype=torch.float, 
                  stype=torch.float):

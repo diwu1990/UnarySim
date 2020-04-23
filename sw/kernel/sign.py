@@ -7,7 +7,7 @@ class UnarySign(torch.nn.Module):
     0 for non-negative, and 1 for negative
     """
     def __init__(self, 
-                 depth=4, 
+                 depth=3, 
                  shiftreg=False, 
                  btype=torch.float, 
                  stype=torch.float):
