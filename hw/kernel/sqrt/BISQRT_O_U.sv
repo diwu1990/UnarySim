@@ -43,7 +43,7 @@ module BISQRT_O_U #(
 
     genvar i;
     generate
-        for (i = 0; i < DEP; i++) begin
+        for (i = 0; i < DEP_SYNC; i++) begin
             CORDIV_kernel #(
                 .DEP(DEP_KERNEL),
                 .DEPLOG(DEPLOG_KERNEL)
