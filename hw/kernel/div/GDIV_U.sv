@@ -23,9 +23,9 @@ module GDIV_U # (
         if(~rst_n) begin
             cnt <= {1'b1, {{DEP-1}{1'b0}}};
         end else begin
-            if(value & ~cntFull) begin
+            if(inc & ~dec & ~cntFull) begin
                 cnt <= cnt + 1;
-            end else if(~value & ~cntEmpty) begin
+            end else if(~inc & dec & ~cntEmpty) begin
                 cnt <= cnt - 1;
             end else begin
                 cnt <= cnt;
