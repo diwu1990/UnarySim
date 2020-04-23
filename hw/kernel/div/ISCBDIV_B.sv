@@ -1,7 +1,6 @@
 `include "../../stream/shuffle/Uni2Bi.sv"
 `include "../../stream/shuffle/Bi2Uni.sv"
 `include "../abs/Abs.sv"
-`include "../sign/Sign.sv"
 `include "ISCBDIV_U.sv"
 
 module ISCBDIV_B # (
