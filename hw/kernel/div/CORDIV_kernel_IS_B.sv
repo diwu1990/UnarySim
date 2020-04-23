@@ -8,6 +8,7 @@ module CORDIV_kernel_IS_B #(
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
     input logic [BW-1:0] randNum,
+    input logic [DEPLOG-1:0] randNumKernel,
     input logic dividend,
     input logic divisor,
     output logic quotient
@@ -54,7 +55,7 @@ module CORDIV_kernel_IS_B #(
     ) U_CORDIV_kernel(
         .clk(clk),
         .rst_n(rst_n),
-        .randNum(randNum),
+        .randNum(randNumKernel),
         .dividend(dividend_regen),
         .divisor(divisor_regen),
         .quotient(quotient_uni)
