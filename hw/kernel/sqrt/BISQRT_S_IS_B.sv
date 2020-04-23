@@ -1,6 +1,6 @@
 `include "../div/CORDIV_kernel.sv"
 
-module BISQRT_S_IS_U #(
+module BISQRT_S_IS_B #(
     parameter DEP=1,
     parameter DEPLOG=1
 ) (
@@ -18,7 +18,7 @@ module BISQRT_S_IS_U #(
     logic dividend;
     logic divisor;
     logic quotient;
-    
+
     logic outUni;
 
     logic dff;
