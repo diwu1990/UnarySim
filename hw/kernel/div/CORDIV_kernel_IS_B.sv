@@ -17,12 +17,12 @@ module CORDIV_kernel_IS_B #(
     logic [BW-1:0] dividend_cnt;
     logic dividend_regen;
     logic dividend_regen_sign;
-    logic dividend_regen_abs;
+    logic [BW-1:0] dividend_regen_abs;
 
     logic [BW-1:0] divisor_cnt;
     logic divisor_regen;
     logic divisor_regen_sign;
-    logic divisor_regen_abs;
+    logic [BW-1:0] divisor_regen_abs;
 
     logic quotient_uni;
 
