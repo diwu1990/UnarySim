@@ -1,5 +1,5 @@
 module GDIV_B # (
-    parameter BW=6
+    parameter BW=5
 ) (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
