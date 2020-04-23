@@ -58,7 +58,7 @@ class UnaryDiv(torch.nn.Module):
     this module is for unary div, i.e., iscbdiv.
     """
     def __init__(self, 
-                 depth_abs=4, 
+                 depth_abs=3, 
                  depth_sync=2, 
                  depth_kernel=2, 
                  shiftreg_abs=False, 
