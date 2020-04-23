@@ -17,14 +17,15 @@ module BISQRT_S_JK_B # (
     logic Jport;
     logic Kport;
     logic JKout;
-
+    logic outUni;
+    
     assign mux[0] = in;
     assign mux[1] = 1;
     assign out = sel ? mux[1] : mux[0];
     assign sel = trace;
 
     assign trace = JKout;
-    assign Jport = out;
+    assign Jport = outUni;
     assign Kport = 1;
 
     JKFF U_JKFF(
@@ -41,7 +42,7 @@ module BISQRT_S_JK_B # (
         .clk(clk),
         .rst_n(rst_n),
         .in(in),
-        .out(out)
+        .out(outUni)
         );
 
 endmodule
