@@ -1,4 +1,4 @@
-`include "../../../stream/shuffle_int/SkewedSyncInt.sv"
+`include "../../stream/shuffle_int/SkewedSyncInt.sv"
 `include "../div/CORDIV_kernel.sv"
 
 module BISQRT_O_U #(
@@ -26,7 +26,7 @@ module BISQRT_O_U #(
     logic [DEP_EMIT-1:0] sum_clip;
     logic [DEP_EMIT:0] temp;
     logic temp_non_0;
-    
+
     assign dividend = ~out;
     assign divisor = out;
 
