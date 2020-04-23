@@ -12,7 +12,7 @@ module BISQRT_O_B #(
     input logic rst_n,  // Asynchronous reset active low
     input logic [DEPLOG_KERNEL-1:0] randNum,
     input logic in,
-    input logic out
+    output logic out
 );
     
     logic in_uni;
