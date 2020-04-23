@@ -1,13 +1,13 @@
 module SkewedSyncInt # (
+    parameter DEP=2,
     parameter BWIN=1,
-    parameter BWOUT=2,
-    parameter DEP=2
+    parameter BWOUT=2
 ) (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
     input logic [BWIN-1:0] in0,
     input logic in1,
-    output logic [BWOUT-1:0] out0,
+    output logic [DEP-1:0] out0,
     output logic out1
 );
 
