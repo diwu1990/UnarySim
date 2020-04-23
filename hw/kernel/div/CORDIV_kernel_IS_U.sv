@@ -41,15 +41,12 @@ module CORDIV_kernel_IS_U #(
         .DEP(DEP),
         .DEPLOG(DEPLOG)
     ) U_CORDIV_kernel(
-        .clk(clk),    // Clock
-        .rst_n(rst_n),  // Asynchronous reset active low
-        // control port
-        .srSel(sel),
-        // data port
+        .clk(clk),
+        .rst_n(rst_n),
+        .randNum(randNum),
         .dividend(dividend_regen),
         .divisor(divisor_regen),
-        .quotient(quotient),
-        .srOut()
-        );
+        .quotient(quotient)
+    );
 
 endmodule
