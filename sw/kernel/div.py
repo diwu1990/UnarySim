@@ -59,8 +59,8 @@ class UnaryDiv(torch.nn.Module):
     """
     def __init__(self, 
                  depth_abs=4, 
-                 depth_kernel=2, 
                  depth_sync=2, 
+                 depth_kernel=2, 
                  shiftreg_abs=False, 
                  mode="bipolar", 
                  rng="Sobol", 
