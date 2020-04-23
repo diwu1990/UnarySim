@@ -8,7 +8,7 @@ module ISCBDIV_U # (
 ) (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
-    input logic [DEPLOG-1:0] randNum,
+    input logic [DEPLOG_KERNEL-1:0] randNum,
     input logic dividend,
     input logic divisor,
     output logic quotient
