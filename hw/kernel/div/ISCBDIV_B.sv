@@ -26,7 +26,7 @@ module ISCBDIV_B # (
     logic divisor_abs;
     logic divisor_abs_uni;
 
-    logic quotient_abs_uni
+    logic quotient_abs_uni;
     logic quotient_abs;
 
     Abs #(
