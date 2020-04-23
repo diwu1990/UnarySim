@@ -24,8 +24,8 @@ class SkewedSyncInt(torch.nn.Module):
         in_2_eq_1 = torch.eq(in_2, 1).type(self.btype)
         # when input 2 is 1, output 1 depends on the sum of the current cnt and the current input 1, otherwise output 1 is 0
         temp_sum = self.cnt + in_1.type(self.btype)
-        temp_sum_gt_max = torch.gt(temp_sum, self.upper.item()).type(self.btype)
-        out_1 = in_2_eq_1 * (temp_sum_gt_max * self.upper + (1 - temp_sum_gt_max) * temp_sum)
+        temp_sum_clip = temp_sum.clamp(0, self.upper.item())
+        out_1 = in_2_eq_1 * temp_sum_clip
         self.cnt.data = (temp_sum - out_1).clamp(0, self.upper.item())
 
         return out_1.type(self.stype), in_2
