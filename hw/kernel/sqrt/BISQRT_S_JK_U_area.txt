@@ -3,7 +3,7 @@
 Report : area
 Design : BISQRT_S_JK_U
 Version: P-2019.03
-Date   : Sun Apr 19 22:34:07 2020
+Date   : Thu Apr 23 01:09:30 2020
 ****************************************
 
 Information: Updating design information... (UID-85)

@@ -6,7 +6,7 @@ Report : timing
         -max_paths 1
 Design : BISQRT_S_JK_B
 Version: P-2019.03
-Date   : Sun Apr 19 22:34:55 2020
+Date   : Thu Apr 23 01:10:30 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
@@ -28,11 +28,10 @@ Wire Load Model Mode: segmented
   clock network delay (ideal)              0.00       0.00
   input external delay                     0.25       0.25 f
   in (in)                                  0.00       0.25 f
-  U17/ZN (IAO21D1BWP)                      0.07       0.32 f
-  U15/ZN (CKND2BWP)                        0.05       0.36 r
-  U16/ZN (CKND16BWP)                       0.06       0.42 f
-  out (out)                                0.00       0.42 f
-  data arrival time                                   0.42
+  U12/ZN (NR2D3BWP)                        0.06       0.31 r
+  U13/ZN (INVD16BWP)                       0.07       0.37 f
+  out (out)                                0.00       0.37 f
+  data arrival time                                   0.37
 
   clock clk (rise edge)                    2.50       2.50
   clock network delay (ideal)              0.00       2.50
@@ -41,9 +40,9 @@ Wire Load Model Mode: segmented
   data required time                                  1.85
   -----------------------------------------------------------
   data required time                                  1.85
-  data arrival time                                  -0.42
+  data arrival time                                  -0.37
   -----------------------------------------------------------
-  slack (MET)                                         1.43
+  slack (MET)                                         1.48
 
 
 1

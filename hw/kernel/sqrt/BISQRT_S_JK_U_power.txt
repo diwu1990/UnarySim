@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : BISQRT_S_JK_U
 Version: P-2019.03
-Date   : Sun Apr 19 22:34:08 2020
+Date   : Thu Apr 23 01:09:32 2020
 ****************************************
 
 

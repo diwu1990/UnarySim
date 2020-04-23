@@ -6,14 +6,14 @@ Report : timing
         -max_paths 1
 Design : GSQRT_U
 Version: P-2019.03
-Date   : Wed Apr 22 19:54:41 2020
+Date   : Thu Apr 23 01:08:46 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
   Startpoint: randNum[1] (input port clocked by clk)
-  Endpoint: out (output port clocked by clk)
+  Endpoint: cnt_reg[4] (rising edge-triggered flip-flop clocked by clk)
   Path Group: clk
   Path Type: max
 
@@ -28,26 +28,36 @@ Wire Load Model Mode: segmented
   clock network delay (ideal)              0.00       0.00
   input external delay                     0.25       0.25 f
   randNum[1] (in)                          0.00       0.25 f
-  U61/ZN (INR2D1BWP)                       0.04       0.29 f
-  U47/ZN (OAI32D2BWP)                      0.06       0.34 r
-  U63/ZN (NR2XD0BWP)                       0.05       0.39 f
-  U52/Z (OA222D1BWP)                       0.09       0.48 f
-  U25/Z (AO221D1BWP)                       0.13       0.61 f
-  U45/Z (OA21D2BWP)                        0.07       0.68 f
-  U46/ZN (INVD16BWP)                       0.07       0.75 r
-  out (out)                                0.00       0.75 r
-  data arrival time                                   0.75
+  U71/ZN (INR2D1BWP)                       0.04       0.29 f
+  U70/ZN (OAI32D2BWP)                      0.06       0.34 r
+  U79/ZN (IAO21D1BWP)                      0.08       0.42 r
+  U62/ZN (AOI221D1BWP)                     0.03       0.45 f
+  U54/Z (OA22D1BWP)                        0.07       0.52 f
+  U60/Z (AO21D2BWP)                        0.10       0.62 f
+  U61/ZN (INVD16BWP)                       0.07       0.69 r
+  U57/ZN (ND2D1BWP)                        0.06       0.76 f
+  U69/ZN (NR2D3BWP)                        0.07       0.82 r
+  U65/ZN (INVD1BWP)                        0.04       0.87 f
+  U64/ZN (ND2D1BWP)                        0.05       0.91 r
+  U66/ZN (OAI21D1BWP)                      0.06       0.97 f
+  U73/ZN (AOI221D4BWP)                     0.17       1.14 r
+  U72/ZN (OAI32D1BWP)                      0.04       1.18 f
+  U56/Z (CKBD1BWP)                         0.04       1.22 f
+  U55/Z (CKBD1BWP)                         0.03       1.25 f
+  cnt_reg[4]/D (DFSND1BWP)                 0.00       1.25 f
+  data arrival time                                   1.25
 
   clock clk (rise edge)                    2.50       2.50
   clock network delay (ideal)              0.00       2.50
   clock uncertainty                       -0.15       2.35
-  output external delay                   -0.50       1.85
-  data required time                                  1.85
+  cnt_reg[4]/CP (DFSND1BWP)                0.00       2.35 r
+  library setup time                      -0.01       2.34
+  data required time                                  2.34
   -----------------------------------------------------------
-  data required time                                  1.85
-  data arrival time                                  -0.75
+  data required time                                  2.34
+  data arrival time                                  -1.25
   -----------------------------------------------------------
-  slack (MET)                                         1.10
+  slack (MET)                                         1.09
 
 
 1

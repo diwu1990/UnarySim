@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : BISQRT_S_IS_B
+Version: P-2019.03
+Date   : Thu Apr 23 01:13:00 2020
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
+
+Number of ports:                            5
+Number of nets:                            23
+Number of cells:                           20
+Number of combinational cells:             15
+Number of sequential cells:                 5
+Number of macros/black boxes:               0
+Number of buf/inv:                          5
+Number of references:                      13
+
+Combinational area:                 19.580400
+Buf/Inv area:                        5.997600
+Noncombinational area:              20.462400
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                    40.042800
+Total area:                 undefined
+1
