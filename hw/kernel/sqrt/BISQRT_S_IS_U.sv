@@ -34,7 +34,13 @@ module BISQRT_S_IS_U #(
 
     assign mux[0] = in;
     assign mux[1] = 1;
-    assign out = sel ? mux[1] : mux[0];
+    always_ff @(posedge clk or negedge rst_n) begin : proc_out
+        if(~rst_n) begin
+            out <= 0;
+        end else begin
+            out <= sel ? mux[1] : mux[0];
+        end
+    end
     assign sel = trace;
 
     assign trace = quotient;
