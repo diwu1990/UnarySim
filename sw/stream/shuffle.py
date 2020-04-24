@@ -80,9 +80,12 @@ class Bi2Uni(torch.nn.Module):
 
     def forward(self, input):
         # calculate 2*input-1, this is the resultant unipolar bit stream.
-        input_stack = torch.stack([input, input, torch.zeros_like(input)], dim=0)
+        # input_stack = torch.stack([input, input, torch.zeros_like(input)], dim=0)
         # parallel counter
-        self.accumulator.data = self.accumulator.add(torch.sum(input_stack.type(torch.float), 0))
+        # self.accumulator.data = self.accumulator.add(torch.sum(input_stack.type(torch.float), 0))
+        
+        # following code has the same result as previous
+        self.accumulator.data = self.accumulator.add(input*2)
         # offset substraction
         self.accumulator.sub_(1)
         # output generation
