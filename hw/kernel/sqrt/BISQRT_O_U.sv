@@ -1,83 +1,54 @@
-`include "../../stream/shuffle_int/SkewedSyncInt.sv"
-`include "../div/CORDIV_kernel.sv"
-
 module BISQRT_O_U #(
-    parameter DEP_SYNC=2,
-    parameter DEP_KERNEL=1,
-    parameter DEPLOG_KERNEL=1,
-    parameter DEP_EMIT=3,
+    parameter DEP=3
+    parameter DEP_SR=4
+    parameter DEPLOG_SR=2
 ) (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
-    input logic [DEPLOG_KERNEL-1:0] randNum,
+    input logic [DEPLOG_SR-1:0] randNum,
     input logic in,
     output logic out
 );
     
-    logic dividend;
-    logic divisor;
-    logic [DEP_SYNC-1:0] dividend_sync;
-    logic divisor_sync;
-    logic [DEP_SYNC-1:0] quotient;
+    logic out_inv;
+    logic [DEP_SR-1:0] sr;
+    logic sr_out;
+    logic emit_out;
+    logic [DEP-1:0] diff_acc;
+    logic [1:0] pc;
 
-    logic [DEP_EMIT-1:0] acc_emit;
-    logic [DEP_EMIT:0] sum;
-    logic sum_overflow;
-    logic [DEP_EMIT-1:0] sum_clip;
-    logic [DEP_EMIT:0] temp;
-    logic temp_non_0;
+    assign out_inv = ~out;
 
-    assign dividend = ~out;
-    assign divisor = out;
+    // following code is for shift reg
+    assign sr_out = sr[randNum];
 
-    SkewedSyncInt # (
-        .DEP(DEP_SYNC)
-    ) U_SkewedSyncInt (
-        .clk(clk),    // Clock
-        .rst_n(rst_n),  // Asynchronous reset active low
-        .in0(dividend), // 1-Pin
-        .in1(divisor), // Pin
-        .out0(dividend_sync),
-        .out1(divisor_sync)
-    );
-
-    genvar i;
-    generate
-        for (i = 0; i < DEP_SYNC; i++) begin
-            CORDIV_kernel #(
-                .DEP(DEP_KERNEL),
-                .DEPLOG(DEPLOG_KERNEL)
-            ) U_CORDIV_kernel (
-                .clk(clk),
-                .rst_n(rst_n),
-                .randNum(randNum),
-                .dividend(dividend_sync[i]),
-                .divisor(divisor_sync),
-                .quotient(quotient[i])
-            );
-        end
-    endgenerate
-
-    assign temp = acc_emit + quotient;
-    assign temp_non_0 = |temp;
-    always_ff @(posedge clk or negedge rst_n) begin : proc_out
+    always_ff @(posedge clk or negedge rst_n) begin : proc_sr
         if(~rst_n) begin
-            out <= 0;
+            for (int i = 0; i < DEP; i++) begin
+                sr[i] <= i%2;
+            end
         end else begin
-            out <= (~in) & temp_non_0;
+            sr[DEP-1] <= out_inv;
+            for (int i = 0; i < DEP-1; i++) begin
+                sr[i] <= sr[i+1];
+            end
         end
     end
 
-    assign sum = temp - out;
-    assign sum_overflow = sum[DEP_EMIT];
-    assign sum_clip = sum_overflow ? {{DEP_EMIT}{1'b1}} : sum[DEP_EMIT-1:0];
+    assign emit_out = out & sr_out;
 
-    always_ff @(posedge clk or negedge rst_n) begin : proc_acc_emit
+    // following code is for non-scaled add
+    assign pc = in + emit_out;
+
+    always_ff @(posedge clk or negedge rst_n) begin : proc_diff_acc
         if(~rst_n) begin
-            acc_emit <= 0;
+            diff_acc <= {1'b1, {{DEP-1}{1'b0}}};
         end else begin
-            acc_emit <= sum_clip;
+            diff_acc <= diff_acc + pc - out;
         end
     end
+
+    // as long as diff_acc is more than reset value, output a zero.
+    assign out = diff_acc[DEP-1] & |diff_acc[DEP-2:0];
 
 endmodule
