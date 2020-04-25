@@ -6,16 +6,15 @@ Report : timing
         -max_paths 1
 Design : BISQRT_O_B
 Version: P-2019.03
-Date   : Thu Apr 23 01:29:34 2020
+Date   : Sat Apr 25 01:37:30 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
-  Startpoint: __tmp152/out_reg
+  Startpoint: diff_acc_reg[0]
               (rising edge-triggered flip-flop clocked by clk)
-  Endpoint: __tmp152/acc_emit_reg[2]
-            (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: out (output port clocked by clk)
   Path Group: clk
   Path Type: max
 
@@ -24,37 +23,29 @@ Wire Load Model Mode: segmented
   BISQRT_O_B         TSMC32K_Lowk_Conservative
                                            tcbn40lpbwptc
 
-  Point                                                   Incr       Path
-  --------------------------------------------------------------------------
-  clock clk (rise edge)                                   0.00       0.00
-  clock network delay (ideal)                             0.00       0.00
-  __tmp152/out_reg/CP (DFCNQD2BWP)                        0.00       0.00 r
-  __tmp152/out_reg/Q (DFCNQD2BWP)                         0.18       0.18 r
-  U55/ZN (INVD1BWP)                                       0.05       0.23 f
-  U54/ZN (ND2D1BWP)                                       0.05       0.29 r
-  U17/Z (XOR2D1BWP)                                       0.09       0.38 f
-  U68/Z (AN2XD1BWP)                                       0.05       0.42 f
-  U53/ZN (IAO21D1BWP)                                     0.05       0.48 r
-  U14/ZN (XNR2D1BWP)                                      0.09       0.56 f
-  U51/ZN (ND3D1BWP)                                       0.04       0.60 r
-  U60/ZN (OAI21D1BWP)                                     0.05       0.65 f
-  U65/ZN (NR2XD0BWP)                                      0.06       0.71 r
-  U2/ZN (XNR2D1BWP)                                       0.09       0.80 f
-  U45/ZN (ND2D1BWP)                                       0.02       0.82 r
-  __tmp152/acc_emit_reg[2]/D (DFCNQD1BWP)                 0.00       0.82 r
-  data arrival time                                                  0.82
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  diff_acc_reg[0]/CP (DFCNQD1BWP)          0.00       0.00 r
+  diff_acc_reg[0]/Q (DFCNQD1BWP)           0.14       0.14 f
+  U41/ZN (OAI21D2BWP)                      0.06       0.20 r
+  U37/ZN (INVD1BWP)                        0.03       0.24 f
+  U35/ZN (CKND2BWP)                        0.04       0.28 r
+  U36/ZN (CKND16BWP)                       0.06       0.34 f
+  out (out)                                0.00       0.34 f
+  data arrival time                                   0.34
 
-  clock clk (rise edge)                                   2.50       2.50
-  clock network delay (ideal)                             0.00       2.50
-  clock uncertainty                                      -0.15       2.35
-  __tmp152/acc_emit_reg[2]/CP (DFCNQD1BWP)                0.00       2.35 r
-  library setup time                                     -0.03       2.32
-  data required time                                                 2.32
-  --------------------------------------------------------------------------
-  data required time                                                 2.32
-  data arrival time                                                 -0.82
-  --------------------------------------------------------------------------
-  slack (MET)                                                        1.50
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  output external delay                   -0.50       1.85
+  data required time                                  1.85
+  -----------------------------------------------------------
+  data required time                                  1.85
+  data arrival time                                  -0.34
+  -----------------------------------------------------------
+  slack (MET)                                         1.51
 
 
 1

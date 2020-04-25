@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : BISQRT_O_U
 Version: P-2019.03
-Date   : Thu Apr 23 01:28:56 2020
+Date   : Sat Apr 25 01:39:01 2020
 ****************************************
 
 
@@ -34,12 +34,12 @@ Power-specific unit information :
     Leakage Power Units = 1nW
 
 
-  Cell Internal Power  =  19.1819 uW   (94%)
-  Net Switching Power  =   1.3131 uW    (6%)
+  Cell Internal Power  =  15.5887 uW   (82%)
+  Net Switching Power  =   3.3718 uW   (18%)
                          ---------
-Total Dynamic Power    =  20.4951 uW  (100%)
+Total Dynamic Power    =  18.9605 uW  (100%)
 
-Cell Leakage Power     =   7.1073 nW
+Cell Leakage Power     =   5.6077 nW
 
 
                  Internal         Switching           Leakage            Total
@@ -49,9 +49,9 @@ io_pad             0.0000            0.0000            0.0000            0.0000 
 memory             0.0000            0.0000            0.0000            0.0000  (   0.00%)
 black_box          0.0000            0.0000            0.0000            0.0000  (   0.00%)
 clock_network      0.0000            0.0000            0.0000            0.0000  (   0.00%)
-register       1.8281e-02        2.8916e-04            2.5624        1.8573e-02  (  90.59%)
+register       1.4249e-02        3.9039e-04            1.9035        1.4641e-02  (  77.20%)
 sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
-combinational  9.0091e-04        1.0240e-03            4.5450        1.9294e-03  (   9.41%)
+combinational  1.3397e-03        2.9814e-03            3.7043        4.3248e-03  (  22.80%)
 --------------------------------------------------------------------------------------------------
-Total          1.9182e-02 mW     1.3131e-03 mW         7.1073 nW     2.0502e-02 mW
+Total          1.5589e-02 mW     3.3718e-03 mW         5.6077 nW     1.8966e-02 mW
 1
