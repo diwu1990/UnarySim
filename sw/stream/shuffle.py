@@ -85,7 +85,7 @@ class Bi2Uni(torch.nn.Module):
         # self.accumulator.data = self.accumulator.add(torch.sum(input_stack.type(torch.float), 0))
         
         # following code has the same result as previous
-        self.accumulator.data = self.accumulator.add(input*2)
+        self.accumulator.data = self.accumulator.add(input.type(torch.float)*2)
         # offset substraction
         self.accumulator.sub_(1)
         # output generation
@@ -105,7 +105,7 @@ class Uni2Bi(torch.nn.Module):
         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
     def forward(self, input):
-        input_stack = torch.stack([input, torch.ones_like(input)], dim=0)
+        input_stack = torch.stack([input.type(torch.float), torch.ones_like(input.type(torch.float))], dim=0)
         self.accumulator.data = self.accumulator.add(torch.sum(input_stack.type(torch.float), 0))
         output = torch.ge(self.accumulator, 2).type(torch.float)
         self.accumulator.sub_(output * 2)
