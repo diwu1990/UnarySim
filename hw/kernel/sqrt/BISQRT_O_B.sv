@@ -1,6 +1,6 @@
 `include "../../stream/shuffle/Bi2Uni.sv"
 
-module BISQRT_O_U #(
+module BISQRT_O_B #(
     parameter DEP=3
     parameter DEP_SR=4
     parameter DEPLOG_SR=2
