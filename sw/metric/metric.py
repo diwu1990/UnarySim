@@ -284,7 +284,7 @@ class NSbuilder(torch.nn.Module):
     it converts the normalized stability of a bitstream into the desired value.
     """
     def __init__(self,
-                 depth=8,
+                 bitwidth=8,
                  mode="bipolar",
                  normstability=0.5,
                  threshold=0.05,
@@ -295,8 +295,8 @@ class NSbuilder(torch.nn.Module):
                  stype=torch.float):
         super(NSbuilder, self).__init__()
         
-        self.depth = depth
-        self.length = torch.tensor([2**self.depth]).type(torch.float)
+        self.bitwidth = bitwidth
+        self.length = torch.tensor([2**self.bitwidth]).type(torch.float)
         self.normstb = normstability
         self.val = value
         self.mode = mode
@@ -318,8 +318,6 @@ class NSbuilder(torch.nn.Module):
         self.max_st_len = torch.zeros_like(self.val)
         self.new_st_len = torch.zeros_like(self.val)
         self.new_ns_len = torch.zeros_like(self.val)
-        self.new_ns_upp = torch.zeros_like(self.val)
-        self.new_ns_low = torch.zeros_like(self.val)
         
         self.new_ns_val = torch.zeros_like(self.val)
         self.new_st_val = torch.zeros_like(self.val)
@@ -327,15 +325,10 @@ class NSbuilder(torch.nn.Module):
         self.new_st_one = torch.zeros_like(self.val)
 
         self.rng = RNG(
-            bitwidth=depth,
+            bitwidth=bitwidth,
             dim=rng_dim,
             rng=rng,
             rtype=rtype)()
-
-        self.src_st = None
-        self.src_ns = None
-        self.bs_st = None
-        self.bs_ns = None
 
         self.ns_gen = torch.ones_like(self.val).type(torch.bool)
         self.st_gen = torch.zeros_like(self.val).type(torch.bool)
@@ -449,8 +442,8 @@ class NSbuilder(torch.nn.Module):
         self.new_ns_val.data = self.new_ns_one / self.new_ns_len   
         self.new_st_val.data = self.new_st_one / self.new_st_len            
 
-        self.src_st = SourceGen(self.new_st_val, self.depth, self.mode, self.rtype)()
-        self.src_ns = SourceGen(self.new_ns_val, self.depth, self.mode, self.rtype)()
+        self.src_st = SourceGen(self.new_st_val, self.bitwidth, self.mode, self.rtype)()
+        self.src_ns = SourceGen(self.new_ns_val, self.bitwidth, self.mode, self.rtype)()
         self.bs_st = BSGen(self.src_st, self.rng)
         self.bs_ns = BSGen(self.src_ns, self.rng)
 
