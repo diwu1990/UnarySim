@@ -1,22 +1,22 @@
 import torch
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 
-class exp_combinational(torch.nn.Module):
+class expComb(torch.nn.Module):
     """
     this module is for combinational exp. The module is able to compute exp(-ax), where a = 1 in this implementation.
     the detail can be found at "K. Parhi and Y. Liu. 2017. Computing Arithmetic Functions Using Stochastic Logic by Series Expansion. Transactions on Emerging Topics in Computing (2017).", fig.12.
     """
-    def __init__(self, 
-                 depth=8, 
+    def __init__(self,  
                  mode="unipolar", 
                  rng="Sobol", 
-                 rng_dim=1, 
+                 rng_dim=1,
+                 rng_width=8, 
                  rtype=torch.float,
                  stype=torch.float,
                  btype=torch.float):
-        super(exp_combinational, self).__init__()
+        super(expComb, self).__init__()
 
-        self.bitwidth = depth
+        self.bitwidth = rng_width
         self.mode = mode
         self.rng = rng
         self.rng_dim = rng_dim
