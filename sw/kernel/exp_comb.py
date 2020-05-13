@@ -7,7 +7,7 @@ class exp_combinational(torch.nn.Module):
     """
     def __init__(self, 
                  depth=8, 
-                 mode="bipolar", 
+                 mode="unipolar", 
                  rng="Sobol", 
                  rng_dim=1, 
                  rtype=torch.float,
@@ -68,7 +68,7 @@ class exp_combinational(torch.nn.Module):
 
         self.bs_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
-
+        # print(self.bs_idx)
         # dff to prevent correlation
         self.input_d1 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         self.input_d2= torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
