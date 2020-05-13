@@ -3,7 +3,8 @@ from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 
 class exp_combinational(torch.nn.Module):
     """
-    this module is for combinational exp. The module is able to compute exp(-ax), where a = 1.9 in this implementation.
+    this module is for combinational exp. The module is able to compute exp(-ax), where a = 1 in this implementation.
+    the detail can be found at "K. Parhi and Y. Liu. 2017. Computing Arithmetic Functions Using Stochastic Logic by Series Expansion. Transactions on Emerging Topics in Computing (2017).", fig.12.
     """
     def __init__(self, 
                  depth=8, 
@@ -11,7 +12,8 @@ class exp_combinational(torch.nn.Module):
                  rng="Sobol", 
                  rng_dim=1, 
                  rtype=torch.float,
-                 stype=torch.int8):
+                 stype=torch.float,
+                 btype=torch.float):
         super(exp_combinational, self).__init__()
 
         self.bitwidth = depth
@@ -20,7 +22,9 @@ class exp_combinational(torch.nn.Module):
         self.rng_dim = rng_dim
         self.rtype = rtype
         self.stype = stype
+        self.btype = btype
 
+        # If a unit is named as n_x, it will be used in the calculation of n_x+1.
         self.rng_1 = RNG(
             bitwidth=self.bitwidth,
             dim=self.rng_dim,
@@ -70,27 +74,27 @@ class exp_combinational(torch.nn.Module):
 
         # print(self.bs_idx)
         # dff to prevent correlation
-        self.input_d1 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_d2= torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_d3 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_d4 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        self.input_d1 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_d2= torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_d3 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_d4 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
 
 
     def exp_combinational_forward(self, input):
         
-        input_x = input.type(torch.int8)
+        input_x = input.type(self.stype)
 
         # Operating units
-        n_1_c = self.bs_n1_c(self.bs_idx)
+        n_1_c = self.bs_n1_c(self.bs_idx).type(self.stype)
         n_1 = 1 - (n_1_c & input_x)
         
-        n_2_c = self.bs_n2_c(self.bs_idx)
+        n_2_c = self.bs_n2_c(self.bs_idx).type(self.stype)
         n_2 = 1 - (n_1 & n_2_c & self.input_d1)
         
-        n_3_c = self.bs_n3_c(self.bs_idx)
+        n_3_c = self.bs_n3_c(self.bs_idx).type(self.stype)
         n_3 = 1 - (n_2 & n_3_c & self.input_d2)
         
-        n_4_c = self.bs_n4_c(self.bs_idx)
+        n_4_c = self.bs_n4_c(self.bs_idx).type(self.stype)
         n_4 = 1 - (n_3 & n_4_c & self.input_d3)
         
         # print("buffer 3:", self.input_d4)

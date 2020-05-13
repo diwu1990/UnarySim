@@ -4,6 +4,7 @@ from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 class tanh_combinational(torch.nn.Module):
     """
     this module is for combinational tanh. The module is able to compute tanh(ax), where a = 1 in this implementation.
+    the detail can be found at "K. Parhi and Y. Liu. 2017. Computing Arithmetic Functions Using Stochastic Logic by Series Expansion. Transactions on Emerging Topics in Computing (2017).", fig.10.
     """
     def __init__(self, 
                  depth=8, 
@@ -11,7 +12,8 @@ class tanh_combinational(torch.nn.Module):
                  rng="Sobol", 
                  rng_dim=1, 
                  rtype=torch.float,
-                 stype=torch.int8):
+                 stype=torch.float,
+                 btype=torch.float):
         super(tanh_combinational, self).__init__()
 
         self.bitwidth = depth
@@ -20,7 +22,9 @@ class tanh_combinational(torch.nn.Module):
         self.rng_dim = rng_dim
         self.rtype = rtype
         self.stype = stype
+        self.btype = btype
 
+        # If a unit is named as n_x, it will be used in the calculation of n_x+1.
         self.rng_2 = RNG(
             bitwidth=self.bitwidth,
             dim=self.rng_dim,
@@ -72,43 +76,43 @@ class tanh_combinational(torch.nn.Module):
         # dff to prevent correlation
         
         # 4 dff in series
-        self.input_4d1_1 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_4d2_1 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_4d3_1 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_4d4_1 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        self.input_4d1_1 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_4d2_1 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_4d3_1 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_4d4_1 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
 
-        self.d1 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.d2= torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.d3 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        self.d1 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.d2= torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.d3 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
         
         # 4 dff in series
-        self.input_4d1_2 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_4d2_2 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_4d3_2 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.input_4d4_2 = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        self.input_4d1_2 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_4d2_2 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_4d3_2 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
+        self.input_4d4_2 = torch.nn.Parameter(torch.zeros(1).type(self.btype), requires_grad=False)
 
 
     def tanh_combinational_forward(self, input):
         
-        input_x = input.type(torch.int8)
+        input_x = input.type(self.stype)
 
         n1 = (input_x & self.input_4d4_1)
 
         # Operating units
-        n_2_c = self.bs_n2_c(self.bs_idx)
+        n_2_c = self.bs_n2_c(self.bs_idx).type(self.stype)
         n_2 = 1 - (n_2_c & n1)
         
-        n_3_c = self.bs_n3_c(self.bs_idx)
+        n_3_c = self.bs_n3_c(self.bs_idx).type(self.stype)
         n_3 = 1 - (n_2 & n_3_c & self.d1)
         
-        n_4_c = self.bs_n4_c(self.bs_idx)
+        n_4_c = self.bs_n4_c(self.bs_idx).type(self.stype)
         n_4 = 1 - (n_3 & n_4_c & self.d2)
         
-        n_5_c = self.bs_n5_c(self.bs_idx)
+        n_5_c = self.bs_n5_c(self.bs_idx).type(self.stype)
         n_5 = 1 - (n_4 & n_5_c & self.d3)
         
         # print("buffer 3:", self.input_d4)
-        output = (n_5 & self.input_4d4_2)
+        output = (n_5 & self.input_4d4_2).type(self.stype)
         
 
         # Update buffers and idx
