@@ -53,26 +53,21 @@ class tanhComb(torch.nn.Module):
         self.n2_c = torch.tensor([62/153]).type(self.rtype)
         self.sg_n2_c = SourceGen(self.n2_c, self.bitwidth, self.mode, self.rtype)()
         self.bs_n2_c = BSGen(self.sg_n2_c, self.rng_2, self.stype)
-        # self.id_n1_c = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
         self.n3_c = torch.tensor([17/42]).type(self.rtype)
         self.sg_n3_c = SourceGen(self.n3_c, self.bitwidth, self.mode, self.rtype)()
         self.bs_n3_c = BSGen(self.sg_n3_c, self.rng_3, self.stype)
-        # self.id_n2_c = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
         self.n4_c = torch.tensor([2/5]).type(self.rtype)
         self.sg_n4_c = SourceGen(self.n4_c, self.bitwidth, self.mode, self.rtype)()
         self.bs_n4_c = BSGen(self.sg_n4_c, self.rng_4, self.stype)
-        # self.id_n3_c = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
         self.n5_c = torch.tensor([1/3]).type(self.rtype)
         self.sg_n5_c = SourceGen(self.n5_c, self.bitwidth, self.mode, self.rtype)()
         self.bs_n5_c = BSGen(self.sg_n5_c, self.rng_5, self.stype)
-        # self.id_n4_c = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
         self.bs_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
-        # print(self.bs_idx)
         # dff to prevent correlation
         
         # 4 dff in series
@@ -129,16 +124,7 @@ class tanhComb(torch.nn.Module):
         self.input_4d2_1.data = self.input_4d1_1
         self.input_4d1_1.data = input_x
         
-      
-        # self.id_n1_c.data = self.id_n1_c.add(1)
-        # self.id_n2_c.data = self.id_n2_c.add(1)
-        # self.id_n3_c.data = self.id_n3_c.add(1)
-        # self.id_n4_c.data = self.id_n4_c.add(1)
         self.bs_idx.data = self.bs_idx.add(1)
-        # print(self.input_d2)
-        # print(self.input_d3)
-        # print(self.input_d4)
-        # print(self.bs_idx)
 
         return output
         
