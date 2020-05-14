@@ -161,7 +161,7 @@ def search_best_stab_parallel_numpy(P_low_L, P_high_L, L, seach_range):
         R_by_l_p = R*l_p
         R_by_l_p_lt_max_stab_len = (R_by_l_p < max_stab_len).astype("float32")
         
-        max_stab_len = R_by_l_p_lt_max_stab_len * np.max(R_by_l_p, 1)
+        max_stab_len = R_by_l_p_lt_max_stab_len * np.maximum(R_by_l_p, 1)
         max_stab_R = R_by_l_p_lt_max_stab_len * R
         max_stab_l_p = R_by_l_p_lt_max_stab_len * l_p
 
@@ -197,9 +197,10 @@ class NormStability(torch.nn.Module):
 
     def Monitor(self, in_1):
         self.stability.Monitor(in_1)
-        self.len = self.stability.len
+        self.len.data = self.stability.len.detach().clone()
     
     def forward(self):
+        # parallel execution based on numpy speeds up by 30X
         assert self.len != 0, "Input bit stream length can't be 0."
         L = torch.pow(2, torch.ceil(torch.log2(self.len)))
         # use ceil for lower to avoid 0
@@ -213,7 +214,7 @@ class NormStability(torch.nn.Module):
                                                                                  L.type(torch.int32).numpy(), 
                                                                                  seach_range.numpy())
         
-        self.max_stab.data = torch.from_numpy(np.max(1 - max_stab_len/self.len.numpy(), 0))
+        self.max_stab.data = torch.from_numpy(np.maximum(1 - max_stab_len/self.len.numpy(), 0))
         self.max_stab_len.data = torch.from_numpy(max_stab_len)
         self.max_stab_l_p.data = torch.from_numpy(max_stab_l_p)
         self.max_stab_R.data = torch.from_numpy(max_stab_R)
@@ -227,29 +228,23 @@ class NormStability(torch.nn.Module):
         
         return normstab
     
-    
-def gen_ns_out(new_ns_len, out_cnt_ns, out_cnt_st, ns_gen, st_gen, bs_st, bs_ns, L):
+
+def gen_ns_out_parallel_numpy(new_ns_len, out_cnt_ns, out_cnt_st, ns_gen, st_gen, bs_st, bs_ns, L):
     """
     This function is used to generate the output for NSbuilder
+    All data are numpy arrays
     """
-    if out_cnt_ns == new_ns_len:      
-        ns_gen = False
-        st_gen = True
-        
-    if out_cnt_st == L:
-        st_gen = False
+    out_cnt_ns_eq_new_ns_len = (out_cnt_ns >= new_ns_len).astype("int32")
+    out_cnt_ns_eq_L = (out_cnt_ns >= L).astype("int32")
+    
+    ns_gen = 1 - out_cnt_ns_eq_new_ns_len
+    st_gen = out_cnt_ns_eq_new_ns_len
 
-    if ns_gen == True:
-        output = bs_ns(out_cnt_ns)
-        out_cnt_ns = out_cnt_ns + 1    
-        if out_cnt_ns == L:
-            print("In non-stable stage, reach max bit stream length")
-        
-    if st_gen == True:
-        output = bs_st(out_cnt_st)
-        out_cnt_st = out_cnt_st + 1
-
-    return out_cnt_ns, out_cnt_st, ns_gen, st_gen, output
+    output = (ns_gen & bs_ns) | (st_gen & bs_st)
+    
+    out_cnt_ns = out_cnt_ns + ns_gen
+    out_cnt_st = out_cnt_st + st_gen
+    return out_cnt_ns, out_cnt_st, ns_gen, st_gen, output.astype("float32")
 
 
 class NSbuilder(torch.nn.Module):
@@ -306,199 +301,66 @@ class NSbuilder(torch.nn.Module):
         self.ns_gen = torch.ones_like(self.val).type(torch.bool)
         self.st_gen = torch.zeros_like(self.val).type(torch.bool)
         
-        self.out_cnt_ns = torch.zeros_like(self.val).type(torch.float)
-        self.out_cnt_st = torch.zeros_like(self.val).type(torch.float)
+        self.out_cnt_ns = torch.zeros_like(self.val).type(torch.int32)
+        self.out_cnt_st = torch.zeros_like(self.val).type(torch.int32)
 
-        self.output = torch.zeros_like(self.val).type(torch.float)
+        self.output = torch.zeros_like(self.val).type(stype)
 
-        self.init = True
+        ## INIT:
+        # Stage to calculate several essential params
+        self.P_low = torch.max(self.val - self.T, torch.zeros_like(self.val))
+        self.P_up = torch.min(torch.ones_like(self.val), self.val + self.T)
+        upper = torch.min(torch.ceil(self.L * self.P_up), self.L)
+        lower = torch.max(torch.floor(self.L * self.P_low), torch.zeros_like(self.L))
+        
+        seach_range = (self.T * 2 * self.L + 1).type(torch.int32)
+        
+        max_stab_len, max_stab_R, max_stab_l_p = search_best_stab_parallel_numpy(lower.type(torch.int32).numpy(), 
+                                                                                 upper.type(torch.int32).numpy(), 
+                                                                                 self.L.type(torch.int32).numpy(), 
+                                                                                 seach_range.numpy())
+        
+        self.max_stable = torch.from_numpy(max_stab_len)
+        self.lp = torch.from_numpy(max_stab_l_p)
+        self.R = torch.from_numpy(max_stab_R)
+        
+        self.max_st_len = self.L - (self.max_stable)
+        self.new_st_len = torch.ceil(self.max_st_len * self.normstb)
+        self.new_ns_len = (self.L - self.new_st_len)
+        
+        val_gt_half = (self.val > 0.5).type(torch.float)
+        self.new_ns_one = val_gt_half * (self.P_up * (self.new_ns_len + 1)) \
+                        + (1 - val_gt_half) * torch.max((self.P_low * (self.new_ns_len + 1) - 1), torch.zeros_like(self.L))
+
+        self.new_st_one = (self.val * self.L - self.new_ns_one)
+        self.new_ns_val = self.new_ns_one / self.new_ns_len
+        self.new_st_val = self.new_st_one / self.new_st_len
+
+        self.src_st = SourceGen(self.new_st_val, self.bitwidth, self.mode, self.rtype)()
+        self.src_ns = SourceGen(self.new_ns_val, self.bitwidth, self.mode, self.rtype)()
+        self.bs_st = BSGen(self.src_st, self.rng)
+        self.bs_ns = BSGen(self.src_ns, self.rng)
 
     def NSbuilder_forward(self):
-        if self.init == True:
-            self.init = False
-            ## INIT:
-            # Stage to calculate several essential params
-            self.P_low.data = torch.max(self.val - self.T, torch.zeros_like(self.val))
-            self.P_up.data = torch.min(torch.ones_like(self.val), self.val + self.T)
-            upper = torch.min(torch.ceil(self.L * self.P_up), self.L)
-            lower = torch.max(torch.floor(self.L * self.P_low), torch.zeros_like(self.L))
-
-            if self.val_dim == 1:
-                for index_0 in range(self.val_shape[0]):
-                    P_low_L = lower[index_0].type(torch.long).item()
-                    P_high_L = upper[index_0].type(torch.long).item()
-                    L = self.L.type(torch.long).item()
-                    max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
-                    self.max_stable[index_0] = max_stab_len
-                    self.lp[index_0] = max_stab_l_p
-                    self.R[index_0] = max_stab_R
-
-                self.max_st_len = self.L - (self.max_stable)
-                self.new_st_len.data = torch.ceil(self.max_st_len * self.normstb)  
-                self.new_ns_len.data = (self.L - self.new_st_len)
-
-                for index_0 in range(self.val_shape[0]):  
-                    if self.val[index_0].item() > 0.5:
-                        self.new_ns_one[index_0] = (self.P_up[index_0])*(self.new_ns_len[index_0]+1)
-                    else:
-                        self.new_ns_one[index_0] = torch.max((self.P_low[index_0]*(self.new_ns_len[index_0]+1)-1),torch.zeros_like(self.L))
-
-            if self.val_dim == 2:
-                for index_0 in range(self.val_shape[0]):
-                    for index_1 in range(self.val_shape[1]):
-                        P_low_L = lower[index_0][index_1].type(torch.long).item()
-                        P_high_L = upper[index_0][index_1].type(torch.long).item()
-                        L = self.L.type(torch.long).item()
-                        max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
-                        self.max_stable[index_0][index_1] = max_stab_len
-                        self.lp[index_0][index_1] = max_stab_l_p
-                        self.R[index_0][index_1] = max_stab_R
-
-                self.max_st_len = self.L - (self.max_stable)
-                self.new_st_len.data = torch.ceil(self.max_st_len * self.normstb)  
-                self.new_ns_len.data = (self.L - self.new_st_len)
-
-                for index_0 in range(self.val_shape[0]):
-                    for index_1 in range(self.val_shape[1]):
-                        if self.val[index_0][index_1].item() > 0.5:
-                            self.new_ns_one[index_0][index_1] = (self.P_up[index_0][index_1])*(self.new_ns_len[index_0][index_1]+1)
-                        else:
-                            self.new_ns_one[index_0][index_1] = torch.max((self.P_low[index_0][index_1]*(self.new_ns_len[index_0][index_1]+1)-1),torch.zeros_like(self.L))
-
-            if self.val_dim == 3:
-                for index_0 in range(self.val_shape[0]):
-                    for index_1 in range(self.val_shape[1]):
-                        for index_2 in range(self.val_shape[2]):
-                            P_low_L = lower[index_0][index_1][index_2].type(torch.long).item()
-                            P_high_L = upper[index_0][index_1][index_2].type(torch.long).item()
-                            L = self.L.type(torch.long).item()
-                            max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
-                            self.max_stable[index_0][index_1][index_2] = max_stab_len
-                            self.lp[index_0][index_1][index_2] = max_stab_l_p
-                            self.R[index_0][index_1][index_2] = max_stab_R
-
-                self.max_st_len = self.L - (self.max_stable)
-                self.new_st_len.data = torch.ceil(self.max_st_len * self.normstb)  
-                self.new_ns_len.data = (self.L - self.new_st_len)
-
-                for index_0 in range(self.val_shape[0]):
-                    for index_1 in range(self.val_shape[1]):
-                        for index_2 in range(self.val_shape[2]):
-                            if self.val[index_0][index_1][index_2].item() > 0.5:
-                                self.new_ns_one[index_0][index_1][index_2] = (self.P_up[index_0][index_1][index_2])*(self.new_ns_len[index_0][index_1][index_2]+1)
-                            else:
-                                self.new_ns_one[index_0][index_1][index_2] = torch.max((self.P_low[index_0][index_1][index_2]*(self.new_ns_len[index_0][index_1][index_2]+1)-1),torch.zeros_like(self.L))
-
-            if self.val_dim == 4:
-                for index_0 in range(self.val_shape[0]):
-                    for index_1 in range(self.val_shape[1]):
-                        for index_2 in range(self.val_shape[2]):
-                            for index_3 in range(self.val_shape[3]):
-                                P_low_L = lower[index_0][index_1][index_2][index_3].type(torch.long).item()
-                                P_high_L = upper[index_0][index_1][index_2][index_3].type(torch.long).item()
-                                L = self.L.type(torch.long).item()
-                                max_stab_len, max_stab_R, max_stab_l_p = search_best_stab(P_low_L, P_high_L, L)
-                                self.max_stable[index_0][index_1][index_2][index_3] = max_stab_len
-                                self.lp[index_0][index_1][index_2][index_3] = max_stab_l_p
-                                self.R[index_0][index_1][index_2][index_3] = max_stab_R
-
-                self.max_st_len = self.L - (self.max_stable)
-                self.new_st_len.data = torch.ceil(self.max_st_len * self.normstb)  
-                self.new_ns_len.data = (self.L - self.new_st_len)
-
-                for index_0 in range(self.val_shape[0]):
-                    for index_1 in range(self.val_shape[1]):
-                        for index_2 in range(self.val_shape[2]):
-                            for index_3 in range(self.val_shape[3]):
-                                if self.val[index_0][index_1][index_2][index_3].item() > 0.5:
-                                    self.new_ns_one[index_0][index_1][index_2][index_3] = (self.P_up[index_0][index_1][index_2][index_3])*(self.new_ns_len[index_0][index_1][index_2][index_3]+1)
-                                else:
-                                    self.new_ns_one[index_0][index_1][index_2][index_3] = torch.max((self.P_low[index_0][index_1][index_2][index_3]*(self.new_ns_len[index_0][index_1][index_2][index_3]+1)-1),torch.zeros_like(self.L))
-
-            self.new_st_one.data = (self.val * self.L - self.new_ns_one)
-            self.new_ns_val.data = self.new_ns_one / self.new_ns_len   
-            self.new_st_val.data = self.new_st_one / self.new_st_len            
-
-            self.src_st = SourceGen(self.new_st_val, self.bitwidth, self.mode, self.rtype)()
-            self.src_ns = SourceGen(self.new_ns_val, self.bitwidth, self.mode, self.rtype)()
-            self.bs_st = BSGen(self.src_st, self.rng)
-            self.bs_ns = BSGen(self.src_ns, self.rng)
-        
+        # parallel execution based on numpy speeds up by 90X
         ## Stage to generate output
-        if self.val_dim == 1:
-            for index_0 in range(self.val_shape[0]):
-                new_ns_len = self.new_ns_len[index_0].item()
-                out_cnt_ns = self.out_cnt_ns[index_0]
-                out_cnt_st = self.out_cnt_st[index_0]
-                ns_gen = self.ns_gen[index_0].item()
-                st_gen = self.st_gen[index_0].item()
-                bs_st = self.bs_st
-                bs_ns = self.bs_ns
-                L_in = self.L.item()
-                out_cnt_ns, out_cnt_st, ns_gen, st_gen, output = gen_ns_out(new_ns_len, out_cnt_ns, out_cnt_st, ns_gen, st_gen, bs_st, bs_ns, L_in)
-                self.out_cnt_ns[index_0] = out_cnt_ns
-                self.out_cnt_st[index_0] = out_cnt_st
-                self.ns_gen[index_0] = ns_gen
-                self.st_gen[index_0] = st_gen
-                self.output[index_0] = output[index_0].item()
+        bs_st = self.bs_st(self.out_cnt_st).type(torch.int32).numpy()
+        bs_ns = self.bs_ns(self.out_cnt_ns).type(torch.int32).numpy()
+        out_cnt_ns, out_cnt_st, ns_gen, st_gen, output = gen_ns_out_parallel_numpy(self.new_ns_len.type(torch.int32).numpy(), 
+                                                                                   self.out_cnt_ns.type(torch.int32).numpy(), 
+                                                                                   self.out_cnt_st.type(torch.int32).numpy(), 
+                                                                                   self.ns_gen.type(torch.int32).numpy(), 
+                                                                                   self.st_gen.type(torch.int32).numpy(), 
+                                                                                   bs_st, 
+                                                                                   bs_ns, 
+                                                                                   self.L.type(torch.int32).numpy())
         
-        if self.val_dim == 2:
-            for index_0 in range(self.val_shape[0]):
-                for index_1 in range(self.val_shape[1]):
-                    new_ns_len = self.new_ns_len[index_0][index_1].item()
-                    out_cnt_ns = self.out_cnt_ns[index_0][index_1]
-                    out_cnt_st = self.out_cnt_st[index_0][index_1]
-                    ns_gen = self.ns_gen[index_0][index_1].item()
-                    st_gen = self.st_gen[index_0][index_1].item()
-                    bs_st = self.bs_st
-                    bs_ns = self.bs_ns
-                    L_in = self.L.item()
-                    out_cnt_ns, out_cnt_st, ns_gen, st_gen, output = gen_ns_out(new_ns_len, out_cnt_ns, out_cnt_st, ns_gen, st_gen, bs_st, bs_ns, L_in)
-                    self.out_cnt_ns[index_0][index_1] = out_cnt_ns
-                    self.out_cnt_st[index_0][index_1] = out_cnt_st
-                    self.ns_gen[index_0][index_1] = ns_gen
-                    self.st_gen[index_0][index_1] = st_gen
-                    self.output[index_0][index_1] = output[index_0][index_1].item()
+        self.out_cnt_ns = torch.from_numpy(out_cnt_ns)
+        self.out_cnt_st = torch.from_numpy(out_cnt_st)
+        self.ns_gen = torch.from_numpy(ns_gen)
+        self.st_gen = torch.from_numpy(st_gen)
+        self.output = torch.from_numpy(output)
         
-        if self.val_dim == 3:
-            for index_0 in range(self.val_shape[0]):
-                for index_1 in range(self.val_shape[1]):
-                    for index_2 in range(self.val_shape[2]):
-                        new_ns_len = self.new_ns_len[index_0][index_1][index_2].item()
-                        out_cnt_ns = self.out_cnt_ns[index_0][index_1][index_2]
-                        out_cnt_st = self.out_cnt_st[index_0][index_1][index_2]
-                        ns_gen = self.ns_gen[index_0][index_1][index_2].item()
-                        st_gen = self.st_gen[index_0][index_1][index_2].item()
-                        bs_st = self.bs_st
-                        bs_ns = self.bs_ns
-                        L_in = self.L.item()
-                        out_cnt_ns, out_cnt_st, ns_gen, st_gen, output = gen_ns_out(new_ns_len, out_cnt_ns, out_cnt_st, ns_gen, st_gen, bs_st, bs_ns, L_in)
-                        self.out_cnt_ns[index_0][index_1][index_2] = out_cnt_ns
-                        self.out_cnt_st[index_0][index_1][index_2] = out_cnt_st
-                        self.ns_gen[index_0][index_1][index_2] = ns_gen
-                        self.st_gen[index_0][index_1][index_2] = st_gen
-                        self.output[index_0][index_1][index_2] = output[index_0][index_1][index_2].item()
-
-        if self.val_dim == 4:
-            for index_0 in range(self.val_shape[0]):
-                for index_1 in range(self.val_shape[1]):
-                    for index_2 in range(self.val_shape[2]):
-                        for index_3 in range(self.val_shape[3]):
-                            new_ns_len = self.new_ns_len[index_0][index_1][index_2][index_3].item()
-                            out_cnt_ns = self.out_cnt_ns[index_0][index_1][index_2][index_3]
-                            out_cnt_st = self.out_cnt_st[index_0][index_1][index_2][index_3]
-                            ns_gen = self.ns_gen[index_0][index_1][index_2][index_3].item()
-                            st_gen = self.st_gen[index_0][index_1][index_2][index_3].item()
-                            bs_st = self.bs_st
-                            bs_ns = self.bs_ns
-                            L_in = self.L.item()
-                            out_cnt_ns, out_cnt_st, ns_gen, st_gen, output = gen_ns_out(new_ns_len, out_cnt_ns, out_cnt_st, ns_gen, st_gen, bs_st, bs_ns, L_in)
-                            self.out_cnt_ns[index_0][index_1][index_2][index_3] = out_cnt_ns
-                            self.out_cnt_st[index_0][index_1][index_2][index_3] = out_cnt_st
-                            self.ns_gen[index_0][index_1][index_2][index_3] = ns_gen
-                            self.st_gen[index_0][index_1][index_2][index_3] = st_gen
-                            self.output[index_0][index_1][index_2][index_3] = output[index_0][index_1][index_2][index_3].item()
-
         return self.output.type(self.stype)
 
     def forward(self):
