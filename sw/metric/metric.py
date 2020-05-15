@@ -266,15 +266,19 @@ class NSbuilder(torch.nn.Module):
         
         self.bitwidth = bitwidth
         self.normstb = normstability
-        self.val = value
+        if mode is "bipolar":
+            self.val = (value + 1) /2
+            self.T = threshold / 2
+        elif mode is "unipolar":
+            self.val = value
+            self.T = threshold
         self.mode = mode
         self.val_shape = self.val.size()
         self.val_dim = len(self.val_shape)
 
         self.stype = stype
         self.rtype = rtype
-
-        self.T = threshold
+        
         self.L = torch.nn.Parameter(torch.tensor([2**self.bitwidth]).type(self.val.dtype), requires_grad=False)
         self.lp = torch.zeros_like(self.val)
         self.R = torch.ones_like(self.val)
@@ -336,8 +340,8 @@ class NSbuilder(torch.nn.Module):
         self.new_ns_val = self.new_ns_one / self.new_ns_len
         self.new_st_val = self.new_st_one / self.new_st_len
 
-        self.src_st = SourceGen(self.new_st_val, self.bitwidth, self.mode, self.rtype)()
-        self.src_ns = SourceGen(self.new_ns_val, self.bitwidth, self.mode, self.rtype)()
+        self.src_st = SourceGen(self.new_st_val, self.bitwidth, "unipolar", self.rtype)()
+        self.src_ns = SourceGen(self.new_ns_val, self.bitwidth, "unipolar", self.rtype)()
         self.bs_st = BSGen(self.src_st, self.rng)
         self.bs_ns = BSGen(self.src_ns, self.rng)
 
