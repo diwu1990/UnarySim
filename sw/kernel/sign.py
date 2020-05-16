@@ -16,6 +16,8 @@ class UnarySign(torch.nn.Module):
         self.sr = shiftreg
         self.stype = stype
         self.btype = btype
+        self.sign_sr = ShiftReg(8, torch.int8)
+        self.sign_cnt = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         if shiftreg is True:
             assert depth <= 127, "When using shift register implementation, buffer depth should be less than 127."
             self.shiftreg = ShiftReg(depth, self.stype)
@@ -35,6 +37,8 @@ class UnarySign(torch.nn.Module):
             # update the accumulator based on input
             self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.btype)).clamp(0, self.buf_max.item())
             half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
-        sign = 1 - half_prob_flag
+        sign_temp = 1 - half_prob_flag
+        _, self.sign_cnt.data = self.sign_sr(sign_temp)
+        sign = torch.gt(self.sign_cnt, 4).type(torch.int8)
         return sign.type(self.stype)
     
