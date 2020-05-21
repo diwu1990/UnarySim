@@ -32,7 +32,7 @@ class ShiftReg(torch.nn.Module):
             self.sr.data = torch.roll(self.sr, -1, 0)
             self.sr.data[self.depth-1] = input.clone().detach()
         else:
-            assert mask.size() == input.size(), "size of the enable mask unmatches that of input"
+            assert mask.size() == input.size(), "Size of the enable mask unmatches that of input"
             mask_val = mask.type(self.stype)
             sr_shift = torch.roll(self.sr, -1, 0)
             sr_shift[self.depth-1] = input.clone().detach()
