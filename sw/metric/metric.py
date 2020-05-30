@@ -197,7 +197,7 @@ class NormStability(torch.nn.Module):
 
     def Monitor(self, in_1):
         self.stability.Monitor(in_1)
-        self.len.data = self.stability.len.detach().clone()
+        self.len.data = self.stability.len.clone().detach()
     
     def forward(self):
         # parallel execution based on numpy speeds up by 30X
