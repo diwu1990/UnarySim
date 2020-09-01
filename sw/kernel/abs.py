@@ -18,8 +18,8 @@ class UnaryAbs(torch.nn.Module):
         self.interleave = interleave
         self.stype = stype
         self.btype = btype
-        self.sign_sr = ShiftReg(8, torch.int8)
-        self.sign_cnt = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        # self.sign_sr = ShiftReg(8, torch.int8)
+        # self.sign_cnt = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
         if shiftreg is True:
             assert depth <= 127, "When using shift register implementation, buffer depth should be less than 127."
             self.shiftreg = ShiftReg(depth, self.stype)
@@ -35,8 +35,9 @@ class UnaryAbs(torch.nn.Module):
         _, self.sr_cnt.data = self.shiftreg(input)
         half_prob_flag = torch.ge(self.sr_cnt, self.depth_half).type(torch.int8)
         sign_temp = 1 - half_prob_flag
-        _, self.sign_cnt.data = self.sign_sr(sign_temp)
-        sign = torch.gt(self.sign_cnt, 4).type(torch.int8)
+        # _, self.sign_cnt.data = self.sign_sr(sign_temp)
+        # sign = torch.gt(self.sign_cnt, 4).type(torch.int8)
+        sign = sign_temp
         input_int8 = input.type(torch.int8)
         output = sign ^ input_int8
         return sign.type(self.stype), output.type(self.stype)
@@ -46,8 +47,9 @@ class UnaryAbs(torch.nn.Module):
         self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.btype)).clamp(0, self.buf_max.item())
         half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
         sign_temp = 1 - half_prob_flag
-        _, self.sign_cnt.data = self.sign_sr(sign_temp)
-        sign = torch.gt(self.sign_cnt, 4).type(torch.int8)
+        # _, self.sign_cnt.data = self.sign_sr(sign_temp)
+        # sign = torch.gt(self.sign_cnt, 4).type(torch.int8)
+        sign = sign_temp
         input_int8 = input.type(torch.int8)
         output = sign ^ input_int8
         return sign.type(self.stype), output.type(self.stype)
@@ -57,10 +59,11 @@ class UnaryAbs(torch.nn.Module):
         self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.btype)).clamp(0, self.buf_max.item())
         half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
         sign_temp = 1 - half_prob_flag
-        _, self.sign_cnt.data = self.sign_sr(sign_temp)
-        sign = torch.gt(self.sign_cnt, 4).type(torch.int8)
+        # _, self.sign_cnt.data = self.sign_sr(sign_temp)
+        # sign = torch.gt(self.sign_cnt, 4).type(torch.int8)
+        sign = sign_temp
         acc_odd_flag = (self.acc % 2).type(torch.int8)
-        output = sign_temp ^ acc_odd_flag
+        output = sign ^ acc_odd_flag
         return sign.type(self.stype), output.type(self.stype)
     
     def forward(self, input):
