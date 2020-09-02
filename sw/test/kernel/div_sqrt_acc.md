@@ -1,6 +1,12 @@
 ## This file includes the accuracy results for paper "In-Stream Correlation-Based Division and Bit-Insert Square Root for Stochastic Computing"
 
 ### using Sobol RNGs
+results are collected from:
+test_kernel_div_gaines.ipynb
+test_kernel_cordiv_kernel_in_stream.ipynb
+test_kernel_div.ipynb
+test_kernel_sqrt_gaines.ipynb
+test_kernel_sqrt.ipynb
 
 | Design               | RMSE           | MAE            | Bias           |
 | -------------------- | -------------- | -------------- | -------------- |
@@ -24,6 +30,12 @@
 | -------------------- | -------------- | -------------- | -------------- |
 
 ### using LFSR RNGs
+results are collected from:
+test_kernel_div_gaines_lfsr.ipynb
+test_kernel_cordiv_kernel_in_stream_lfsr.ipynb
+test_kernel_div_lfsr.ipynb
+test_kernel_sqrt_gaines_lfsr.ipynb
+test_kernel_sqrt_lfsr.ipynb
 
 | Design               | RMSE           | MAE            | Bias           |
 | -------------------- | -------------- | -------------- | -------------- |
