@@ -17,7 +17,7 @@ module Bi2Uni # (
         if(~rst_n) begin
             diff_acc <= {1'b1, {{DEP-1}{1'b0}}};
         end else begin
-            diff_acc <= diff_acc + pc - out;
+            diff_acc <= diff_acc + pc - 1 - out;
         end
     end
 
