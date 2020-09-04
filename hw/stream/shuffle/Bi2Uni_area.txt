@@ -2,8 +2,8 @@
 ****************************************
 Report : area
 Design : Bi2Uni
-Version: P-2019.03
-Date   : Sun Apr 19 22:45:48 2020
+Version: Q-2019.12-SP3
+Date   : Thu Sep  3 18:05:40 2020
 ****************************************
 
 Information: Updating design information... (UID-85)
@@ -12,20 +12,20 @@ Library(s) Used:
     tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
 
 Number of ports:                            4
-Number of nets:                            15
-Number of cells:                           12
-Number of combinational cells:              9
+Number of nets:                            17
+Number of cells:                           14
+Number of combinational cells:             11
 Number of sequential cells:                 3
 Number of macros/black boxes:               0
 Number of buf/inv:                          3
-Number of references:                      10
+Number of references:                      11
 
-Combinational area:                 14.112000
+Combinational area:                 17.992800
 Buf/Inv area:                        5.115600
 Noncombinational area:              12.348000
 Macro/Black Box area:                0.000000
 Net Interconnect area:      undefined  (Wire load has zero net area)
 
-Total cell area:                    26.460000
+Total cell area:                    30.340800
 Total area:                 undefined
 1

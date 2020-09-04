@@ -5,14 +5,14 @@ Report : timing
         -delay max
         -max_paths 1
 Design : Bi2Uni
-Version: P-2019.03
-Date   : Sun Apr 19 22:45:49 2020
+Version: Q-2019.12-SP3
+Date   : Thu Sep  3 18:05:41 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
-  Startpoint: diff_acc_reg[0]
+  Startpoint: diff_acc_reg[1]
               (rising edge-triggered flip-flop clocked by clk)
   Endpoint: out (output port clocked by clk)
   Path Group: clk
@@ -27,12 +27,12 @@ Wire Load Model Mode: segmented
   -----------------------------------------------------------
   clock clk (rise edge)                    0.00       0.00
   clock network delay (ideal)              0.00       0.00
-  diff_acc_reg[0]/CP (DFCNQD1BWP)          0.00       0.00 r
-  diff_acc_reg[0]/Q (DFCNQD1BWP)           0.14       0.14 f
-  U15/ZN (OAI21D2BWP)                      0.06       0.19 r
-  U14/ZN (INVD1BWP)                        0.03       0.23 f
-  U12/ZN (CKND2BWP)                        0.04       0.27 r
-  U13/ZN (CKND16BWP)                       0.06       0.33 f
+  diff_acc_reg[1]/CP (DFCNQD1BWP)          0.00       0.00 r
+  diff_acc_reg[1]/Q (DFCNQD1BWP)           0.14       0.14 f
+  U17/ZN (OAI21D2BWP)                      0.06       0.20 r
+  U16/ZN (INVD1BWP)                        0.03       0.23 f
+  U14/ZN (CKND2BWP)                        0.04       0.27 r
+  U15/ZN (CKND16BWP)                       0.06       0.33 f
   out (out)                                0.00       0.33 f
   data arrival time                                   0.33
 
