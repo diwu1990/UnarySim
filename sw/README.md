@@ -53,8 +53,8 @@ This directory contains the components for **Stream Manipulation**, which manipu
 | DeSync               |              | RC       | Both     | [3]       | <ul><li>[ ] </li></ul> |
 | SkewedSync           | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
 | Sync                 |              | Both     | Both     | [3]       | <ul><li>[ ] </li></ul> |
-| Bi2Uni               | Mar 31, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
-| Uni2Bi               | Mar 31, 2020 | RC       | Uni      | NA        | <ul><li>[x] </li></ul> |
+| Bi2Uni               | Mar 31, 2020 | RC       | Bi       | [10]      | <ul><li>[x] </li></ul> |
+| Uni2Bi               | Mar 31, 2020 | RC       | Uni      | [10]      | <ul><li>[x] </li></ul> |
 
 
 ### _'kernel'_ subdirectory
@@ -97,8 +97,8 @@ The components currently supported or to be implemented are listed in the table 
 | Correlation          | Seq 07, 2019 | Both     | Both     | [6]       | <ul><li>[x] </li></ul> |
 | ProgressiveError     | Seq 07, 2019 | Both     | Either   | [7]       | <ul><li>[x] </li></ul> |
 | Stability            | Dec 27, 2019 | Both     | Either   | [5]       | <ul><li>[x] </li></ul> |
-| NormStability        | Dec 18, 2019 | Both     | Either   | NA        | <ul><li>[x] </li></ul> |
-| NSBuilder            | Mar 31, 2020 | Both     | Either   | NA        | <ul><li>[x] </li></ul> |
+| NormStability        | Dec 18, 2019 | Both     | Either   | [9]       | <ul><li>[x] </li></ul> |
+| NSBuilder            | Mar 31, 2020 | Both     | Either   | [9]       | <ul><li>[x] </li></ul> |
 
 
 ### _'test'_ subdirectory
@@ -110,7 +110,9 @@ This directory contains simple testing examples for above components, which are 
 [2] S. Liu and J. Han, "Energy efficient stochastic computing with Sobol sequences," in _DATE_ 2017.  
 [3] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.  
 [4] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.  
-[5] D. Wu, etc., "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
+[5] D. Wu, J. Li, R. Yin, H. Hsiao, Y. Kim and J. San Miguel, "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
 [6] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
 [7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
 [8] P. Li and D. J. Lilja, W. Qian, M. D. Riedel and K. Bazargan, "Logical Computation on Stochastic Bit Streams with Linear Finite-State Machines," in _IEEE Transactions On Computers_, 2014.  
+[9] D. Wu, R. Yin and J. San Miguel, "Normalized Stability: A Cross-Level Design Metric for Early Termination in Stochastic Computing", in _ASP-DAC_ 2021.
+[10] D. Wu, R. Yin and J. San Miguel, "In-Stream Correlation-Based Division and Bit-Inserting Square Root in Stochastic Computing", under review.
