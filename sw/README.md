@@ -114,5 +114,5 @@ This directory contains simple testing examples for above components, which are 
 [6] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
 [7] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
 [8] P. Li and D. J. Lilja, W. Qian, M. D. Riedel and K. Bazargan, "Logical Computation on Stochastic Bit Streams with Linear Finite-State Machines," in _IEEE Transactions On Computers_, 2014.  
-[9] D. Wu, R. Yin and J. San Miguel, "Normalized Stability: A Cross-Level Design Metric for Early Termination in Stochastic Computing", in _ASP-DAC_ 2021.
+[9] D. Wu, R. Yin and J. San Miguel, "Normalized Stability: A Cross-Level Design Metric for Early Termination in Stochastic Computing", in _ASP-DAC_ 2021.  
 [10] D. Wu, R. Yin and J. San Miguel, "In-Stream Correlation-Based Division and Bit-Inserting Square Root in Stochastic Computing", under review.
