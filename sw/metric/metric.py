@@ -68,7 +68,7 @@ class ProgressiveError(torch.nn.Module):
         # therefore, clamping with (-1, 1) always works
         self.in_value = torch.clamp(in_value/scale, -1., 1.)
         self.mode = mode
-        assert self.mode is "unipolar" or self.mode is "bipolar", "ProgressiveError mode is not implemented."
+        assert self.mode == "unipolar" or self.mode == "bipolar", "ProgressiveError mode is not implemented."
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.one_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.out_pp = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -80,7 +80,7 @@ class ProgressiveError(torch.nn.Module):
 
     def forward(self):
         self.out_pp.data = self.one_cnt.div(self.len)
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.out_pp.data = self.out_pp.mul(2).sub(1)
         self.err.data = self.out_pp.sub(self.in_value)
         return self.out_pp, self.err
@@ -182,7 +182,7 @@ class NormStability(torch.nn.Module):
         self.stability = Stability(in_value, mode=mode, threshold=threshold)
         self.min_prob = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.max_prob = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if mode is "bipolar":
+        if mode == "bipolar":
             self.min_prob.data = torch.max((in_value + 1) / 2 - threshold / 2, torch.zeros_like(in_value))
             self.max_prob.data = torch.min((in_value + 1) / 2 + threshold / 2, torch.ones_like(in_value))
         else:
@@ -266,10 +266,10 @@ class NSbuilder(torch.nn.Module):
         
         self.bitwidth = bitwidth
         self.normstb = normstability
-        if mode is "bipolar":
+        if mode == "bipolar":
             self.val = (value + 1) /2
             self.T = threshold / 2
-        elif mode is "unipolar":
+        elif mode == "unipolar":
             self.val = value
             self.T = threshold
         self.mode = mode
