@@ -26,11 +26,11 @@ class UnaryReLU(torch.nn.Module):
             self.depth_half = torch.nn.Parameter(torch.zeros(1).fill_(depth/2).type(btype), requires_grad=False)
             self.sr_cnt = torch.nn.Parameter(torch.zeros(1).type(self.stype), requires_grad=False)
             self.init = True
-        if encode is "RC":
+        if encode == "RC":
             self.buf_max = torch.nn.Parameter(torch.zeros(1).fill_(2**depth - 1).type(btype), requires_grad=False)
             self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(btype), requires_grad=False)
             self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(btype), requires_grad=False)
-        elif encode is "TC":
+        elif encode == "TC":
             self.threshold = torch.nn.Parameter(torch.zeros(1).fill_(2**(bitwidth - 1)).type(btype), requires_grad=False)
             self.acc = torch.nn.Parameter(torch.zeros(1).type(btype), requires_grad=False)
             self.cycle = torch.nn.Parameter(torch.zeros(1).type(btype), requires_grad=False)
@@ -69,11 +69,11 @@ class UnaryReLU(torch.nn.Module):
         return output.type(self.stype)
 
     def forward(self, input):
-        if self.encode is "RC":
+        if self.encode == "RC":
             if self.sr is False:
                 return self.UnaryReLU_forward_rc(input)
             else:
                 return self.UnaryReLU_forward_rc_sr(input)
-        elif self.encode is "TC":
+        elif self.encode == "TC":
             return self.UnaryReLU_forward_tc(input)
 

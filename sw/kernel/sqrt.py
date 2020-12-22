@@ -36,11 +36,11 @@ class UnarySqrt(torch.nn.Module):
             self.depth_sr = depth_sr
             self.rng = RNG(int(math.log2(depth_sr)), rng_dim, rng, torch.long)()
             self.idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
-            if mode is "bipolar":
+            if mode == "bipolar":
                 self.bi2uni_emit = Bi2Uni(stype=torch.int8)
         else:
             self.trace = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-            if mode is "bipolar":
+            if mode == "bipolar":
                 self.bi2uni = Bi2Uni(stype=torch.int8)
             if jk_trace is True:
                 self.jkff = JKFF(stype=torch.int8)
@@ -93,13 +93,13 @@ class UnarySqrt(torch.nn.Module):
                 self.emit_out.data = torch.zeros_like(input).type(torch.int8)
             in_stack = torch.stack([input.type(torch.int8), self.emit_out], dim=0)
             output = self.nsadd(in_stack)
-            if self.mode is "bipolar":
+            if self.mode == "bipolar":
                 self.emit_out.data = self.bipolar_emit(output)
             else:
                 self.emit_out.data = self.unipolar_emit(output)
         else:
             output = ((1 - self.trace) & input.type(torch.int8)) + self.trace
-            if self.mode is "bipolar":
+            if self.mode == "bipolar":
                 self.trace.data = self.bipolar_trace(output)
             else:
                 self.trace.data = self.unipolar_trace(output)
@@ -133,7 +133,7 @@ class GainesSqrt(torch.nn.Module):
         self.rng_idx.data = self.rng_idx + 1
         output = output + torch.zeros_like(input, dtype=torch.int8)
         
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             inc = input.type(torch.float)
             dec = (output & self.out_d).type(torch.float)
             self.out_d.data = output.type(torch.int8)

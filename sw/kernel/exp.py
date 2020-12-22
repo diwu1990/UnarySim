@@ -24,7 +24,7 @@ class expN1(torch.nn.Module):
         self.stype = stype
         self.btype = btype
         
-        assert mode is "unipolar", "Combinational expN1 needs unipolar mode."
+        assert mode == "unipolar", "Combinational expN1 needs unipolar mode."
         self.rng_1 = RNG(bitwidth=self.bitwidth, dim=self.rng_dim+0, rng=self.rng, rtype=self.rtype)()
         self.rng_2 = RNG(bitwidth=self.bitwidth, dim=self.rng_dim+1, rng=self.rng, rtype=self.rtype)()
         self.rng_3 = RNG(bitwidth=self.bitwidth, dim=self.rng_dim+2, rng=self.rng, rtype=self.rtype)()
@@ -102,7 +102,7 @@ class expNG(torch.nn.Module):
         self.stype = stype
         self.btype = btype
         
-        assert mode is "bipolar", "FSM expNG needs bipolar mode."
+        assert mode == "bipolar", "FSM expNG needs bipolar mode."
         # N is the number of state, G is 1
         self.max = torch.nn.Parameter(torch.tensor([2**depth-1]).type(self.btype), requires_grad=False)
         self.thd = torch.nn.Parameter(torch.tensor([2**depth-gain]).type(self.btype), requires_grad=False)

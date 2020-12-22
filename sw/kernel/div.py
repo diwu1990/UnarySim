@@ -73,7 +73,7 @@ class UnaryDiv(torch.nn.Module):
         self.mode = mode
         self.stype = stype
         
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
             self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
             self.bi2uni_dividend = Bi2Uni(stype=stype)
@@ -99,7 +99,7 @@ class UnaryDiv(torch.nn.Module):
         return quotient
 
     def forward(self, dividend, divisor):
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             output = self.bipolar_forward(dividend, divisor)
         else:
             output = self.unipolar_forward(dividend, divisor)
@@ -133,7 +133,7 @@ class GainesDiv(torch.nn.Module):
         self.rng_idx.data = self.rng_idx + 1
         output = output + torch.zeros_like(dividend, dtype=torch.int8)
         
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             inc = dividend.type(torch.float)
             dec = (output & divisor.type(torch.int8)).type(torch.float)
         else:

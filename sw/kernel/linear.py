@@ -42,9 +42,9 @@ class UnaryLinear(torch.nn.Module):
         
         # accumulation offset
         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if mode is "unipolar":
+        if mode == "unipolar":
             pass
-        elif mode is "bipolar":
+        elif mode == "bipolar":
             self.offset.add_((in_features-1)/2)
             if bias is True:
                 self.offset.add_(1/2)
@@ -74,7 +74,7 @@ class UnaryLinear(torch.nn.Module):
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
             self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng, stype=stype)
             self.rng_wght_idx_inv = torch.nn.Parameter(torch.zeros_like(self.kernel_inv.weight, dtype=torch.long), requires_grad=False)
@@ -93,10 +93,10 @@ class UnaryLinear(torch.nn.Module):
             
         kernel_out = self.kernel(input.type(torch.float))
 
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             return kernel_out
         
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv(self.rng_wght_idx_inv).type(torch.float)
             self.rng_wght_idx_inv.add_(1 - input.type(torch.long))
             kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
@@ -153,9 +153,9 @@ class GainesLinear1(torch.nn.Module):
         
         # accumulation offset
         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if mode is "unipolar":
+        if mode == "unipolar":
             pass
-        elif mode is "bipolar":
+        elif mode == "bipolar":
             self.offset.add_((in_features-1)/2)
             if bias is True:
                 self.offset.add_(1/2)
@@ -186,7 +186,7 @@ class GainesLinear1(torch.nn.Module):
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
 
         self.parallel_cnt = torch.nn.Parameter(torch.zeros(1, dtype=torch.long), requires_grad=False)
@@ -210,10 +210,10 @@ class GainesLinear1(torch.nn.Module):
             
         kernel_out = self.kernel(input.type(torch.float))
 
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             return kernel_out
         
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv.weight.data = 1 - self.kernel.weight.data
             kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
             return kernel_out + kernel_out_inv
@@ -225,9 +225,9 @@ class GainesLinear1(torch.nn.Module):
             output = torch.ge(self.parallel_cnt.data, self.rng_scale[self.rng_scale_idx%len(self.rng_scale)])
             self.rng_scale_idx.add_(1)
         else:
-            if self.mode is "unipolar":
+            if self.mode == "unipolar":
                 output = torch.gt(self.parallel_cnt, 0)
-            elif self.mode is "bipolar":
+            elif self.mode == "bipolar":
                 self.parallel_cnt.mul_(2).sub_(self.input_cnt)
                 self.cnt.data = self.cnt.add(self.parallel_cnt).clamp(0, self.max.item())
                 output = torch.gt(self.cnt, self.half_max)
@@ -272,9 +272,9 @@ class GainesLinear2(torch.nn.Module):
         
         # accumulation offset
         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if mode is "unipolar":
+        if mode == "unipolar":
             pass
-        elif mode is "bipolar":
+        elif mode == "bipolar":
             self.offset.add_((in_features-1)/2)
             if bias is True:
                 self.offset.add_(1/2)
@@ -305,7 +305,7 @@ class GainesLinear2(torch.nn.Module):
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
         
         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -322,10 +322,10 @@ class GainesLinear2(torch.nn.Module):
             
         kernel_out = self.kernel(input.type(torch.float))
 
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             return kernel_out
         
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv.weight.data = 1 - self.kernel.weight.data
             kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
             return kernel_out + kernel_out_inv
@@ -382,9 +382,9 @@ class GainesLinear3(torch.nn.Module):
         
         # accumulation offset
         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if mode is "unipolar":
+        if mode == "unipolar":
             pass
-        elif mode is "bipolar":
+        elif mode == "bipolar":
             self.offset.add_((in_features-1)/2)
             if bias is True:
                 self.offset.add_(1/2)
@@ -414,7 +414,7 @@ class GainesLinear3(torch.nn.Module):
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
             self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng)
             self.rng_wght_idx_inv = torch.nn.Parameter(torch.zeros_like(self.kernel_inv.weight, dtype=torch.long), requires_grad=False)
@@ -440,10 +440,10 @@ class GainesLinear3(torch.nn.Module):
             
         kernel_out = self.kernel(input.type(torch.float))
 
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             return kernel_out
         
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv(self.rng_wght_idx_inv).type(torch.float)
             self.rng_wght_idx_inv.add_(1 - input.type(torch.long))
             kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
@@ -456,9 +456,9 @@ class GainesLinear3(torch.nn.Module):
             output = torch.ge(self.parallel_cnt.data, self.rng_scale[self.rng_scale_idx%len(self.rng_scale)])
             self.rng_scale_idx.add_(1)
         else:
-            if self.mode is "unipolar":
+            if self.mode == "unipolar":
                 output = torch.gt(self.parallel_cnt, 0)
-            elif self.mode is "bipolar":
+            elif self.mode == "bipolar":
                 self.parallel_cnt.mul_(2).sub_(self.input_cnt)
                 self.cnt.data = self.cnt.add(self.parallel_cnt).clamp(0, self.max.item())
                 output = torch.gt(self.cnt, self.half_max)
@@ -504,9 +504,9 @@ class GainesLinear4(torch.nn.Module):
         
         # accumulation offset
         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
-        if mode is "unipolar":
+        if mode == "unipolar":
             pass
-        elif mode is "bipolar":
+        elif mode == "bipolar":
             self.offset.add_((in_features-1)/2)
             if bias is True:
                 self.offset.add_(1/2)
@@ -537,7 +537,7 @@ class GainesLinear4(torch.nn.Module):
             self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
 
         self.parallel_cnt = torch.nn.Parameter(torch.zeros(1, dtype=torch.long), requires_grad=False)
@@ -561,10 +561,10 @@ class GainesLinear4(torch.nn.Module):
             
         kernel_out = self.kernel(input.type(torch.float))
 
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             return kernel_out
         
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.kernel_inv.weight.data = 1 - self.kernel.weight.data
             kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
             return kernel_out + kernel_out_inv
@@ -576,9 +576,9 @@ class GainesLinear4(torch.nn.Module):
             output = torch.ge(self.parallel_cnt.data, self.rng_scale[self.rng_scale_idx%len(self.rng_scale)])
             self.rng_scale_idx.add_(1)
         else:
-            if self.mode is "unipolar":
+            if self.mode == "unipolar":
                 output = torch.gt(self.parallel_cnt, 0)
-            elif self.mode is "bipolar":
+            elif self.mode == "bipolar":
                 self.parallel_cnt.mul_(2).sub_(self.input_cnt)
                 self.cnt.data = self.cnt.add(self.parallel_cnt).clamp(0, self.max.item())
                 output = torch.gt(self.cnt, self.half_max)

@@ -40,7 +40,7 @@ class UnaryMul(torch.nn.Module):
             self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
             
             # Generate two seperate bitstream generators and two enable signals for bipolar mode
-            if self.mode is "bipolar":
+            if self.mode == "bipolar":
                 self.bs_inv = BSGen(self.source_gen, self.rng, torch.int8)
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         else:
@@ -54,9 +54,9 @@ class UnaryMul(torch.nn.Module):
             # conditional update for rng index when input0 is 1. The update simulates enable signal of bs gen.
             self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long))
             
-            if self.mode is "unipolar":
+            if self.mode == "unipolar":
                 return path_0
-            elif self.mode is "bipolar":
+            elif self.mode == "bipolar":
                 # for input0 is 0.
                 path_1 = (1 - input_0.type(torch.int8)) & (1 - self.bs_inv(self.rng_idx_inv))
                 # conditional update for rng_idx_inv
@@ -81,9 +81,9 @@ class GainesMul(torch.nn.Module):
         self.stype = stype
 
     def UnaryMul_forward(self, input_0, input_1):
-        if self.mode is "unipolar":
+        if self.mode == "unipolar":
             return input_0.type(torch.int8) & input_1.type(torch.int8)
-        elif self.mode is "bipolar":
+        elif self.mode == "bipolar":
             return 1 - (input_0.type(torch.int8) ^ input_1.type(torch.int8))
         else:
             raise ValueError("UnaryMul mode is not implemented.")

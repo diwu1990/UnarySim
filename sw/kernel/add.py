@@ -33,7 +33,7 @@ class UnaryAdd(torch.nn.Module):
 
     def forward(self, input):
         self.acc_bound.fill_(input.size()[self.acc_dim.item()])
-        if self.mode is "bipolar":
+        if self.mode == "bipolar":
             self.offset.fill_((self.acc_bound.item()-1)/2)
         self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
         
@@ -69,7 +69,7 @@ class GainesAdd(torch.nn.Module):
         self.mode = mode
         # whether it is scaled addition
         self.scaled = scaled
-        if self.mode is "bipolar" and self.scaled is False:
+        if self.mode == "bipolar" and self.scaled is False:
             raise ValueError("Non-scaled addition for biploar data is not supported in Gaines approach.")
         # dimension to do reduce sum
         self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
