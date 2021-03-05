@@ -1,6 +1,7 @@
 import torch
 import math
 from UnarySim.sw.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
+from torch.cuda.amp import autocast
 
 class UnaryLinear(torch.nn.Module):
     """
@@ -584,3 +585,317 @@ class GainesLinear4(torch.nn.Module):
                 output = torch.gt(self.cnt, self.half_max)
 
         return output.type(torch.int8)
+    
+
+# the commented UnaryLinearSA and UnaryLinearSAFunction are cycle accurate implementations
+# class UnaryLinearSA(torch.nn.Linear):
+#     """
+#     this module is the fully connected layer, with binary input and binary output
+#     its API is similar to the parent class (input/output feature count, bias flag), except:
+#     1) binary data scale factor
+#     2) binary weight
+#     3) binary bias
+#     4) mac cycle
+#     """
+#     def __init__(self, 
+#                  in_features, 
+#                  out_features, 
+#                  bias=True, 
+#                  binary_weight=None, 
+#                  binary_bias=None, 
+#                  input_format=(1, 3, 4), 
+#                  weight_format=(1, 3, 4), 
+#                  cycle=128):
+#         super(UnaryLinearSA, self).__init__(in_features, out_features, bias)
+        
+#         # weight and bias
+#         if binary_weight is not None:
+#             self.weight.data = binary_weight
+        
+#         if bias and (binary_bias is not None):
+#             self.bias.data = binary_bias
+        
+#         # input format
+#         self.input_format = input_format
+        
+#         # weight format
+#         self.weight_format = weight_format
+        
+#         # mac computing cycle
+#         self.cycle = min(cycle, 2**(input_format[1] + input_format[2]), 2**(weight_format[1] + weight_format[2]))
+        
+#         # bitwidth of rng
+#         self.bitwidth = (self.cycle - 1).bit_length()
+#         assert cycle == 2**self.bitwidth, "Input cycle count is not power of 2."
+        
+#         # random_sequence from sobol RNG
+#         self.rng = RNG(self.bitwidth, 1, "Sobol")()
+    
+#     @autocast()
+#     def forward(self, input):
+#         # See the autograd section for explanation of what happens here.
+#         return UnaryLinearSAFunction.apply(input, self.weight, self.bias, self.input_format, self.weight_format, self.cycle, self.bitwidth, self.rng)
+    
+    
+# # Inherit from Function
+# class UnaryLinearSAFunction(torch.autograd.Function):
+
+#     # Note that both forward and backward are @staticmethods
+#     @staticmethod
+#     # bias is an optional argument
+#     def forward(ctx, input, weight, bias=None, 
+#                 input_format=(1, 3, 4), 
+#                 weight_format=(1, 3, 4), 
+#                 cycle=128, 
+#                 bitwidth=7, 
+#                 rng=None):
+#         ctx.save_for_backward(input, weight, bias)
+
+#         # first dim should always be batch
+#         batch = input.size()[0]
+        
+#         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+#         # input bsg prepare
+#         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+#         # scale input to range [0, 1]
+#         scaled_abs_input = torch.zeros(0, device=input.device)
+#         torch.abs((input >> input_format[1]), out=scaled_abs_input)
+        
+#         # generate src, valued 0~2^bitwidth-1
+#         buf_input = torch.zeros(0, device=input.device)
+#         buf_input = scaled_abs_input << bitwidth
+#         buf_input.unsqueeze_(1)
+        
+#         # rng index
+#         rng_input_idx = torch.zeros(1, dtype=torch.long, device=input.device)
+        
+#         # sign for accumulation
+#         sign_input = torch.zeros(0, device=input.device)
+#         torch.sign(input, out=sign_input)
+#         sign_input.unsqueeze_(1)
+        
+#         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+#         # weight bsg prepare
+#         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+#         # scale weight to range [0, 1]
+#         scaled_abs_wght = torch.zeros(0, device=weight.device)
+#         torch.abs((weight >> weight_format[1]), out=scaled_abs_wght)
+        
+#         # generate src with batch, valued 0~2^bitwidth-1
+#         buf_wght_no_batch = torch.zeros(0, device=weight.device)
+#         buf_wght_no_batch = scaled_abs_wght << bitwidth
+#         buf_wght_no_batch.unsqueeze_(0)
+#         buf_wght = torch.zeros(0, device=weight.device)
+#         torch.cat(batch*[buf_wght_no_batch], 0, out=buf_wght)
+
+#         # rng index
+#         rng_wght_idx = torch.zeros(0, device=weight.device)
+#         torch.zeros(buf_wght.size(), out=rng_wght_idx, device=weight.device)
+        
+#         # sign for accumulation
+#         sign_wght_no_batch = torch.zeros(0, device=weight.device)
+#         torch.sign(weight, out=sign_wght_no_batch)
+#         sign_wght_no_batch.unsqueeze_(0)
+#         sign_wght = torch.zeros(0, device=weight.device)
+#         torch.cat(batch*[sign_wght_no_batch], 0, out=sign_wght)
+        
+#         mm_out = torch.zeros(0, device=input.device)
+#         output = torch.zeros(input.matmul(weight.t()).size(), device=input.device).unsqueeze_(1)
+        
+#         input_b_unsign = torch.zeros(0, device=input.device)
+#         input_b = torch.zeros(0, device=input.device)
+#         wght_b_unsign = torch.zeros(0, device=weight.device)
+#         wght_b = torch.zeros(0, device=weight.device)
+#         wght_rand = torch.zeros(0, device=weight.device)
+        
+#         for c in range(cycle):
+#             rng_input_idx.fill_(c)
+#             torch.gt(buf_input, rng[rng_input_idx], out=input_b_unsign)
+#             torch.mul(input_b_unsign.type(torch.float), sign_input, out=input_b)
+            
+#             torch.gt(buf_wght, rng[rng_wght_idx.type(torch.long)], out=wght_b_unsign)
+#             torch.mul(wght_b_unsign.type(torch.float), sign_wght, out=wght_b)
+#             torch.add(rng_wght_idx, input_b_unsign.type(torch.float), out=rng_wght_idx)
+
+#             torch.baddbmm(output, input_b, wght_b.transpose(1, 2), out=output)
+        
+#         output = (((output >> bitwidth) << input_format[1]) << weight_format[1]).squeeze_(1)
+        
+#         if bias is not None:
+#             output += bias.unsqueeze(0).expand_as(output)
+#         return output
+
+#     # This function has only a single output, so it gets only one gradient
+#     @staticmethod
+#     def backward(ctx, grad_output):
+#         # This is a pattern that is very convenient - at the top of backward
+#         # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+#         # None. Thanks to the fact that additional trailing Nones are
+#         # ignored, the return statement is simple even when the function has
+#         # optional inputs.
+#         input, weight, bias = ctx.saved_tensors
+#         grad_input = grad_weight = grad_bias = None
+
+#         # These needs_input_grad checks are optional and there only to
+#         # improve efficiency. If you want to make your code simpler, you can
+#         # skip them. Returning gradients for inputs that don't require it is
+#         # not an error.
+#         if ctx.needs_input_grad[0]:
+#             grad_input = grad_output.matmul(weight)
+#         if ctx.needs_input_grad[1]:
+#             grad_weight = grad_output.t().matmul(input)
+#         if bias is not None and ctx.needs_input_grad[2]:
+#             grad_bias = grad_output.sum(0)
+
+#         return grad_input, grad_weight, grad_bias, None, None, None, None, None
+
+
+# the UnaryLinearSA and UnaryLinearSAFunction are parallel implementations
+class UnaryLinearSA(torch.nn.Linear):
+    """
+    this module is the fully connected layer, with binary input and binary output
+    its API is similar to the parent class (input/output feature count, bias flag), except:
+    1) binary data scale factor
+    2) binary weight
+    3) binary bias
+    4) mac cycle
+    """
+    def __init__(self, 
+                 in_features, 
+                 out_features, 
+                 bias=True, 
+                 binary_weight=None, 
+                 binary_bias=None, 
+                 cycle=128):
+        super(UnaryLinearSA, self).__init__(in_features, out_features, bias)
+        
+        # weight and bias
+        if binary_weight is not None:
+            self.weight.data = binary_weight
+        
+        if bias and (binary_bias is not None):
+            self.bias.data = binary_bias
+        
+        # mac computing cycle
+        self.cycle = cycle
+        
+        # bitwidth of rng
+        self.bitwidth = (self.cycle - 1).bit_length()
+        
+        # random_sequence from sobol RNG
+        self.rng = RNG(self.bitwidth, 1, "Sobol")()
+        
+        # generate the value map for mul using current rng
+        # dim 0 is input index
+        # the tensor input value is the actual value produced by the rng
+        self.input_map = torch.nn.Parameter(torch.empty(cycle), requires_grad=False)
+        input_val_cycle = torch.empty(0)
+        torch.cat(cycle*[torch.arange(cycle, dtype=torch.float).unsqueeze(1)], 1, out=input_val_cycle)
+        input_bit_cycle = torch.empty(0)
+        torch.gt(input_val_cycle, self.rng.unsqueeze(0), out=input_bit_cycle)
+        self.input_map.data = torch.sum(input_bit_cycle, 1).squeeze_().type(torch.long)
+
+        # dim 0 is input index, dim 1 is weight index
+        # the tensor value is the actual weight value produced by the rng, under a specific input and weight
+        self.wght_map = torch.nn.Parameter(torch.empty(cycle, cycle), requires_grad=False)
+        wght_bit_cycle = torch.empty(0)
+        torch.gt(input_val_cycle, self.rng.unsqueeze(0), out=wght_bit_cycle)
+        for c in range(cycle):
+            self.wght_map.data[c] = torch.sum(wght_bit_cycle[:, 0:self.input_map.data[c]], 1).squeeze_()
+        
+    @autocast()
+    def forward(self, input):
+        # See the autograd section for explanation of what happens here.
+        with torch.no_grad():
+            input_max_int = input.abs().max().log2().floor()
+            wght_max_int = self.weight.abs().max().log2().floor()
+
+            self.rshift_input = input_max_int - self.bitwidth
+            self.rshift_wght = wght_max_int - self.bitwidth
+            self.rshift_output = self.bitwidth - input_max_int - wght_max_int
+        
+        return UnaryLinearSAFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
+
+    
+# Inherit from Function
+class UnaryLinearSAFunction(torch.autograd.Function):
+
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    # bias is an optional argument
+    @autocast()
+    def forward(ctx, input, weight, bias=None, 
+                rshift_input=3, 
+                rshift_wght=3, 
+                rshift_output=3, 
+                cycle=128, 
+                bitwidth=7, 
+                wght_map=None):
+        ctx.save_for_backward(input, weight, bias)
+
+        # first dim should always be batch
+        batch = input.size()[0]
+        
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # input preparation
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # scale input to range 0~2^bitwidth-1
+        buf_input = torch.empty(0, dtype=torch.long, device=input.device)
+        torch.abs((input >> rshift_input).unsqueeze_(1).type(torch.long), out=buf_input)
+        torch.clamp(buf_input, 0, cycle-1, out=buf_input)
+        
+        # actual input: its sign
+        act_input = torch.empty(0, device=input.device)
+        torch.sign(input, out=act_input)
+        act_input.unsqueeze_(1)
+        
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # weight preparation
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # scale weight with batch to range 0~2^bitwidth-1
+        buf_wght_no_batch = torch.empty(0, dtype=torch.long, device=weight.device)
+        torch.abs((weight >> rshift_wght).unsqueeze_(0).type(torch.long), out=buf_wght_no_batch)
+        torch.clamp(buf_wght_no_batch, 0, cycle-1, out=buf_wght_no_batch)
+        buf_wght = torch.empty(0, dtype=torch.long, device=weight.device)
+        torch.cat(batch*[buf_wght_no_batch], 0, out=buf_wght)
+
+        # get actual weight for calculation
+        sign_wght_no_batch = torch.empty(0, device=weight.device)
+        torch.sign(weight, out=sign_wght_no_batch)
+        sign_wght_no_batch.unsqueeze_(0)
+        act_wght = torch.empty(0, device=weight.device)
+        torch.cat(batch*[sign_wght_no_batch], 0, out=act_wght)
+        torch.mul(wght_map[buf_input, buf_wght], act_wght, out=act_wght)
+        
+        output = torch.empty(0, device=weight.device)
+        torch.matmul(act_input, act_wght.transpose(1, 2), out=output)
+        
+        output = (output >> rshift_output).squeeze_(1)
+        
+        if bias is not None:
+            output += bias.unsqueeze(0).expand_as(output)
+        return output
+
+    # This function has only a single output, so it gets only one gradient
+    @staticmethod
+    def backward(ctx, grad_output):
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        input, weight, bias = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        # These needs_input_grad checks are optional and there only to
+        # improve efficiency. If you want to make your code simpler, you can
+        # skip them. Returning gradients for inputs that don't require it is
+        # not an error.
+        if ctx.needs_input_grad[0]:
+            grad_input = grad_output.matmul(weight)
+        if ctx.needs_input_grad[1]:
+            grad_weight = grad_output.t().matmul(input)
+        if bias is not None and ctx.needs_input_grad[2]:
+            grad_bias = grad_output.sum(0)
+
+        return grad_input, grad_weight, grad_bias, None, None, None, None, None, None
