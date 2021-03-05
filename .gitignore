@@ -21,3 +21,6 @@ sw/test/mlp/saved_model_state_dict_8_bitwidth_512_layerwidth_0.001_lr
 sw/test/mlp/saved_model_state_dict_8_bitwidth_8192_layerwidth_0.0001_lr
 sw/test/mlp/test_mlp_evaluate_linear_st.ipynb
 sw/test/test_random.ipynb
+*.tar
+*.pt
+*.pth
