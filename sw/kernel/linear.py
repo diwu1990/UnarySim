@@ -750,8 +750,8 @@ class GainesLinear4(torch.nn.Module):
 #         return grad_input, grad_weight, grad_bias, None, None, None, None, None
 
 
-# the UnaryLinearSA and UnaryLinearSAFunction are parallel implementations
-class UnaryLinearSA(torch.nn.Linear):
+# the HUBLinear and HUBLinearFunction are parallel implementations
+class HUBLinear(torch.nn.Linear):
     """
     this module is the fully connected layer, with binary input and binary output
     its API is similar to the parent class (input/output feature count, bias flag), except:
@@ -766,8 +766,9 @@ class UnaryLinearSA(torch.nn.Linear):
                  bias=True, 
                  binary_weight=None, 
                  binary_bias=None, 
-                 cycle=128):
-        super(UnaryLinearSA, self).__init__(in_features, out_features, bias)
+                 cycle=128,
+                 rounding="floor"):
+        super(HUBLinear, self).__init__(in_features, out_features, bias)
         
         # weight and bias
         if binary_weight is not None:
@@ -803,27 +804,38 @@ class UnaryLinearSA(torch.nn.Linear):
         for c in range(cycle):
             self.wght_map.data[c] = torch.sum(wght_bit_cycle[:, 0:self.input_map.data[c]], 1).squeeze_()
         
+        # rounding mode
+        self.rounding = rounding
+    
     @autocast()
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
         with torch.no_grad():
-            input_max_int = input.abs().max().log2().floor()
-            wght_max_int = self.weight.abs().max().log2().floor()
+            input_max_int = input.abs().max().log2()
+            wght_max_int = self.weight.abs().max().log2()
+            if self.rounding == "round":
+                input_max_int = input_max_int.round()
+                wght_max_int = wght_max_int.round()
+            elif self.rounding == "floor":
+                input_max_int = input_max_int.floor()
+                wght_max_int = wght_max_int.floor()
+            elif self.rounding == "ceil":
+                input_max_int = input_max_int.ceil()
+                wght_max_int = wght_max_int.ceil()
 
-            self.rshift_input = input_max_int - self.bitwidth
-            self.rshift_wght = wght_max_int - self.bitwidth
-            self.rshift_output = self.bitwidth - input_max_int - wght_max_int
+            rshift_input = input_max_int - self.bitwidth
+            rshift_wght = wght_max_int - self.bitwidth
+            rshift_output = self.bitwidth - input_max_int - wght_max_int
         
-        return UnaryLinearSAFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
+        return HUBLinearFunction.apply(input, self.weight, self.bias, rshift_input, rshift_wght, rshift_output, self.cycle, self.bitwidth, self.wght_map)
 
     
 # Inherit from Function
-class UnaryLinearSAFunction(torch.autograd.Function):
+class HUBLinearFunction(torch.autograd.Function):
 
     # Note that both forward and backward are @staticmethods
     @staticmethod
     # bias is an optional argument
-    @autocast()
     def forward(ctx, input, weight, bias=None, 
                 rshift_input=3, 
                 rshift_wght=3, 
@@ -899,3 +911,126 @@ class UnaryLinearSAFunction(torch.autograd.Function):
             grad_bias = grad_output.sum(0)
 
         return grad_input, grad_weight, grad_bias, None, None, None, None, None, None
+    
+    
+class FxpLinear(torch.nn.Linear):
+    """
+    this module is the fully connected layer, with binary input and binary output
+    its API is similar to the parent class (input/output feature count, bias flag), except:
+    1) binary data scale factor
+    2) binary weight
+    3) binary bias
+    4) mac cycle
+    """
+    def __init__(self, 
+                 in_features, 
+                 out_features, 
+                 bias=True, 
+                 binary_weight=None, 
+                 binary_bias=None, 
+                 bitwidth=8,
+                 rounding="floor"):
+        super(FxpLinear, self).__init__(in_features, out_features, bias)
+        
+        # weight and bias
+        if binary_weight is not None:
+            self.weight.data = binary_weight
+        
+        if bias and (binary_bias is not None):
+            self.bias.data = binary_bias
+        
+        # bitwidth of abs
+        self.bitwidth = bitwidth - 1
+        
+        # max abs value
+        self.max_abs = 2**self.bitwidth
+        
+        # rounding mode
+        self.rounding = rounding
+    
+    @autocast()
+    def forward(self, input):
+        # See the autograd section for explanation of what happens here.
+        with torch.no_grad():
+            input_max_int = input.abs().max().log2()
+            wght_max_int = self.weight.abs().max().log2()
+            if self.rounding == "round":
+                input_max_int = input_max_int.round()
+                wght_max_int = wght_max_int.round()
+            elif self.rounding == "floor":
+                input_max_int = input_max_int.floor()
+                wght_max_int = wght_max_int.floor()
+            elif self.rounding == "ceil":
+                input_max_int = input_max_int.ceil()
+                wght_max_int = wght_max_int.ceil()
+
+            rshift_input = input_max_int - self.bitwidth
+            rshift_wght = wght_max_int - self.bitwidth
+            rshift_output = 0 - rshift_input - rshift_wght
+
+        return FxpLinearFunction.apply(input, self.weight, self.bias, rshift_input, rshift_wght, rshift_output, self.max_abs, self.bitwidth)
+
+    
+# Inherit from Function
+class FxpLinearFunction(torch.autograd.Function):
+
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    # bias is an optional argument
+    def forward(ctx, input, weight, bias=None, 
+                rshift_input=3, 
+                rshift_wght=3, 
+                rshift_output=3, 
+                max_abs=128, 
+                bitwidth=7):
+        ctx.save_for_backward(input, weight, bias)
+        
+        bot = 0 - max_abs
+        top = max_abs - 1
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # input preparation
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # round input to (bot, top)
+        input_round = torch.empty(0, device=input.device)
+        torch.round(input >> rshift_input, out=input_round)
+        torch.clamp(input_round.unsqueeze_(1), bot, top, out=input_round)
+        
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # weight preparation
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        # round input to (bot, top)
+        wght_round = torch.empty(0, device=input.device)
+        torch.round(weight >> rshift_wght, out=wght_round)
+        torch.clamp(wght_round.unsqueeze_(0), bot, top, out=wght_round)
+        
+        output = torch.empty(0, device=weight.device)
+        torch.matmul(input_round, wght_round.transpose(1, 2), out=output)
+        output = (output >> rshift_output).squeeze_(1)
+        
+        if bias is not None:
+            output += bias.unsqueeze(0).expand_as(output)
+        return output
+
+    # This function has only a single output, so it gets only one gradient
+    @staticmethod
+    def backward(ctx, grad_output):
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        input, weight, bias = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        # These needs_input_grad checks are optional and there only to
+        # improve efficiency. If you want to make your code simpler, you can
+        # skip them. Returning gradients for inputs that don't require it is
+        # not an error.
+        if ctx.needs_input_grad[0]:
+            grad_input = grad_output.matmul(weight)
+        if ctx.needs_input_grad[1]:
+            grad_weight = grad_output.t().matmul(input)
+        if bias is not None and ctx.needs_input_grad[2]:
+            grad_bias = grad_output.sum(0)
+
+        return grad_input, grad_weight, grad_bias, None, None, None, None, None

@@ -2,7 +2,8 @@ import torch
 import math
 from UnarySim.sw.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
 from UnarySim.sw.kernel.nn_utils import conv2d_output_shape
-from UnarySim.sw.kernel.linear import UnaryLinearSAFunction
+from UnarySim.sw.kernel.linear import HUBLinearFunction
+from UnarySim.sw.kernel.linear import FxpLinearFunction
 from torch.cuda.amp import autocast
 
 # class UnaryConv2d(torch.nn.modules.conv.Conv2d):
@@ -106,7 +107,7 @@ from torch.cuda.amp import autocast
 
 
 
-class UnaryConv2dSA(torch.nn.Conv2d):
+class HUBConv2d(torch.nn.Conv2d):
     """
     this module is the 2d conv layer, with binary input and binary output
     """
@@ -122,8 +123,9 @@ class UnaryConv2dSA(torch.nn.Conv2d):
                  padding_mode = 'zeros', 
                  binary_weight=None, 
                  binary_bias=None, 
-                 cycle=128):
-        super(UnaryConv2dSA, self).__init__(in_channels, 
+                 cycle=128,
+                 rounding="floor"):
+        super(HUBConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 
                                             stride, 
@@ -167,15 +169,28 @@ class UnaryConv2dSA(torch.nn.Conv2d):
         for c in range(cycle):
             self.wght_map.data[c] = torch.sum(wght_bit_cycle[:, 0:self.input_map.data[c]], 1).squeeze_()
         
+        # rounding mode
+        self.rounding = rounding
+    
     @autocast()
     def forward(self, input):
+        # See the autograd section for explanation of what happens here.
         with torch.no_grad():
-            input_max_int = input.abs().max().log2().floor()
-            wght_max_int = self.weight.abs().max().log2().floor()
+            input_max_int = input.abs().max().log2()
+            wght_max_int = self.weight.abs().max().log2()
+            if self.rounding == "round":
+                input_max_int = input_max_int.round()
+                wght_max_int = wght_max_int.round()
+            elif self.rounding == "floor":
+                input_max_int = input_max_int.floor()
+                wght_max_int = wght_max_int.floor()
+            elif self.rounding == "ceil":
+                input_max_int = input_max_int.ceil()
+                wght_max_int = wght_max_int.ceil()
 
-            self.rshift_input = input_max_int - self.bitwidth
-            self.rshift_wght = wght_max_int - self.bitwidth
-            self.rshift_output = self.bitwidth - input_max_int - wght_max_int
+            rshift_input = input_max_int - self.bitwidth
+            rshift_wght = wght_max_int - self.bitwidth
+            rshift_output = self.bitwidth - input_max_int - wght_max_int
             
             # all data are in NCHW
             output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
@@ -186,7 +201,91 @@ class UnaryConv2dSA(torch.nn.Conv2d):
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size(0), -1)
-        mm_out = UnaryLinearSAFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
+        mm_out = HUBLinearFunction.apply(input_reshape, weight, None, rshift_input, rshift_wght, rshift_output, self.cycle, self.bitwidth, self.wght_map)
+        mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
+        mm_out_transpose = mm_out_reshape.transpose(1, 2)
+        output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
+
+        if self.bias is None:
+            return output
+        else:
+            return output + self.bias.view([1, self.bias.size()[0], 1, 1])
+
+        
+class FxpConv2d(torch.nn.Conv2d):
+    """
+    this module is the 2d conv layer, with binary input and binary output
+    """
+    def __init__(self, 
+                 in_channels, 
+                 out_channels, 
+                 kernel_size, 
+                 stride = 1, 
+                 padding = 0, 
+                 dilation = 1, 
+                 groups = 1, 
+                 bias = True, 
+                 padding_mode = 'zeros', 
+                 binary_weight=None, 
+                 binary_bias=None, 
+                 bitwidth=8,
+                 rounding="floor"):
+        super(FxpConv2d, self).__init__(in_channels, 
+                                            out_channels, 
+                                            kernel_size, 
+                                            stride, 
+                                            padding, 
+                                            dilation, 
+                                            groups, 
+                                            bias, 
+                                            padding_mode)
+        
+        # weight and bias
+        if binary_weight is not None:
+            self.weight.data = binary_weight
+        
+        if bias and (binary_bias is not None):
+            self.bias.data = binary_bias
+            
+        # bitwidth of abs
+        self.bitwidth = bitwidth - 1
+        
+        # max abs value
+        self.max_abs = 2**self.bitwidth
+        
+        # rounding mode
+        self.rounding = rounding
+    
+    @autocast()
+    def forward(self, input):
+        # See the autograd section for explanation of what happens here.
+        with torch.no_grad():
+            input_max_int = input.abs().max().log2()
+            wght_max_int = self.weight.abs().max().log2()
+            if self.rounding == "round":
+                input_max_int = input_max_int.round()
+                wght_max_int = wght_max_int.round()
+            elif self.rounding == "floor":
+                input_max_int = input_max_int.floor()
+                wght_max_int = wght_max_int.floor()
+            elif self.rounding == "ceil":
+                input_max_int = input_max_int.ceil()
+                wght_max_int = wght_max_int.ceil()
+
+            rshift_input = input_max_int - self.bitwidth
+            rshift_wght = wght_max_int - self.bitwidth
+            rshift_output = 0 - rshift_input - rshift_wght
+            
+            # all data are in NCHW
+            output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
+
+        # See the autograd section for explanation of what happens here.
+        input_im2col = torch.nn.functional.unfold(input, self.kernel_size, self.dilation, self.padding, self.stride)
+        input_transpose = input_im2col.transpose(1, 2)
+        input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
+
+        weight = self.weight.view(self.weight.size(0), -1)
+        mm_out = FxpLinearFunction.apply(input_reshape, weight, None, rshift_input, rshift_wght, rshift_output, self.max_abs, self.bitwidth)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
