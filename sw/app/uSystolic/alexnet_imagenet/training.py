@@ -17,7 +17,7 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
-from UnarySim.sw.app.uSystolic.alexnet import alexnet_sa
+from UnarySim.sw.app.uSystolic.alexnet_imagenet import alexnet_sa
 import torch.autograd.profiler as profiler
 
 model_names = sorted(name for name in models.__dict__

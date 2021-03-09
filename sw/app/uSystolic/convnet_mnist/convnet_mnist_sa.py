@@ -7,8 +7,8 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from six.moves import urllib
-from UnarySim.sw.kernel.conv import UnaryConv2dSA
-from UnarySim.sw.kernel.linear import UnaryLinearSA
+from UnarySim.sw.kernel.conv import HUBConv2d
+from UnarySim.sw.kernel.linear import HUBLinear
 
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
@@ -21,12 +21,12 @@ class Net(nn.Module):
             param_list = [param for param in state_dict]
             print("load model parameters: ", param_list)
             state_list = [state_dict[param] for param in param_list]
-            self.conv1 = UnaryConv2dSA(1, 32, 3, 1, binary_weight=state_list[0], binary_bias=state_list[1], cycle=cycle[0])
-            self.conv2 = UnaryConv2dSA(32, 64, 3, 1, binary_weight=state_list[2], binary_bias=state_list[3], cycle=cycle[1])
+            self.conv1 = HUBConv2d(1, 32, 3, 1, binary_weight=state_list[0], binary_bias=state_list[1], cycle=cycle[0])
+            self.conv2 = HUBConv2d(32, 64, 3, 1, binary_weight=state_list[2], binary_bias=state_list[3], cycle=cycle[1])
             self.dropout1 = nn.Dropout(0.25)
             self.dropout2 = nn.Dropout(0.5)
-            self.fc1 = UnaryLinearSA(9216, 128, binary_weight=state_list[4], binary_bias=state_list[5], cycle=cycle[2])
-            self.fc2 = UnaryLinearSA(128, 10, binary_weight=state_list[6], binary_bias=state_list[7], cycle=cycle[3])
+            self.fc1 = HUBLinear(9216, 128, binary_weight=state_list[4], binary_bias=state_list[5], cycle=cycle[2])
+            self.fc2 = HUBLinear(128, 10, binary_weight=state_list[6], binary_bias=state_list[7], cycle=cycle[3])
         else:
             self.conv1 = nn.Conv2d(1, 32, 3, 1)
             self.conv2 = nn.Conv2d(32, 64, 3, 1)
