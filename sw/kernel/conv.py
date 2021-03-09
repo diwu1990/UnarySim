@@ -194,7 +194,7 @@ class HUBConv2d(torch.nn.Conv2d):
 
             self.rshift_input = input_max_int - self.bitwidth
             self.rshift_wght = wght_max_int - self.bitwidth
-            self.rshift_output = self.bitwidth - self.input_max_int - self.wght_max_int
+            self.rshift_output = self.bitwidth - input_max_int - wght_max_int
             
             # all data are in NCHW
             output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)

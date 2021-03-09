@@ -829,7 +829,7 @@ class HUBLinear(torch.nn.Linear):
 
             self.rshift_input = input_max_int - self.bitwidth
             self.rshift_wght = wght_max_int - self.bitwidth
-            self.rshift_output = self.bitwidth - self.input_max_int - self.wght_max_int
+            self.rshift_output = self.bitwidth - input_max_int - wght_max_int
         
         return HUBLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
 
