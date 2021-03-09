@@ -806,7 +806,11 @@ class HUBLinear(torch.nn.Linear):
         
         # rounding mode
         self.rounding = rounding
-    
+        
+        self.rshift_input = None
+        self.rshift_wght = None
+        self.rshift_output = None
+        
     @autocast()
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
@@ -823,11 +827,11 @@ class HUBLinear(torch.nn.Linear):
                 input_max_int = input_max_int.ceil()
                 wght_max_int = wght_max_int.ceil()
 
-            rshift_input = input_max_int - self.bitwidth
-            rshift_wght = wght_max_int - self.bitwidth
-            rshift_output = self.bitwidth - input_max_int - wght_max_int
+            self.rshift_input = input_max_int - self.bitwidth
+            self.rshift_wght = wght_max_int - self.bitwidth
+            self.rshift_output = self.bitwidth - self.input_max_int - self.wght_max_int
         
-        return HUBLinearFunction.apply(input, self.weight, self.bias, rshift_input, rshift_wght, rshift_output, self.cycle, self.bitwidth, self.wght_map)
+        return HUBLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
 
     
 # Inherit from Function
@@ -947,28 +951,39 @@ class FxpLinear(torch.nn.Linear):
         
         # rounding mode
         self.rounding = rounding
+        
+        self.rshift_input = None
+        self.rshift_wght = None
+        self.rshift_output = None
     
     @autocast()
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
         with torch.no_grad():
-            input_max_int = input.abs().max().log2()
-            wght_max_int = self.weight.abs().max().log2()
-            if self.rounding == "round":
-                input_max_int = input_max_int.round()
-                wght_max_int = wght_max_int.round()
-            elif self.rounding == "floor":
-                input_max_int = input_max_int.floor()
-                wght_max_int = wght_max_int.floor()
-            elif self.rounding == "ceil":
-                input_max_int = input_max_int.ceil()
-                wght_max_int = wght_max_int.ceil()
-
-            rshift_input = input_max_int - self.bitwidth
-            rshift_wght = wght_max_int - self.bitwidth
-            rshift_output = 0 - rshift_input - rshift_wght
-
-        return FxpLinearFunction.apply(input, self.weight, self.bias, rshift_input, rshift_wght, rshift_output, self.max_abs, self.bitwidth)
+            if self.rshift_input is None:
+                input_max_int = input.abs().max().log2()
+                if self.rounding == "round":
+                    input_max_int = input_max_int.round()
+                elif self.rounding == "floor":
+                    input_max_int = input_max_int.floor()
+                elif self.rounding == "ceil":
+                    input_max_int = input_max_int.ceil()
+                self.rshift_input = input_max_int - self.bitwidth
+            
+            if self.rshift_wght is None:
+                wght_max_int = self.weight.abs().max().log2()
+                if self.rounding == "round":
+                    wght_max_int = wght_max_int.round()
+                elif self.rounding == "floor":
+                    wght_max_int = wght_max_int.floor()
+                elif self.rounding == "ceil":
+                    wght_max_int = wght_max_int.ceil()
+                self.rshift_wght = wght_max_int - self.bitwidth
+                
+            if self.rshift_output is None:
+                self.rshift_output = 0 - self.rshift_input - self.rshift_wght
+        
+        return FxpLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs, self.bitwidth)
 
     
 # Inherit from Function

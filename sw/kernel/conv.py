@@ -171,6 +171,10 @@ class HUBConv2d(torch.nn.Conv2d):
         
         # rounding mode
         self.rounding = rounding
+        
+        self.rshift_input = None
+        self.rshift_wght = None
+        self.rshift_output = None
     
     @autocast()
     def forward(self, input):
@@ -188,9 +192,9 @@ class HUBConv2d(torch.nn.Conv2d):
                 input_max_int = input_max_int.ceil()
                 wght_max_int = wght_max_int.ceil()
 
-            rshift_input = input_max_int - self.bitwidth
-            rshift_wght = wght_max_int - self.bitwidth
-            rshift_output = self.bitwidth - input_max_int - wght_max_int
+            self.rshift_input = input_max_int - self.bitwidth
+            self.rshift_wght = wght_max_int - self.bitwidth
+            self.rshift_output = self.bitwidth - self.input_max_int - self.wght_max_int
             
             # all data are in NCHW
             output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
@@ -201,7 +205,7 @@ class HUBConv2d(torch.nn.Conv2d):
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size(0), -1)
-        mm_out = HUBLinearFunction.apply(input_reshape, weight, None, rshift_input, rshift_wght, rshift_output, self.cycle, self.bitwidth, self.wght_map)
+        mm_out = HUBLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
@@ -255,26 +259,37 @@ class FxpConv2d(torch.nn.Conv2d):
         
         # rounding mode
         self.rounding = rounding
+        
+        self.rshift_input = None
+        self.rshift_wght = None
+        self.rshift_output = None
     
     @autocast()
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
         with torch.no_grad():
-            input_max_int = input.abs().max().log2()
-            wght_max_int = self.weight.abs().max().log2()
-            if self.rounding == "round":
-                input_max_int = input_max_int.round()
-                wght_max_int = wght_max_int.round()
-            elif self.rounding == "floor":
-                input_max_int = input_max_int.floor()
-                wght_max_int = wght_max_int.floor()
-            elif self.rounding == "ceil":
-                input_max_int = input_max_int.ceil()
-                wght_max_int = wght_max_int.ceil()
-
-            rshift_input = input_max_int - self.bitwidth
-            rshift_wght = wght_max_int - self.bitwidth
-            rshift_output = 0 - rshift_input - rshift_wght
+            if self.rshift_input is None:
+                input_max_int = input.abs().max().log2()
+                if self.rounding == "round":
+                    input_max_int = input_max_int.round()
+                elif self.rounding == "floor":
+                    input_max_int = input_max_int.floor()
+                elif self.rounding == "ceil":
+                    input_max_int = input_max_int.ceil()
+                self.rshift_input = input_max_int - self.bitwidth
+            
+            if self.rshift_wght is None:
+                wght_max_int = self.weight.abs().max().log2()
+                if self.rounding == "round":
+                    wght_max_int = wght_max_int.round()
+                elif self.rounding == "floor":
+                    wght_max_int = wght_max_int.floor()
+                elif self.rounding == "ceil":
+                    wght_max_int = wght_max_int.ceil()
+                self.rshift_wght = wght_max_int - self.bitwidth
+                
+            if self.rshift_output is None:
+                self.rshift_output = 0 - self.rshift_input - self.rshift_wght
             
             # all data are in NCHW
             output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
@@ -285,7 +300,7 @@ class FxpConv2d(torch.nn.Conv2d):
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size(0), -1)
-        mm_out = FxpLinearFunction.apply(input_reshape, weight, None, rshift_input, rshift_wght, rshift_output, self.max_abs, self.bitwidth)
+        mm_out = FxpLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs, self.bitwidth)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
