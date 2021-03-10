@@ -205,7 +205,7 @@ class HUBConv2d(torch.nn.Conv2d):
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size(0), -1)
-        mm_out = HUBLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
+        mm_out = HUBLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.wght_map)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
@@ -233,6 +233,8 @@ class FxpConv2d(torch.nn.Conv2d):
                  binary_weight=None, 
                  binary_bias=None, 
                  bitwidth=8,
+                 keep_res="input", # keep the resolution of input/output
+                 more_res="input", # assign more resolution to input/weight
                  rounding="floor"):
         super(FxpConv2d, self).__init__(in_channels, 
                                             out_channels, 
@@ -252,10 +254,27 @@ class FxpConv2d(torch.nn.Conv2d):
             self.bias.data = binary_bias
             
         # bitwidth of abs
-        self.bitwidth = bitwidth - 1
+        if isinstance(bitwidth, tuple):
+            self.bw_input, self.bw_wght = (bitwidth[0]-1, bitwidth[1]-1)
+        else:
+            if keep_res == "input":
+                self.bw_input, self.bw_wght = (bitwidth-1, bitwidth-1)
+            elif keep_res == "output":
+                if bitwidth % 2 == 0:
+                    self.bw_input, self.bw_wght = (int(bitwidth/2 - 1), int(bitwidth/2 - 1))
+                else:
+                    if more_res == "input":
+                        self.bw_input, self.bw_wght = (int((bitwidth+1)/2 - 1), int((bitwidth-1)/2 - 1))
+                    elif more_res == "weight":
+                        self.bw_input, self.bw_wght = (int((bitwidth-1)/2 - 1), int((bitwidth+1)/2 - 1))
+                    else:
+                        raise ValueError("more_res should be either 'input' or 'weight' when bitwidth is not a tuple and keep_res is 'output'.")
+            else:
+                raise ValueError("keep_res should be either 'input' or 'output' when bitwidth is not a tuple.")
         
         # max abs value
-        self.max_abs = 2**self.bitwidth
+        self.max_abs_input = 2**self.bw_input
+        self.max_abs_wght = 2**self.bw_wght
         
         # rounding mode
         self.rounding = rounding
@@ -276,7 +295,7 @@ class FxpConv2d(torch.nn.Conv2d):
                     input_max_int = input_max_int.floor()
                 elif self.rounding == "ceil":
                     input_max_int = input_max_int.ceil()
-                self.rshift_input = input_max_int - self.bitwidth
+                self.rshift_input = input_max_int - self.bw_input
             
             if self.rshift_wght is None:
                 wght_max_int = self.weight.abs().max().log2()
@@ -286,7 +305,7 @@ class FxpConv2d(torch.nn.Conv2d):
                     wght_max_int = wght_max_int.floor()
                 elif self.rounding == "ceil":
                     wght_max_int = wght_max_int.ceil()
-                self.rshift_wght = wght_max_int - self.bitwidth
+                self.rshift_wght = wght_max_int - self.bw_wght
                 
             if self.rshift_output is None:
                 self.rshift_output = 0 - self.rshift_input - self.rshift_wght
@@ -300,7 +319,7 @@ class FxpConv2d(torch.nn.Conv2d):
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size(0), -1)
-        mm_out = FxpLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs, self.bitwidth)
+        mm_out = FxpLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs_input, self.max_abs_wght)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))

@@ -831,7 +831,7 @@ class HUBLinear(torch.nn.Linear):
             self.rshift_wght = wght_max_int - self.bitwidth
             self.rshift_output = self.bitwidth - input_max_int - wght_max_int
         
-        return HUBLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.bitwidth, self.wght_map)
+        return HUBLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.wght_map)
 
     
 # Inherit from Function
@@ -845,7 +845,6 @@ class HUBLinearFunction(torch.autograd.Function):
                 rshift_wght=3, 
                 rshift_output=3, 
                 cycle=128, 
-                bitwidth=7, 
                 wght_map=None):
         ctx.save_for_backward(input, weight, bias)
 
@@ -914,7 +913,7 @@ class HUBLinearFunction(torch.autograd.Function):
         if bias is not None and ctx.needs_input_grad[2]:
             grad_bias = grad_output.sum(0)
 
-        return grad_input, grad_weight, grad_bias, None, None, None, None, None, None
+        return grad_input, grad_weight, grad_bias, None, None, None, None, None
     
     
 class FxpLinear(torch.nn.Linear):
@@ -932,7 +931,9 @@ class FxpLinear(torch.nn.Linear):
                  bias=True, 
                  binary_weight=None, 
                  binary_bias=None, 
-                 bitwidth=8,
+                 bitwidth=8, 
+                 keep_res="input", # keep the resolution of input/output
+                 more_res="input", # assign more resolution to input/weight
                  rounding="floor"):
         super(FxpLinear, self).__init__(in_features, out_features, bias)
         
@@ -944,10 +945,27 @@ class FxpLinear(torch.nn.Linear):
             self.bias.data = binary_bias
         
         # bitwidth of abs
-        self.bitwidth = bitwidth - 1
+        if isinstance(bitwidth, tuple):
+            self.bw_input, self.bw_wght = (bitwidth[0]-1, bitwidth[1]-1)
+        else:
+            if keep_res == "input":
+                self.bw_input, self.bw_wght = (bitwidth-1, bitwidth-1)
+            elif keep_res == "output":
+                if bitwidth % 2 == 0:
+                    self.bw_input, self.bw_wght = (int(bitwidth/2 - 1), int(bitwidth/2 - 1))
+                else:
+                    if more_res == "input":
+                        self.bw_input, self.bw_wght = (int((bitwidth+1)/2 - 1), int((bitwidth-1)/2 - 1))
+                    elif more_res == "weight":
+                        self.bw_input, self.bw_wght = (int((bitwidth-1)/2 - 1), int((bitwidth+1)/2 - 1))
+                    else:
+                        raise ValueError("more_res should be either 'input' or 'weight' when bitwidth is not a tuple and keep_res is 'output'.")
+            else:
+                raise ValueError("keep_res should be either 'input' or 'output' when bitwidth is not a tuple.")
         
         # max abs value
-        self.max_abs = 2**self.bitwidth
+        self.max_abs_input = 2**self.bw_input
+        self.max_abs_wght = 2**self.bw_wght
         
         # rounding mode
         self.rounding = rounding
@@ -968,7 +986,7 @@ class FxpLinear(torch.nn.Linear):
                     input_max_int = input_max_int.floor()
                 elif self.rounding == "ceil":
                     input_max_int = input_max_int.ceil()
-                self.rshift_input = input_max_int - self.bitwidth
+                self.rshift_input = input_max_int - self.bw_input
             
             if self.rshift_wght is None:
                 wght_max_int = self.weight.abs().max().log2()
@@ -978,12 +996,12 @@ class FxpLinear(torch.nn.Linear):
                     wght_max_int = wght_max_int.floor()
                 elif self.rounding == "ceil":
                     wght_max_int = wght_max_int.ceil()
-                self.rshift_wght = wght_max_int - self.bitwidth
+                self.rshift_wght = wght_max_int - self.bw_wght
                 
             if self.rshift_output is None:
                 self.rshift_output = 0 - self.rshift_input - self.rshift_wght
         
-        return FxpLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs, self.bitwidth)
+        return FxpLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs_input, self.max_abs_wght)
 
     
 # Inherit from Function
@@ -996,27 +1014,29 @@ class FxpLinearFunction(torch.autograd.Function):
                 rshift_input=3, 
                 rshift_wght=3, 
                 rshift_output=3, 
-                max_abs=128, 
-                bitwidth=7):
+                max_abs_input=128, 
+                max_abs_wght=128):
         ctx.save_for_backward(input, weight, bias)
         
-        bot = 0 - max_abs
-        top = max_abs - 1
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # input preparation
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # round input to (bot, top)
+        bot_input = 0 - max_abs_input
+        top_input = max_abs_input - 1
         input_round = torch.empty(0, device=input.device)
         torch.round(input >> rshift_input, out=input_round)
-        torch.clamp(input_round.unsqueeze_(1), bot, top, out=input_round)
+        torch.clamp(input_round.unsqueeze_(1), bot_input, top_input, out=input_round)
         
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # weight preparation
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # round input to (bot, top)
+        bot_wght = 0 - max_abs_wght
+        top_wght = max_abs_wght - 1
         wght_round = torch.empty(0, device=input.device)
         torch.round(weight >> rshift_wght, out=wght_round)
-        torch.clamp(wght_round.unsqueeze_(0), bot, top, out=wght_round)
+        torch.clamp(wght_round.unsqueeze_(0), bot_wght, top_wght, out=wght_round)
         
         output = torch.empty(0, device=weight.device)
         torch.matmul(input_round, wght_round.transpose(1, 2), out=output)
