@@ -914,7 +914,7 @@ class HUBLinearFunction(torch.autograd.Function):
             grad_bias = grad_output.sum(0)
 
         return grad_input, grad_weight, grad_bias, None, None, None, None, None
-    
+
     
 class FxpLinear(torch.nn.Linear):
     """
@@ -936,7 +936,7 @@ class FxpLinear(torch.nn.Linear):
                  more_res="input", # assign more resolution to input/weight
                  rounding="floor"):
         super(FxpLinear, self).__init__(in_features, out_features, bias)
-        
+
         # weight and bias
         if binary_weight is not None:
             self.weight.data = binary_weight

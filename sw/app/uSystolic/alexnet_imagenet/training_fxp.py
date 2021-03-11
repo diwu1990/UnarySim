@@ -34,6 +34,10 @@ parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18',
                         ' (default: resnet18)')
 parser.add_argument('--usys', dest='usys', action='store_true',
                     help='use uSystolic array')
+parser.add_argument('--ores', dest='ores', action='store_true',
+                    help='set output resolution')
+parser.add_argument('--wmres', dest='wmres', action='store_true',
+                    help='set more resolution to w')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', default=30, type=int, metavar='N',
@@ -158,10 +162,10 @@ def main_worker(gpu, ngpus_per_node, args):
     if args.usys:
         if args.pretrained:
             print("=> using pre-trained model '{}'".format(args.arch))
-            model = alexnet_fxp.alexnet(pretrained=True, bitwidth=bitwidth)
+            model = alexnet_fxp.alexnet(pretrained=True, bitwidth=bitwidth, keep_res="output" if args.ores else "input", more_res="weight" if args.wmres else "input")
         else:
             print("=> creating model '{}'".format(args.arch))
-            model = alexnet_fxp.alexnet(pretrained=False, bitwidth=bitwidth)
+            model = alexnet_fxp.alexnet(pretrained=False, bitwidth=bitwidth, keep_res="output" if args.ores else "input", more_res="weight" if args.wmres else "input")
     else:
         if args.pretrained:
             print("=> using pre-trained model '{}'".format(args.arch))

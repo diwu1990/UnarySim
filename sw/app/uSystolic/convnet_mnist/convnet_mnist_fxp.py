@@ -15,18 +15,18 @@ opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 urllib.request.install_opener(opener)
 
 class Net(nn.Module):
-    def __init__(self, state_dict=None, bitwidth=None, sa=True):
+    def __init__(self, state_dict=None, bitwidth=None, sa=True, keep_res="input", more_res="input"):
         super(Net, self).__init__()
         if sa is True:
             param_list = [param for param in state_dict]
             print("load model parameters: ", param_list)
             state_list = [state_dict[param] for param in param_list]
-            self.conv1 = FxpConv2d(1, 32, 3, 1, binary_weight=state_list[0], binary_bias=state_list[1], bitwidth=bitwidth[0])
-            self.conv2 = FxpConv2d(32, 64, 3, 1, binary_weight=state_list[2], binary_bias=state_list[3], bitwidth=bitwidth[1])
+            self.conv1 = FxpConv2d(1, 32, 3, 1, binary_weight=state_list[0], binary_bias=state_list[1], bitwidth=bitwidth[0], keep_res=keep_res, more_res=more_res)
+            self.conv2 = FxpConv2d(32, 64, 3, 1, binary_weight=state_list[2], binary_bias=state_list[3], bitwidth=bitwidth[1], keep_res=keep_res, more_res=more_res)
             self.dropout1 = nn.Dropout(0.25)
             self.dropout2 = nn.Dropout(0.5)
-            self.fc1 = FxpLinear(9216, 128, binary_weight=state_list[4], binary_bias=state_list[5], bitwidth=bitwidth[2])
-            self.fc2 = FxpLinear(128, 10, binary_weight=state_list[6], binary_bias=state_list[7], bitwidth=bitwidth[3])
+            self.fc1 = FxpLinear(9216, 128, binary_weight=state_list[4], binary_bias=state_list[5], bitwidth=bitwidth[2], keep_res=keep_res, more_res=more_res)
+            self.fc2 = FxpLinear(128, 10, binary_weight=state_list[6], binary_bias=state_list[7], bitwidth=bitwidth[3], keep_res=keep_res, more_res=more_res)
         else:
             self.conv1 = nn.Conv2d(1, 32, 3, 1)
             self.conv2 = nn.Conv2d(32, 64, 3, 1)
@@ -112,6 +112,10 @@ def main():
                         help='how many batches to wait before logging training status')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
+    parser.add_argument('--ores', dest='ores', action='store_true',
+                        help='set output resolution')
+    parser.add_argument('--wmres', dest='wmres', action='store_true',
+                        help='set more resolution to w')
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -142,7 +146,7 @@ def main():
     checkpoint = torch.load("mnist_cnn.pt", map_location=device)
     bitwidth_list = [args.bitwidth for x in range(4)]
     print("test sa model without retraining")
-    model = Net(state_dict=checkpoint, bitwidth=bitwidth_list, sa=True).to(device)
+    model = Net(state_dict=checkpoint, bitwidth=bitwidth_list, sa=True, keep_res="output" if args.ores else "input", more_res="weight" if args.wmres else "input").to(device)
     test(model, device, test_loader)
     
     print("test pretrained fp model")

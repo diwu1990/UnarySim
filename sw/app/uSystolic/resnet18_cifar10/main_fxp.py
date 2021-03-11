@@ -20,6 +20,10 @@ def main():
     parser.add_argument('--bitwidth', default=16, type=int, help='mac bitwidth')
     parser.add_argument('--resume', '-r', action='store_true',
                         help='resume from checkpoint')
+    parser.add_argument('--ores', dest='ores', action='store_true',
+                        help='set output resolution')
+    parser.add_argument('--wmres', dest='wmres', action='store_true',
+                        help='set more resolution to w')
     args = parser.parse_args()
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -55,7 +59,7 @@ def main():
 
     # Model
     print('==> Building model..')
-    net = resnet18_fxp.ResNet18(bitwidth=args.bitwidth)
+    net = resnet18_fxp.ResNet18(bitwidth=args.bitwidth, keep_res="output" if args.ores else "input", more_res="weight" if args.wmres else "input")
     net = net.to(device)
     if device == 'cuda':
         net = torch.nn.DataParallel(net)

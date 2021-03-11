@@ -215,7 +215,7 @@ class HUBConv2d(torch.nn.Conv2d):
         else:
             return output + self.bias.view([1, self.bias.size()[0], 1, 1])
 
-        
+
 class FxpConv2d(torch.nn.Conv2d):
     """
     this module is the 2d conv layer, with binary input and binary output
@@ -245,7 +245,7 @@ class FxpConv2d(torch.nn.Conv2d):
                                             groups, 
                                             bias, 
                                             padding_mode)
-        
+
         # weight and bias
         if binary_weight is not None:
             self.weight.data = binary_weight
