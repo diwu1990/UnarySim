@@ -24,3 +24,4 @@ sw/test/test_random.ipynb
 *.tar
 *.pt
 *.pth
+sw/app/uBrain/raw_data/
