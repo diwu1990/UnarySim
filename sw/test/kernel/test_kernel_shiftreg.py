@@ -1,8 +1,4 @@
 # %%
-%load_ext autoreload
-%autoreload 2
-
-# %%
 import torch
 from UnarySim.sw.kernel.shiftreg import ShiftReg
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen

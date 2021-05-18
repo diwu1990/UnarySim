@@ -1,8 +1,4 @@
 # %%
-%load_ext autoreload
-%autoreload 2
-
-# %%
 import torch
 from UnarySim.sw.kernel.sign import UnarySign
 from UnarySim.sw.kernel.abs import UnaryAbs
