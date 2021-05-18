@@ -19,3 +19,4 @@ sw/app/mlp/saved_model_state_dict_8_bitwidth_8192_layerwidth_0.0001_lr
 sw/app/mlp/saved_model_state_dict_8_clamp
 sw/app/mlp/saved_model_state_dict_8_no_clamp
 sw/app/mlp/saved_model_state_dict_8_no_clamp_new
+*.pkl
