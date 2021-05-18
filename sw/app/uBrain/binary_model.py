@@ -171,7 +171,7 @@ class Cascade_CNN_RNN_Binary(nn.Module):
 
         # RNN
         self.grucell6 = HardGRUCell(fc_sz, rnn_hidden_sz, bias=True, hard=rnn_hard)
-        self.gru6 = nn.GRU(fc_sz, rnn_hidden_sz, num_layers=2, dropout=1-keep_prob)
+        # self.gru6 = nn.GRU(fc_sz, rnn_hidden_sz)
 
         # MLP
         self.fc7 = nn.Linear(rnn_hidden_sz, fc_sz, bias=True)
@@ -196,12 +196,12 @@ class Cascade_CNN_RNN_Binary(nn.Module):
 
         # RNN
         self.rnn_out = []
-        # hx = torch.zeros(self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
-        # for i in range(self.rnn_win_sz):
-        #     hx = self.grucell6(self.fc4_act_o[i], hx)
-        #     self.rnn_out.append(hx)
-        hx = torch.zeros(2, self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
-        self.rnn_out, _ = self.gru6(self.fc4_act_o, hx)
+        hx = torch.zeros(self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
+        for i in range(self.rnn_win_sz):
+            hx = self.grucell6(self.fc4_act_o[i], hx)
+            self.rnn_out.append(hx)
+        # hx = torch.zeros(1, self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
+        # self.rnn_out, _ = self.gru6(self.fc4_act_o, hx)
 
         # MLP
         self.fc7_i          = self.rnn_out[-1]
