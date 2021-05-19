@@ -12,7 +12,8 @@ The components included in UnarySim belong to three categories, including
 1. **Stream Manipulation**
 2. **Computing Kernel**
 3. **Performance Metric**
-Among those, components in **Stream Manipulation** and **Unary Computing Kernel** can physically exist in real hardware, while those in **Performance Metric** are virtually for performance analysis.
+
+Among those, components in **Stream Manipulation** and **Computing Kernel** can physically exist in real hardware, while those in **Performance Metric** are virtually for performance analysis.
 
 ### Prerequisite
 1. PyTorch (Version >= 1.7)
@@ -63,7 +64,7 @@ This directory contains the components for **Stream Manipulation**, which manipu
 | Uni2Bi               | Mar 31, 2020 | RC       | Uni      | [13]      | <ul><li>[x] </li></ul> |
 
 #### _'kernel'_ subdirectory
-This directory contains the components for **Unary Computing Kernel**, which take bitstreams as inputs and perform actual unary computation. The supported kernels are listed as follows.
+This directory contains the components for **Computing Kernel**, which take bitstreams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 The components currently supported or to be implemented are listed in the table below.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
@@ -108,10 +109,10 @@ The components currently supported or to be implemented are listed in the table 
 This directory contains simple testing examples for above components.
 
 #### _'app'_ subdirectory
-This directory contains applications implemented using UnarySim.
+This directory contains several applications implemented using this UnarySim.
 
 #### _'hw'_ subdirectory
-This folder includes the hardware implementation of components in **Stream Manipulation** and **Unary Computing Kernel**, and is still in progress.
+This directory includes the hardware implementation of components in **Stream Manipulation** and **Computing Kernel**, and is still in progress.
 
 ## Reference
 [1] V. T. Lee, A. Alaghi, J. P. Hayes, V. Sathe, and L. Ceze, "Energy-efficient hybrid stochastic-binary neural networks for near-sensor computing", in _DATE_ 2017.
