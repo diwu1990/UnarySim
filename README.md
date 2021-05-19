@@ -24,7 +24,7 @@ Among those, components in **Stream Manipulation** and **Computing Kernel** can 
 UnarySim has five categories of data, with each having default data type as _**'torch.float'**_ in PyTorch.
 
 1. **Source Data**: 
-The input source data in unary computing need to be ranging from _0_ to _1_ in **unipolar** format, or from _-1_ to _1_ in **bipolar** format. 
+The input source data in unary computing need to be ranging from _0_ to _1_ in **unipolar** format (Uni), or from _-1_ to _1_ in **bipolar** format (Bi). 
 The input source data (_source_) is scaled to a certain range (as in _unipolar/bipolar_ format) from the raw data (_raw_) with respect to its maximum.
 An example scaling is _source = raw / max(raw)_.
 
@@ -34,7 +34,8 @@ To compare them, source data requires to scale up by the _bitwidth_ of random nu
 At each cycle, if _round(source * 2^bitwidth) > rand_, a bit of logic 1 in the stream will be generated; otherwise, a bit of logic 0 will be generated.
 
 3. **Stream**: 
-At each cycle, the bitstreams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation.
+At each cycle, the bitstreams physically flow through cascaded logic kernels, and they count for most of the memory space during simulation. 
+The bitstream can leverage either rate coding (RC) or temporal coding (TC).
 
 4. **Buffer**: 
 Inside each logic kernel, there may exist buffers, like counters or shift registers, to compute future data by monitoring the past bitstreams. 
