@@ -8,6 +8,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from torch.nn.modules import dropout
+from scipy.stats import truncnorm
+
+
+def truncated_normal(t, mean=0.0, std=0.01):
+    torch.nn.init.normal_(t, mean=mean, std=std)
+    while True:
+        cond = torch.logical_or(t < mean - 2*std, t > mean + 2*std)
+        if torch.sum(cond):
+            t = torch.where(cond, torch.nn.init.normal_(torch.ones(t.shape), mean=mean, std=std), t)
+        else:
+            break
+    return t
 
 
 class ScaleReLU(nn.Hardtanh):
@@ -168,16 +180,39 @@ class Cascade_CNN_RNN_Binary(nn.Module):
             self.conv3_act  = nn.ReLU6()
             self.fc4_act    = nn.ReLU6()
             self.fc7_act    = nn.ReLU6()
+        elif linear_act.lower() == "elu":
+            self.conv1_act  = nn.ELU()
+            self.conv2_act  = nn.ELU()
+            self.conv3_act  = nn.ELU()
+            self.fc4_act    = nn.ELU()
+            self.fc7_act    = nn.ELU()
 
         # RNN
         self.grucell6 = HardGRUCell(fc_sz, rnn_hidden_sz, bias=True, hard=rnn_hard)
-        # self.gru6 = nn.GRU(fc_sz, rnn_hidden_sz)
+        self.gru6 = nn.GRU(fc_sz, rnn_hidden_sz, num_layers=2, dropout=1-keep_prob)
 
         # MLP
         self.fc7 = nn.Linear(rnn_hidden_sz, fc_sz, bias=True)
         self.fc7_drop = nn.Dropout(p=1-keep_prob)
         self.fc8 = nn.Linear(fc_sz, num_class, bias=True)
-        self.sm = nn.Softmax(dim=1)
+
+        self.init_weight()
+
+    
+    def init_weight(self):
+        self.conv1.weight.data = truncated_normal(self.conv1.weight, mean=0, std=0.1)
+        self.conv1.bias.data.fill_(0.1)
+        self.conv2.weight.data = truncated_normal(self.conv2.weight, mean=0, std=0.1)
+        self.conv2.bias.data.fill_(0.1)
+        self.conv3.weight.data = truncated_normal(self.conv3.weight, mean=0, std=0.1)
+        self.conv3.bias.data.fill_(0.1)
+        self.fc4.weight.data = truncated_normal(self.fc4.weight, mean=0, std=0.1)
+        self.fc4.bias.data.fill_(0.1)
+        self.fc7.weight.data = truncated_normal(self.fc7.weight, mean=0, std=0.1)
+        self.fc7.bias.data.fill_(0.1)
+        self.fc8.weight.data = truncated_normal(self.fc8.weight, mean=0, std=0.1)
+        self.fc8.bias.data.fill_(0.1)
+
 
     def forward(self, input):
         # CNN
@@ -188,20 +223,20 @@ class Cascade_CNN_RNN_Binary(nn.Module):
         self.conv2_act_o    = self.conv2_act(self.conv2_o)
         self.conv3_o        = self.conv3(self.conv2_act_o)
         self.conv3_act_o    = self.conv3_act(self.conv3_o)
-        self.conv3_act_o    = self.conv3_act_o.view(self.conv3_act_o.shape[0], -1)
-        self.fc4_o          = self.fc4(self.conv3_act_o)
+        self.fc4_i          = self.conv3_act_o.view(self.conv3_act_o.shape[0], -1)
+        self.fc4_o          = self.fc4(self.fc4_i)
         self.fc4_act_o      = self.fc4_act(self.fc4_o)
         self.fc4_act_o      = self.fc4_drop(self.fc4_act_o)
         self.fc4_act_o      = self.fc4_act_o.view(self.rnn_win_sz, -1, self.fc_sz)
 
         # RNN
         self.rnn_out = []
-        hx = torch.zeros(self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
-        for i in range(self.rnn_win_sz):
-            hx = self.grucell6(self.fc4_act_o[i], hx)
-            self.rnn_out.append(hx)
-        # hx = torch.zeros(1, self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
-        # self.rnn_out, _ = self.gru6(self.fc4_act_o, hx)
+        # hx = torch.zeros(self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
+        # for i in range(self.rnn_win_sz):
+        #     hx = self.grucell6(self.fc4_act_o[i], hx)
+        #     self.rnn_out.append(hx)
+        hx = torch.zeros(2, self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
+        self.rnn_out, _ = self.gru6(self.fc4_act_o, hx)
 
         # MLP
         self.fc7_i          = self.rnn_out[-1]
@@ -209,5 +244,4 @@ class Cascade_CNN_RNN_Binary(nn.Module):
         self.fc7_act_o      = self.fc7_act(self.fc7_o)
         self.fc7_act_o      = self.fc7_drop(self.fc7_act_o)
         self.fc8_o          = self.fc8(self.fc7_act_o)
-        output              = self.sm(self.fc8_o)
-        return output
+        return self.fc8_o

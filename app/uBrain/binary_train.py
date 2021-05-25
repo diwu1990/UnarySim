@@ -23,16 +23,18 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch import Tensor
 from torch.utils.data import TensorDataset, DataLoader
+# from torchsummaryX import summary
 from torchinfo import summary
+import matplotlib.pyplot as plt
 
 from binary_model import Cascade_CNN_RNN_Binary
 
 
 input_sz=(10, 11) # size of each window
-linear_act="relu" # activation in CNN
+linear_act="elu" # activation in CNN
 cnn_chn=32 # channle in CNN
 cnn_kn_sz=3 # kernel (height, width) in CNN
-cnn_padding=0 # kernel (height, width) in CNN
+cnn_padding=1 # kernel (height, width) in CNN
 fc_sz=1024 # fc size in CNN
 rnn_win_sz=10 # window size in RNN
 rnn_hidden_sz=1024 # hidden size in RNN
@@ -43,10 +45,11 @@ bin_train_batch_sz=1024 # train batch size for binary model
 bin_test_batch_sz=1024 # test batch size for binary model
 training_epochs=300 # train epoch
 pin_memory=True
-non_blocking=True
-lr=1e-4
-enable_penalty=False
+non_blocking=False
+lr=3e-4
+enable_penalty=True
 lambda_loss_amount=0.0005
+win_overlap=5
 np.random.seed(33)
 
 
@@ -58,39 +61,46 @@ if torch.cuda.is_available():
     torch.backends.cudnn.benchmark = True
     print("Using CUDA...")
 
-
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # dataset configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("******************** Dataset Configuration Start ********************")
 dataset_dir = "/mnt/ssd1/data/bci/preprocessed_data/"
 
-with open(dataset_dir+"preprocessed_1_108_shuffle_dataset_3D_win_10.pkl", "rb") as fp:
+with open(dataset_dir+"preprocessed_1_108_shuffle_dataset_3D_win_10_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
       datasets = pickle.load(fp)
-with open(dataset_dir+"preprocessed_1_108_shuffle_labels_3D_win_10.pkl", "rb") as fp:
+with open(dataset_dir+"preprocessed_1_108_shuffle_labels_3D_win_10_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
       labels = pickle.load(fp)
 
-datasets = datasets.reshape(len(datasets), rnn_win_sz, input_sz[0], input_sz[1], 1)
-one_hot_labels = np.array(list(pd.get_dummies(labels)))
+datasets = datasets.reshape(len(datasets), rnn_win_sz, input_sz[0], input_sz[1])
 labels = np.asarray(pd.get_dummies(labels), dtype = np.int8)
+print(labels[0:15])
 
 split = np.random.rand(len(datasets)) < 0.75
+
 
 train_x = datasets[split]
 train_y = labels[split]
 
 train_sample = len(train_x)
 print("# of train samples:", train_sample)
+
 print(train_x.max())
 print(train_x.min())
 print(np.abs(train_x).mean())
 print((np.sum(train_x > 1) + np.sum(train_x < -1))/train_sample/10/11/10)
 
-train_x_tensor = torch.Tensor(train_x).squeeze(-1)
-train_y_tensor = torch.argmax(torch.Tensor(train_y), dim=1)
-print(train_x_tensor.shape)
-print(train_y_tensor.shape)
+print(train_x[0].shape)
+strs=""
+for x in range(10):
+    for y in range(10):
+        for z in range(11):
+            strs += str(train_x[0, x, y, z, 0])+", "
+print(strs)
+
+train_x_tensor = torch.Tensor(train_x)
+train_y_tensor = torch.Tensor(train_y)
+
 train_dataset = TensorDataset(train_x_tensor, train_y_tensor)
 train_dataloader = DataLoader(
                                 train_dataset, 
@@ -107,8 +117,8 @@ test_y = labels[~split]
 test_sample = len(test_x)
 print("# of test samples:", test_sample)
 
-test_x_tensor = torch.Tensor(test_x).squeeze(-1)
-test_y_tensor = torch.argmax(torch.Tensor(test_y), dim=1)
+test_x_tensor = torch.Tensor(test_x)
+test_y_tensor = torch.Tensor(test_y)
 
 test_dataset = TensorDataset(test_x_tensor, test_y_tensor)
 test_dataloader = DataLoader(
@@ -121,6 +131,7 @@ test_dataloader = DataLoader(
                                 )
 
 print("********************* Dataset Configuration End *********************\n")
+sys.exit()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # model configuration
@@ -138,6 +149,7 @@ model = Cascade_CNN_RNN_Binary(input_sz=input_sz, # size of each window
                                 keep_prob=keep_prob, # prob for drop out after each FC
                                 num_class=num_class) # output size
 model.to(device)
+# summary(model, torch.zeros((3, 1, rnn_win_sz, input_sz[0], input_sz[1])).to(device))
 summary(model, (3, 1, rnn_win_sz, input_sz[0], input_sz[1]))
 print("********************** Model Configuration End **********************\n")
 
@@ -169,9 +181,9 @@ for epoch in range(training_epochs):
         # forward
         outputs = model(inputs)
         if enable_penalty is True:
-            loss = criterion(outputs, labels) + lambda_loss_amount * criterion0(outputs, labels)
+            loss = criterion(outputs, torch.argmax(labels, dim=1)) + lambda_loss_amount * criterion0(outputs, labels)
         else:
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, torch.argmax(labels, dim=1))
         forward_time += time.time() - start_time
         
         start_time = time.time()
@@ -200,8 +212,8 @@ for epoch in range(training_epochs):
             outputs = model(inputs)
             forward_time += time.time() - start_time
             _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            total += torch.argmax(labels, dim=1).size(0)
+            correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
     
     print("\tTest load: %.2f sec; forward: %.2f sec; backward: %.2f sec" %(load_time, forward_time, backward_time))
 
