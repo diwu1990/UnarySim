@@ -95,7 +95,7 @@ strs=""
 for x in range(10):
     for y in range(10):
         for z in range(11):
-            strs += str(train_x[0, x, y, z, 0])+", "
+            strs += str(train_x[0, x, y, z])+", "
 print(strs)
 
 train_x_tensor = torch.Tensor(train_x)
