@@ -3,16 +3,6 @@ from scipy.stats import truncnorm
 import matplotlib.pyplot as plt
 
 
-def truncated_normal_(tensor, mean=0, std=1):
-    size = tensor.shape
-    tmp = tensor.new_empty(size + (4,)).normal_()
-    valid = (tmp < 2*std) & (tmp > -2*std)
-    ind = valid.max(-1, keepdim=True)[1]
-    tensor.data.copy_(tmp.gather(-1, ind).squeeze(-1))
-    tensor.data.mul_(std).add_(mean)
-    return tensor
-
-
 def truncated_normal(t, mean=0.0, std=0.01):
     torch.nn.init.normal_(t, mean=mean, std=std)
     while True:
@@ -24,24 +14,29 @@ def truncated_normal(t, mean=0.0, std=0.01):
     return t
     
 
-fig, ax = plt.subplots(1, 1)
-
-
 def test_truncnorm():
-    a, b = -2, 2
-    size = 10000000
-    r = truncnorm.rvs(a, b, size=size)
-    ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="scipy")
+    fig, ax = plt.subplots(1, 1)
+
+    size = 1000000
+
+    # a, b = -2, 2
+    # r = truncnorm.rvs(a, b, size=size)
+    # ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="scipy")
 
     tensor = torch.zeros(size)
-    truncated_normal_(tensor, std=1)
+    tensor = truncated_normal(tensor, std=0.05)
     r = tensor.numpy()
-    ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="custom")
+    ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="truncated_normal")
 
-    tensor = torch.zeros(size)
-    tensor = truncated_normal(tensor, std=1)
-    r = tensor.numpy()
-    ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="custom2")
+    tensor = torch.zeros(int(size/1000), int(size/1000))
+    tensor = torch.nn.init.xavier_normal_(tensor)
+    r = tensor.numpy().flatten()
+    ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="xavier")
+
+    tensor = torch.zeros(int(size/1000), int(size/1000))
+    tensor = torch.nn.init.kaiming_normal_(tensor)
+    r = tensor.numpy().flatten()
+    ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="kaiming")
 
     ax.legend(loc='best', frameon=False)
     plt.show()

@@ -11,6 +11,7 @@ import pandas as pd
 import pickle
 import numpy as np
 import time
+import shutil
 
 import math
 import warnings
@@ -26,30 +27,112 @@ from torch.utils.data import TensorDataset, DataLoader
 # from torchsummaryX import summary
 from torchinfo import summary
 import matplotlib.pyplot as plt
+import argparse
 
 from binary_model import Cascade_CNN_RNN_Binary
 
+# parse input
+parser = argparse.ArgumentParser()
 
-input_sz=(10, 11) # size of each window
-linear_act="elu" # activation in CNN
-cnn_chn=32 # channle in CNN
-cnn_kn_sz=3 # kernel (height, width) in CNN
-cnn_padding=1 # kernel (height, width) in CNN
-fc_sz=1024 # fc size in CNN
-rnn_win_sz=10 # window size in RNN
-rnn_hidden_sz=1024 # hidden size in RNN
-rnn_hard=False # flag to apply HardGRUCell RNN
-keep_prob=0.5 # prob for drop out after each FC
-num_class=5 # output size
-bin_train_batch_sz=1024 # train batch size for binary model
-bin_test_batch_sz=1024 # test batch size for binary model
-training_epochs=300 # train epoch
+hpstr = "set input dataset directory"
+parser.add_argument('-idir', '--input_directory', default="/mnt/ssd1/data/bci/preprocessed_data/", type=str, help=hpstr)
+
+hpstr = "set data scaling threshold"
+parser.add_argument('-t', '--threshold', default=2., type=float, help=hpstr)
+
+hpstr = "set output model directory"
+parser.add_argument('-odir', '--output_directory', default="/home/diwu/Project/UnarySim/app/uBrain/saved_model/", type=str, help=hpstr)
+
+hpstr = "set input size for a clip"
+parser.add_argument('-i', '--input_sz', default=(10, 11), type=tuple, help=hpstr)
+
+hpstr = "set activation function of linear layers"
+parser.add_argument('-a', '--linear_act', default="scalerelu", type=str, help=hpstr)
+
+hpstr = "set cnn channel size"
+parser.add_argument('-c', '--cnn_chn', default=32, type=int, help=hpstr)
+
+hpstr = "set cnn kernel size"
+parser.add_argument('-k', '--cnn_kn_sz', default=3, type=int, help=hpstr)
+
+hpstr = "set cnn padding size"
+parser.add_argument('-p', '--cnn_padding', default=1, type=int, help=hpstr)
+
+hpstr = "set fc size"
+parser.add_argument('-f', '--fc_sz', default=1024, type=int, help=hpstr)
+
+hpstr = "set rnn type"
+parser.add_argument('-r', '--rnn', default="mgu", type=str, help=hpstr)
+
+hpstr = "set rnn window size"
+parser.add_argument('-w', '--rnn_win_sz', default=10, type=int, help=hpstr)
+
+hpstr = "set rnn hidden size"
+parser.add_argument('-hsz', '--rnn_hidden_sz', default=64, type=int, help=hpstr)
+
+hpstr = "set whether to use hard rnn activation"
+parser.add_argument('--rnn_hard', action='store_true', help=hpstr)
+
+hpstr = "set whether to use bias for all matmul"
+parser.add_argument('--bias', action='store_true', help=hpstr)
+
+hpstr = "set keep prob for dropout"
+parser.add_argument('-dp', '--keep_prob', default=0.5, type=float, help=hpstr)
+
+hpstr = "set train batch size"
+parser.add_argument('-bstrain', '--train_batch_sz', default=1024, type=int, help=hpstr)
+
+hpstr = "set train batch size"
+parser.add_argument('-bstest', '--test_batch_sz', default=2048, type=int, help=hpstr)
+
+hpstr = "set epoch"
+parser.add_argument('-e', '--epoch', default=300, type=int, help=hpstr)
+
+hpstr = "set learning rate"
+parser.add_argument('-lr', '--lr', default=1e-3, type=float, help=hpstr)
+
+hpstr = "set weight decay"
+parser.add_argument('-wd', '--weight_decay', default=0.0, type=float, help=hpstr)
+
+hpstr = "set restart iteration"
+parser.add_argument('-t0', '--t0_restart', default=50, type=int, help=hpstr)
+
+hpstr = "set window overlap"
+parser.add_argument('-ol', '--win_overlap', default=5, type=int, help=hpstr)
+
+hpstr = "set whether store model"
+parser.add_argument('--set_store', action='store_true', help=hpstr)
+
+args = parser.parse_args()
+
+dataset_dir = args.input_directory
+threshold=args.threshold
+model_dir = args.output_directory
+input_sz=args.input_sz
+linear_act=args.linear_act
+cnn_chn=args.cnn_chn
+cnn_kn_sz=args.cnn_kn_sz
+cnn_padding=args.cnn_padding
+fc_sz=args.fc_sz
+rnn=args.rnn
+rnn_win_sz=args.rnn_win_sz
+rnn_hidden_sz=args.rnn_hidden_sz
+rnn_hard=args.rnn_hard
+bias=args.bias
+keep_prob=args.keep_prob
+bin_train_batch_sz=args.train_batch_sz
+bin_test_batch_sz=args.test_batch_sz
+training_epochs=args.epoch
+lr=args.lr
+weight_decay=args.weight_decay
+t0=args.t0_restart
+win_overlap=args.win_overlap
+set_store=args.set_store
+
+num_class=5
 pin_memory=True
 non_blocking=False
-lr=3e-4
-enable_penalty=True
-lambda_loss_amount=0.0005
-win_overlap=5
+
 np.random.seed(33)
 
 
@@ -60,46 +143,36 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.backends.cudnn.benchmark = True
     print("Using CUDA...")
+else:
+    print("Using CPU...")
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # dataset configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("******************** Dataset Configuration Start ********************")
-dataset_dir = "/mnt/ssd1/data/bci/preprocessed_data/"
 
-with open(dataset_dir+"preprocessed_1_108_shuffle_dataset_3D_win_10_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
-      datasets = pickle.load(fp)
-with open(dataset_dir+"preprocessed_1_108_shuffle_labels_3D_win_10_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
-      labels = pickle.load(fp)
+with open(dataset_dir+"preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
+    datasets = pickle.load(fp)
+with open(dataset_dir+"preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
+    labels = pickle.load(fp)
+
+outlier_ratio=(np.sum(datasets > threshold) + np.sum(datasets < -threshold))/len(datasets)/10/11/10
+print("Data scaling threshold: %1.1f" % threshold)
+print("\tResultant outlier ratio: %2.3f %%" % (outlier_ratio*100))
 
 datasets = datasets.reshape(len(datasets), rnn_win_sz, input_sz[0], input_sz[1])
 labels = np.asarray(pd.get_dummies(labels), dtype = np.int8)
-print(labels[0:15])
 
 split = np.random.rand(len(datasets)) < 0.75
-
 
 train_x = datasets[split]
 train_y = labels[split]
 
 train_sample = len(train_x)
-print("# of train samples:", train_sample)
+print("# of train samples:\t", train_sample)
 
-print(train_x.max())
-print(train_x.min())
-print(np.abs(train_x).mean())
-print((np.sum(train_x > 1) + np.sum(train_x < -1))/train_sample/10/11/10)
-
-print(train_x[0].shape)
-strs=""
-for x in range(10):
-    for y in range(10):
-        for z in range(11):
-            strs += str(train_x[0, x, y, z])+", "
-print(strs)
-
-train_x_tensor = torch.Tensor(train_x)
-train_y_tensor = torch.Tensor(train_y)
+train_x_tensor = torch.Tensor(train_x).clamp(-threshold, threshold)/threshold
+train_y_tensor = torch.Tensor(train_y).clamp(-threshold, threshold)/threshold
 
 train_dataset = TensorDataset(train_x_tensor, train_y_tensor)
 train_dataloader = DataLoader(
@@ -115,10 +188,10 @@ test_x = datasets[~split]
 test_y = labels[~split]
 
 test_sample = len(test_x)
-print("# of test samples:", test_sample)
+print("# of test samples:\t", test_sample)
 
-test_x_tensor = torch.Tensor(test_x)
-test_y_tensor = torch.Tensor(test_y)
+test_x_tensor = torch.Tensor(test_x).clamp(-threshold, threshold)/threshold
+test_y_tensor = torch.Tensor(test_y).clamp(-threshold, threshold)/threshold
 
 test_dataset = TensorDataset(test_x_tensor, test_y_tensor)
 test_dataloader = DataLoader(
@@ -131,7 +204,6 @@ test_dataloader = DataLoader(
                                 )
 
 print("********************* Dataset Configuration End *********************\n")
-sys.exit()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # model configuration
@@ -143,83 +215,80 @@ model = Cascade_CNN_RNN_Binary(input_sz=input_sz, # size of each window
                                 cnn_kn_sz=cnn_kn_sz, # kernel (height, width) in CNN
                                 cnn_padding=cnn_padding, # kernel (height, width) in CNN
                                 fc_sz=fc_sz, # fc size in CNN and MLP
+                                rnn=rnn, # gru or mgu
                                 rnn_win_sz=rnn_win_sz, # window size in RNN
                                 rnn_hidden_sz=rnn_hidden_sz, # hidden size in RNN
                                 rnn_hard=rnn_hard, # flag to apply HardGRUCell RNN
+                                bias=bias, # bias of matrix mul
                                 keep_prob=keep_prob, # prob for drop out after each FC
                                 num_class=num_class) # output size
 model.to(device)
-# summary(model, torch.zeros((3, 1, rnn_win_sz, input_sz[0], input_sz[1])).to(device))
-summary(model, (3, 1, rnn_win_sz, input_sz[0], input_sz[1]))
+summary(model, (1, 1, rnn_win_sz, input_sz[0], input_sz[1]))
 print("********************** Model Configuration End **********************\n")
-
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # train
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("**************************** Train Start ****************************")
-criterion0 = nn.MSELoss()
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=lr)
+optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, t0)
+
+loss=0.0
+best_acc=0.0
+filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_ol_"+str(win_overlap)+"_t_"+str(threshold)+"_e_"+str(training_epochs)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
+iters = len(train_dataloader)
 
 for epoch in range(training_epochs):
     model.train()
     total_time = time.time()
-    load_time = 0.0
-    forward_time = 0.0
-    backward_time = 0.0
     for i, data in enumerate(train_dataloader, 0):
         # get the inputs; data is a list of [inputs, labels]
-        start_time = time.time()
         inputs, labels = data[0].to(device, non_blocking=non_blocking), data[1].to(device, non_blocking=non_blocking)
-        load_time += time.time() - start_time
-        
-        start_time = time.time()
-        # zero the parameter gradients
-        optimizer.zero_grad()
-        # forward
-        outputs = model(inputs)
-        if enable_penalty is True:
-            loss = criterion(outputs, torch.argmax(labels, dim=1)) + lambda_loss_amount * criterion0(outputs, labels)
-        else:
-            loss = criterion(outputs, torch.argmax(labels, dim=1))
-        forward_time += time.time() - start_time
-        
-        start_time = time.time()
-        # backward
-        loss.backward()
-        # optimize
-        optimizer.step()
-        backward_time += time.time() - start_time
-        
-    print("\tTrain load: %.2f sec; forward: %.2f sec; backward: %.2f sec" %(load_time, forward_time, backward_time))
-    
-    load_time = 0.0
-    forward_time = 0.0
-    backward_time = 0.0
+        optimizer.zero_grad() # zero the parameter gradients
+        outputs = model(inputs) # forward
+        loss = criterion(outputs, torch.argmax(labels, dim=1))
+        loss.backward() # backward
+        optimizer.step() # optimize
+        scheduler.step(epoch + i / iters)
+
     model.eval()
-#     model.apply(clipper)
     correct = 0
     total = 0
     with torch.no_grad():
         for data in test_dataloader:
-            start_time = time.time()
             inputs, labels = data[0].to(device, non_blocking=non_blocking), data[1].to(device, non_blocking=non_blocking)
-            load_time += time.time() - start_time
-            
-            start_time = time.time()
             outputs = model(inputs)
-            forward_time += time.time() - start_time
-            _, predicted = torch.max(outputs.data, 1)
+            predicted = torch.argmax(outputs, dim=1)
             total += torch.argmax(labels, dim=1).size(0)
             correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
-    
-    print("\tTest load: %.2f sec; forward: %.2f sec; backward: %.2f sec" %(load_time, forward_time, backward_time))
 
-    print('Train - Epoch %d, Loss: %f, Test Accuracy: %f %%' \
-          % (epoch, loss.detach().cpu().item(), 100 * correct / total))
+        # remember best acc and save checkpoint
+        acc = 100 * correct / total
+        is_best = acc > best_acc
+        best_acc = max(acc, best_acc)
+        if set_store:
+            torch.save(
+                {
+                'epoch': epoch + 1,
+                'best_acc': best_acc,
+                'state_dict': model.state_dict(),
+                'optimizer' : optimizer.state_dict(),
+                'scheduler' : scheduler.state_dict(),
+                }, 
+                model_dir+filename+'.check_point.pth.tar')
+            if is_best:
+                shutil.copyfile(model_dir+filename+'.check_point.pth.tar', model_dir+filename+'.model_best.pth.tar')
     
-    print("\tTotal: %.2f sec" %(time.time() - total_time))
+    print("Epoch %3d:\tTime: %3.3f sec;\tLR: %1.7f;\tTrain Loss: %3.3f;\tTest Accuracy: %3.3f %%" % (epoch, time.time() - total_time, optimizer.param_groups[0]["lr"], loss.detach().cpu().item(), acc))
+
+shutil.copyfile(model_dir+filename+'.model_best.pth.tar', model_dir+filename+'_acc_'+'%2.2f' % (best_acc)+'.pth.tar')
+os.remove(model_dir+filename+'.check_point.pth.tar')
+os.remove(model_dir+filename+'.model_best.pth.tar')
+
+print("Total Epoch %3d:\tFinal Train Loss: %3.3f;\tBest Test Accuracy: %3.3f %%" % (training_epochs, loss.detach().cpu().item(), best_acc))
 
 print("***************************** Train End *****************************\n")
+
+

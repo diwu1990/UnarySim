@@ -46,13 +46,13 @@ class ScaleHardsigmoid(nn.Module):
         return nn.Hardsigmoid()(x * self.scale)
 
 
-class HardGRUCell(nn.GRUCell):
+class HardGRUCell(nn.RNNCellBase):
     """
-    This is a GRUCell by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
+    This is a standard GRUCell by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
     Batch is always the dim[0].
     """
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
-        super(HardGRUCell, self).__init__(input_size, hidden_size, bias)
+        super(HardGRUCell, self).__init__(input_size, hidden_size, bias, num_chunks=3)
         self.hard = hard
         if hard == True:
             self.resetgate_sigmoid = ScaleHardsigmoid()
@@ -67,7 +67,7 @@ class HardGRUCell(nn.GRUCell):
     def reset_parameters(self):
         stdv = 1.0 / math.sqrt(self.hidden_size)
         for weight in self.parameters():
-            weight.data.uniform_(-stdv, +stdv)
+            weight.data = truncated_normal(weight, mean=0, std=stdv)
 
     def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
         self.check_forward_input(input)
@@ -99,14 +99,54 @@ class HardGRUCell(nn.GRUCell):
         return hy
 
 
-class HardGRU(nn.GRU):
+class HardMGUCell(nn.RNNCellBase):
     """
-    This is a GRU by replacing sigmoid and tanh with hardsigmoid with hardtanh.
-    TBD
+    This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
+    Batch is always the dim[0].
+    Refer to "Simplified Minimal Gated Unit Variations for Recurrent Neural Networks" and "Gate-Variants of Gated Recurrent Unit (GRU) Neural Networks" for more details.
     """
-    def __init__(self, *args, **kwargs):
-        super(HardGRU, self).__init__(*args, **kwargs)
-        raise NotImplementedError("HardGRU is not implemented yet.")
+    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
+        super(HardMGUCell, self).__init__(input_size, hidden_size, bias, num_chunks=2)
+        self.hard = hard
+        if hard == True:
+            self.forgetgate_sigmoid = ScaleHardsigmoid()
+            self.newgate_tanh = nn.Hardtanh()
+        else:
+            self.forgetgate_sigmoid = nn.Sigmoid()
+            self.newgate_tanh = nn.Tanh()
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1.0 / math.sqrt(self.hidden_size)
+        for weight in self.parameters():
+            weight.data = truncated_normal(weight, mean=0, std=stdv)
+
+    def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
+        self.check_forward_input(input)
+        if hx is None:
+            hx = torch.zeros(input.size(0), self.hidden_size, dtype=input.dtype, device=input.device)
+        self.check_forward_hidden(input, hx, '')
+        
+        gate_i = F.linear(input, self.weight_ih, self.bias_ih)
+        gate_h = F.linear(hx, self.weight_hh, self.bias_hh)
+
+        # reset, update, and new gates
+        i_f, i_n = gate_i.chunk(2, 1)
+        h_f, h_n = gate_h.chunk(2, 1)
+
+        forgetgate_in = i_f + h_f
+
+        # The resetgate/updategate are scaled additions
+        forgetgate = self.forgetgate_sigmoid(forgetgate_in)
+
+        # The newgate is the non-scaled addition of newgate_in inputs (with the product) in unary computing
+        newgate_in = i_n + (forgetgate * h_n)
+        newgate = self.newgate_tanh(newgate_in)
+
+        # this is a MUX function in unary computing
+        hy = (1 - forgetgate) * newgate + forgetgate * hx
+
+        return hy
 
 
 class Cascade_CNN_RNN_Binary(nn.Module):
@@ -120,9 +160,11 @@ class Cascade_CNN_RNN_Binary(nn.Module):
                     cnn_kn_sz=3,
                     cnn_padding=0,
                     fc_sz=1024,
+                    rnn="gru",
                     rnn_win_sz=10,
                     rnn_hidden_sz=1024,
                     rnn_hard=True,
+                    bias=True,
                     keep_prob=0.5,
                     num_class=5):
         super(Cascade_CNN_RNN_Binary, self).__init__()
@@ -130,89 +172,76 @@ class Cascade_CNN_RNN_Binary(nn.Module):
         self.fc_sz = fc_sz
         self.rnn_win_sz = rnn_win_sz
         self.rnn_hidden_sz = rnn_hidden_sz
-
+        self.bias = bias
         # CNN
-        self.conv1          = nn.Conv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=True, padding=cnn_padding)
-        self.conv2          = nn.Conv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=True, padding=cnn_padding)
-        self.conv3          = nn.Conv2d(cnn_chn*2, cnn_chn*4, (cnn_kn_sz, cnn_kn_sz), bias=True, padding=cnn_padding)
-        self.fc4            = nn.Linear((input_sz[0]+3*2*(cnn_padding-1))*(input_sz[1]+3*2*(cnn_padding-1))*cnn_chn*4, fc_sz, bias=True)
-        self.fc4_drop       = nn.Dropout(p=1-keep_prob)
-
-        if linear_act.lower() == "scalehardsigmoid":
-            self.conv1_act  = ScaleHardsigmoid()
-            self.conv2_act  = ScaleHardsigmoid()
-            self.conv3_act  = ScaleHardsigmoid()
-            self.fc4_act    = ScaleHardsigmoid()
-            self.fc7_act    = ScaleHardsigmoid()
-        elif linear_act.lower() == "scalerelu":
-            self.conv1_act  = ScaleReLU()
-            self.conv2_act  = ScaleReLU()
-            self.conv3_act  = ScaleReLU()
-            self.fc4_act    = ScaleReLU()
-            self.fc7_act    = ScaleReLU()
-        elif linear_act.lower() == "sigmoid":
-            self.conv1_act  = nn.Sigmoid()
-            self.conv2_act  = nn.Sigmoid()
-            self.conv3_act  = nn.Sigmoid()
-            self.fc4_act    = nn.Sigmoid()
-            self.fc7_act    = nn.Sigmoid()
-        elif linear_act.lower() == "hardtanh":
-            self.conv1_act  = nn.Hardtanh()
-            self.conv2_act  = nn.Hardtanh()
-            self.conv3_act  = nn.Hardtanh()
-            self.fc4_act    = nn.Hardtanh()
-            self.fc7_act    = nn.Hardtanh()
-        elif linear_act.lower() == "tanh":
-            self.conv1_act  = nn.Tanh()
-            self.conv2_act  = nn.Tanh()
-            self.conv3_act  = nn.Tanh()
-            self.fc4_act    = nn.Tanh()
-            self.fc7_act    = nn.Tanh()
-        elif linear_act.lower() == "relu":
-            self.conv1_act  = nn.ReLU()
-            self.conv2_act  = nn.ReLU()
-            self.conv3_act  = nn.ReLU()
-            self.fc4_act    = nn.ReLU()
-            self.fc7_act    = nn.ReLU()
-        elif linear_act.lower() == "relu6":
-            self.conv1_act  = nn.ReLU6()
-            self.conv2_act  = nn.ReLU6()
-            self.conv3_act  = nn.ReLU6()
-            self.fc4_act    = nn.ReLU6()
-            self.fc7_act    = nn.ReLU6()
-        elif linear_act.lower() == "elu":
-            self.conv1_act  = nn.ELU()
-            self.conv2_act  = nn.ELU()
-            self.conv3_act  = nn.ELU()
-            self.fc4_act    = nn.ELU()
-            self.fc7_act    = nn.ELU()
+        self.conv1          = nn.Conv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
+        self.conv2          = nn.Conv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
+        self.fc3            = nn.Linear((input_sz[0]+2*2*(cnn_padding-1))*(input_sz[1]+2*2*(cnn_padding-1))*cnn_chn*2, fc_sz, bias=bias)
+        self.fc3_drop       = nn.Dropout(p=1-keep_prob)
 
         # RNN
-        self.grucell6 = HardGRUCell(fc_sz, rnn_hidden_sz, bias=True, hard=rnn_hard)
-        self.gru6 = nn.GRU(fc_sz, rnn_hidden_sz, num_layers=2, dropout=1-keep_prob)
+        if rnn.lower() == "gru":
+            self.rnncell4 = HardGRUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
+        elif rnn.lower() == "mgu":
+            self.rnncell4 = HardMGUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
 
         # MLP
-        self.fc7 = nn.Linear(rnn_hidden_sz, fc_sz, bias=True)
-        self.fc7_drop = nn.Dropout(p=1-keep_prob)
-        self.fc8 = nn.Linear(fc_sz, num_class, bias=True)
+        self.fc5 = nn.Linear(rnn_hidden_sz, num_class, bias=bias)
+
+        self.linear_act = linear_act.lower()
+
+        if self.linear_act == "scalehardsigmoid":
+            self.conv1_act  = ScaleHardsigmoid()
+            self.conv2_act  = ScaleHardsigmoid()
+            self.fc3_act    = ScaleHardsigmoid()
+        elif self.linear_act == "scalerelu":
+            self.conv1_act  = ScaleReLU()
+            self.conv2_act  = ScaleReLU()
+            self.fc3_act    = ScaleReLU()
+        elif self.linear_act == "sigmoid":
+            self.conv1_act  = nn.Sigmoid()
+            self.conv2_act  = nn.Sigmoid()
+            self.fc3_act    = nn.Sigmoid()
+        elif self.linear_act == "hardtanh":
+            self.conv1_act  = nn.Hardtanh()
+            self.conv2_act  = nn.Hardtanh()
+            self.fc3_act    = nn.Hardtanh()
+        elif self.linear_act == "tanh":
+            self.conv1_act  = nn.Tanh()
+            self.conv2_act  = nn.Tanh()
+            self.fc3_act    = nn.Tanh()
+        elif self.linear_act == "relu":
+            self.conv1_act  = nn.ReLU()
+            self.conv2_act  = nn.ReLU()
+            self.fc3_act    = nn.ReLU()
+        elif self.linear_act == "relu6":
+            self.conv1_act  = nn.ReLU6()
+            self.conv2_act  = nn.ReLU6()
+            self.fc3_act    = nn.ReLU6()
+        elif self.linear_act == "elu":
+            self.conv1_act  = nn.ELU()
+            self.conv2_act  = nn.ELU()
+            self.fc3_act    = nn.ELU()
 
         self.init_weight()
 
-    
     def init_weight(self):
-        self.conv1.weight.data = truncated_normal(self.conv1.weight, mean=0, std=0.1)
-        self.conv1.bias.data.fill_(0.1)
-        self.conv2.weight.data = truncated_normal(self.conv2.weight, mean=0, std=0.1)
-        self.conv2.bias.data.fill_(0.1)
-        self.conv3.weight.data = truncated_normal(self.conv3.weight, mean=0, std=0.1)
-        self.conv3.bias.data.fill_(0.1)
-        self.fc4.weight.data = truncated_normal(self.fc4.weight, mean=0, std=0.1)
-        self.fc4.bias.data.fill_(0.1)
-        self.fc7.weight.data = truncated_normal(self.fc7.weight, mean=0, std=0.1)
-        self.fc7.bias.data.fill_(0.1)
-        self.fc8.weight.data = truncated_normal(self.fc8.weight, mean=0, std=0.1)
-        self.fc8.bias.data.fill_(0.1)
+        if self.linear_act == "hardtanh":
+            std = 0.035
+        elif self.linear_act == "scalerelu":
+            std = 0.05
+        else:
+            std = 0.1
+        self.conv1.weight.data  = truncated_normal(self.conv1.weight, mean=0, std=std)
+        self.conv2.weight.data  = truncated_normal(self.conv2.weight, mean=0, std=std)
+        self.fc3.weight.data    = truncated_normal(self.fc3.weight,   mean=0, std=std)
+        self.fc5.weight.data    = truncated_normal(self.fc5.weight,   mean=0, std=std)
 
+        if self.bias == True:
+            self.conv1.bias.data.fill_(0.1)
+            self.conv2.bias.data.fill_(0.1)
+            self.fc3.bias.data.fill_(0.1)
+            self.fc5.bias.data.fill_(0.1)
 
     def forward(self, input):
         # CNN
@@ -221,27 +250,21 @@ class Cascade_CNN_RNN_Binary(nn.Module):
         self.conv1_act_o    = self.conv1_act(self.conv1_o)
         self.conv2_o        = self.conv2(self.conv1_act_o)
         self.conv2_act_o    = self.conv2_act(self.conv2_o)
-        self.conv3_o        = self.conv3(self.conv2_act_o)
-        self.conv3_act_o    = self.conv3_act(self.conv3_o)
-        self.fc4_i          = self.conv3_act_o.view(self.conv3_act_o.shape[0], -1)
-        self.fc4_o          = self.fc4(self.fc4_i)
-        self.fc4_act_o      = self.fc4_act(self.fc4_o)
-        self.fc4_act_o      = self.fc4_drop(self.fc4_act_o)
-        self.fc4_act_o      = self.fc4_act_o.view(self.rnn_win_sz, -1, self.fc_sz)
+        self.fc3_i          = self.conv2_act_o.view(self.conv2_act_o.shape[0], -1)
+        self.fc3_o          = self.fc3(self.fc3_i)
+        self.fc3_act_o      = self.fc3_act(self.fc3_o)
+        self.fc3_drop_o     = self.fc3_drop(self.fc3_act_o)
+        self.fc3_view_o     = self.fc3_drop_o.view(-1, self.rnn_win_sz, self.fc_sz)
+        self.fc3_trans_o    = self.fc3_view_o.transpose(0, 1)
 
         # RNN
         self.rnn_out = []
-        # hx = torch.zeros(self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
-        # for i in range(self.rnn_win_sz):
-        #     hx = self.grucell6(self.fc4_act_o[i], hx)
-        #     self.rnn_out.append(hx)
-        hx = torch.zeros(2, self.fc4_act_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
-        self.rnn_out, _ = self.gru6(self.fc4_act_o, hx)
+        hx = torch.zeros(self.fc3_trans_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
+        for i in range(self.rnn_win_sz):
+            hx = self.rnncell4(self.fc3_trans_o[i], hx)
+            self.rnn_out.append(hx)
 
         # MLP
-        self.fc7_i          = self.rnn_out[-1]
-        self.fc7_o          = self.fc7(self.fc7_i)
-        self.fc7_act_o      = self.fc7_act(self.fc7_o)
-        self.fc7_act_o      = self.fc7_drop(self.fc7_act_o)
-        self.fc8_o          = self.fc8(self.fc7_act_o)
-        return self.fc8_o
+        self.fc5_i          = self.rnn_out[-1]
+        self.fc5_o          = self.fc5(self.fc5_i)
+        return self.fc5_o
