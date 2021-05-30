@@ -282,7 +282,7 @@ for epoch in range(training_epochs):
                 'optimizer' : optimizer.state_dict(),
                 'scheduler' : scheduler.state_dict(),
                 }, 
-                model_dir+filename+'.check_point.pth.tar')
+                model_dir+filename+'.check_point.tmp.pth.tar')
             if is_best:
                 shutil.copyfile(model_dir+filename+'.check_point.tmp.pth.tar', model_dir+filename+'.model_best.tmp.pth.tar')
     
