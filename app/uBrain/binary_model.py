@@ -165,6 +165,7 @@ class Cascade_CNN_RNN_Binary(nn.Module):
                     rnn_hidden_sz=1024,
                     rnn_hard=True,
                     bias=True,
+                    init_std=None,
                     keep_prob=0.5,
                     num_class=5):
         super(Cascade_CNN_RNN_Binary, self).__init__()
@@ -173,6 +174,7 @@ class Cascade_CNN_RNN_Binary(nn.Module):
         self.rnn_win_sz = rnn_win_sz
         self.rnn_hidden_sz = rnn_hidden_sz
         self.bias = bias
+        self.init_std = init_std
         # CNN
         self.conv1          = nn.Conv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
         self.conv2          = nn.Conv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
@@ -226,12 +228,15 @@ class Cascade_CNN_RNN_Binary(nn.Module):
         self.init_weight()
 
     def init_weight(self):
-        if self.linear_act == "hardtanh":
-            std = 0.035
-        elif self.linear_act == "scalerelu":
-            std = 0.05
+        if self.init_std is None:
+            if self.linear_act == "hardtanh":
+                std = 0.035
+            elif self.linear_act == "scalerelu":
+                std = 0.05
+            else:
+                std = 0.1
         else:
-            std = 0.1
+            std = self.init_std
         self.conv1.weight.data  = truncated_normal(self.conv1.weight, mean=0, std=std)
         self.conv2.weight.data  = truncated_normal(self.conv2.weight, mean=0, std=std)
         self.fc3.weight.data    = truncated_normal(self.fc3.weight,   mean=0, std=std)

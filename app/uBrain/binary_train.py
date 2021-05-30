@@ -91,6 +91,9 @@ parser.add_argument('-e', '--epoch', default=300, type=int, help=hpstr)
 hpstr = "set learning rate"
 parser.add_argument('-lr', '--lr', default=1e-3, type=float, help=hpstr)
 
+hpstr = "set std for initialization"
+parser.add_argument('-std', '--init_std', default=None, type=float, help=hpstr)
+
 hpstr = "set weight decay"
 parser.add_argument('-wd', '--weight_decay', default=0.0, type=float, help=hpstr)
 
@@ -119,6 +122,7 @@ rnn_win_sz=args.rnn_win_sz
 rnn_hidden_sz=args.rnn_hidden_sz
 rnn_hard=args.rnn_hard
 bias=args.bias
+init_std=args.init_std
 keep_prob=args.keep_prob
 bin_train_batch_sz=args.train_batch_sz
 bin_test_batch_sz=args.test_batch_sz
@@ -220,6 +224,7 @@ model = Cascade_CNN_RNN_Binary(input_sz=input_sz, # size of each window
                                 rnn_hidden_sz=rnn_hidden_sz, # hidden size in RNN
                                 rnn_hard=rnn_hard, # flag to apply HardGRUCell RNN
                                 bias=bias, # bias of matrix mul
+                                init_std=init_std, # std for initialization of weight
                                 keep_prob=keep_prob, # prob for drop out after each FC
                                 num_class=num_class) # output size
 model.to(device)
@@ -237,7 +242,7 @@ scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, t0)
 
 loss=0.0
 best_acc=0.0
-filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_ol_"+str(win_overlap)+"_t_"+str(threshold)+"_e_"+str(training_epochs)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
+filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_t_"+str(threshold)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
 iters = len(train_dataloader)
 
 for epoch in range(training_epochs):
