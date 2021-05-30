@@ -288,9 +288,10 @@ for epoch in range(training_epochs):
     
     print("Epoch %3d:\tTime: %3.3f sec;\tLR: %1.7f;\tTrain Loss: %3.3f;\tTest Accuracy: %3.3f %%" % (epoch, time.time() - total_time, optimizer.param_groups[0]["lr"], loss.detach().cpu().item(), acc))
 
-shutil.copyfile(model_dir+filename+'.model_best.tmp.pth.tar', model_dir+filename+'_acc_'+'%2.2f' % (best_acc)+'.pth.tar')
-os.remove(model_dir+filename+'.check_point.tmp.pth.tar')
-os.remove(model_dir+filename+'.model_best.tmp.pth.tar')
+if set_store:
+    shutil.copyfile(model_dir+filename+'.model_best.tmp.pth.tar', model_dir+filename+'_acc_'+'%2.2f' % (best_acc)+'.pth.tar')
+    os.remove(model_dir+filename+'.check_point.tmp.pth.tar')
+    os.remove(model_dir+filename+'.model_best.tmp.pth.tar')
 
 print("Total Epoch %3d:\tFinal Train Loss: %3.3f;\tBest Test Accuracy: %3.3f %%" % (training_epochs, loss.detach().cpu().item(), best_acc))
 
