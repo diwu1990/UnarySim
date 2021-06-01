@@ -36,7 +36,7 @@ elif mode == "bipolar":
     if bias is True:
         fc.bias.data = torch.rand(1, out_feature).mul(2).sub(1).mul(length).round().div(length).to(device)
 
-ufc = UnaryLinear(in_feature, out_feature, fc.weight, fc.bias, 
+ufc = FSULinear(in_feature, out_feature, fc.weight, fc.bias, 
                   bitwidth=bitwidth, mode=mode, scaled=scaled, bias=bias).to(device)
 # gMUL + gADD
 # ufc = GainesLinear1(in_feature, out_feature, fc.weight, fc.bias, 

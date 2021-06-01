@@ -16,7 +16,7 @@ import torch
 from UnarySim.kernel.shiftreg import ShiftReg
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.kernel.add import GainesAdd
-from UnarySim.kernel.abs import UnaryAbs
+from UnarySim.kernel.abs import FSUAbs
 from UnarySim.metric.metric import ProgressiveError
 
 
@@ -67,8 +67,8 @@ class UnaryEdgeDetect(torch.nn.Module):
                 rtype=self.rtype, 
                 stype=torch.float)
 
-        self.GxAbs = UnaryAbs(depth=8, shiftreg=False, interleave = False, stype=self.stype, btype=self.btype)
-        self.GyAbs = UnaryAbs(depth=8, shiftreg=False, interleave = False, stype=self.stype, btype=self.btype)
+        self.GxAbs = FSUAbs(depth=8, shiftreg=False, interleave = False, stype=self.stype, btype=self.btype)
+        self.GyAbs = FSUAbs(depth=8, shiftreg=False, interleave = False, stype=self.stype, btype=self.btype)
 
         self.Gx=0
         self.Gy=0

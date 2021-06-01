@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.abs import UnaryAbs
+from UnarySim.kernel.abs import FSUAbs
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -48,7 +48,7 @@ def test(rng="Sobol",
         inputPE  = ProgressiveError(input,  mode=mode).to(device)
         inputSRC = SourceGen(input, bitwidth, mode=mode, rtype=rtype)().to(device)
 
-        dut = UnaryAbs(depth=depth, shiftreg=shiftreg, interleave=interleave).to(device)
+        dut = FSUAbs(depth=depth, shiftreg=shiftreg, interleave=interleave).to(device)
         
         inputRNG = RNG(bitwidth, rand_idx, rng, rtype)().to(device)
         inputBS = BSGen(inputSRC, inputRNG, stype).to(device)

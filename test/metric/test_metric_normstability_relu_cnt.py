@@ -2,7 +2,7 @@
 import torch
 from UnarySim.metric.metric import NormStability, NSbuilder, Stability, ProgressiveError
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.kernel.relu import UnaryReLU
+from UnarySim.kernel.relu import FSUReLU
 import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -63,7 +63,7 @@ def test(
 
             inputNS = NormStability(input, mode=mode, threshold=threshold).to(device)
 
-            dut = UnaryReLU(depth=5, shiftreg=sr).to(device)
+            dut = FSUReLU(depth=5, shiftreg=sr).to(device)
 
             inputBSGen = NSbuilder(bitwidth=bitwidth, 
                                     mode=mode, 

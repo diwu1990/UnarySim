@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.sqrt import UnarySqrt
+from UnarySim.kernel.sqrt import FSUSqrt
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -50,7 +50,7 @@ def test(rng="Sobol",
         inputPE  = ProgressiveError(input,  mode=mode).to(device)
         inputSRC = SourceGen(input, bitwidth, mode=mode, rtype=rtype)().to(device)
 
-        dut_sqrt = UnarySqrt(mode=mode, 
+        dut_sqrt = FSUSqrt(mode=mode, 
                          jk_trace=jk_trace, 
                          depth_kernel=depth_kernel, 
                          rng="SYS", 

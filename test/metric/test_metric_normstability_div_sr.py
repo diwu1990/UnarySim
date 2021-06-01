@@ -2,7 +2,7 @@
 import torch
 from UnarySim.metric.metric import NormStability, NSbuilder, Stability, ProgressiveError
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.kernel.div import UnaryDiv
+from UnarySim.kernel.div import FSUDiv
 import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -76,7 +76,7 @@ def test(
             input0NS = NormStability(input0, mode=mode, threshold=threshold).to(device)
             input1NS = NormStability(input1, mode=mode, threshold=threshold).to(device)
 
-            dut = UnaryDiv(depth_abs=3, 
+            dut = FSUDiv(depth_abs=3, 
                            depth_kernel=2, 
                            depth_sync=2, 
                            shiftreg_abs=False, 

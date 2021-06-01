@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.sqrt import UnarySqrt
+from UnarySim.kernel.sqrt import FSUSqrt
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -50,7 +50,7 @@ def test(rng="Sobol",
     
     result_pe_total = []
     for rand_idx in range(1, total_cnt+1):
-        dut_sqrt = UnarySqrt(mode=mode, 
+        dut_sqrt = FSUSqrt(mode=mode, 
                          jk_trace=jk_trace, 
                          depth_kernel=depth_kernel, 
                          rng="Sobol", 

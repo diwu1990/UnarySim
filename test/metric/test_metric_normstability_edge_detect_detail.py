@@ -2,8 +2,8 @@
 import torch
 from UnarySim.kernel.shiftreg import ShiftReg
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.kernel.add import UnaryAdd, GainesAdd
-from UnarySim.kernel.abs import UnaryAbs
+from UnarySim.kernel.add import FSUAdd, GainesAdd
+from UnarySim.kernel.abs import FSUAbs
 from UnarySim.metric.metric import ProgressiveError, Stability, NormStability
 import math
 from PIL import Image
@@ -64,8 +64,8 @@ class GainesEdgeDetect(torch.nn.Module):
                 rtype=self.rtype, 
                 stype=self.stype)
 
-        self.GxAbs = UnaryAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
-        self.GyAbs = UnaryAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
+        self.GxAbs = FSUAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
+        self.GyAbs = FSUAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
 
         self.Gx=0
         self.Gy=0
@@ -116,23 +116,23 @@ class UnaryEdgeDetect(torch.nn.Module):
         self.btype = btype
         self.stype = stype
 
-        self.Gx_sub = UnaryAdd(mode="bipolar", 
+        self.Gx_sub = FSUAdd(mode="bipolar", 
                  scaled=scaled, 
                  acc_dim=0, 
                  stype=self.stype)
 
-        self.Gy_sub = UnaryAdd(mode="bipolar", 
+        self.Gy_sub = FSUAdd(mode="bipolar", 
                  scaled=scaled, 
                  acc_dim=0, 
                  stype=self.stype)
 
-        self.G_add = UnaryAdd(mode="bipolar", 
+        self.G_add = FSUAdd(mode="bipolar", 
                 scaled=scaled, 
                 acc_dim=0, 
                 stype=self.stype)
 
-        self.GxAbs = UnaryAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
-        self.GyAbs = UnaryAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
+        self.GxAbs = FSUAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
+        self.GyAbs = FSUAbs(depth=depth, shiftreg=False, interleave=interleave, stype=self.stype, btype=self.btype)
 
         self.Gx=0
         self.Gy=0

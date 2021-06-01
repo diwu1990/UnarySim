@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.mul import UnaryMul
+from UnarySim.kernel.mul import FSUMul
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ for mode in modes:
         input_prob = torch.rand(col).mul(2).sub(1).mul(2**bitwidth).round().div(2**bitwidth).to(device)
         iVec = torch.rand(col).mul(2).sub(1).mul(2**bitwidth).round().div(2**bitwidth).to(device)
 
-    dut_mul = UnaryMul(bitwidth=bitwidth, mode=mode, static=static, input_prob_1=input_prob, stype=stype, rtype=rtype).to(device)
+    dut_mul = FSUMul(bitwidth=bitwidth, mode=mode, static=static, input_prob_1=input_prob, stype=stype, rtype=rtype).to(device)
 
     oVec = torch.mul(iVec, input_prob).mul(2**bitwidth).round().div(2**bitwidth).to(device)
 

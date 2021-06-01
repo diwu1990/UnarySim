@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.div import UnaryDiv
+from UnarySim.kernel.div import FSUDiv
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib as mpl
@@ -77,7 +77,7 @@ def test(mode="unipolar",
 
         divisorPE  = ProgressiveError(divisor,  mode=mode).to(device)
         divisorSRC = SourceGen(divisor, bitwidth, mode=mode, rtype=rtype)().to(device)
-        dut_div = UnaryDiv(depth_abs=depth_abs, 
+        dut_div = FSUDiv(depth_abs=depth_abs, 
                        depth_kernel=depth_kernel, 
                        depth_sync=depth_sync, 
                        shiftreg_abs=shiftreg, 

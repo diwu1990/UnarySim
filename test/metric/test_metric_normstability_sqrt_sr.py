@@ -2,7 +2,7 @@
 import torch
 from UnarySim.metric.metric import NormStability, NSbuilder, Stability, ProgressiveError
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.kernel.sqrt import UnarySqrt
+from UnarySim.kernel.sqrt import FSUSqrt
 import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -62,7 +62,7 @@ def test(
 
             inputNS = NormStability(input, mode=mode, threshold=threshold).to(device)
 
-            dut = UnarySqrt(mode=mode, 
+            dut = FSUSqrt(mode=mode, 
                             jk_trace=False, 
                             depth_kernel=1, 
                             rng="Sobol", 
