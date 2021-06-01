@@ -3,9 +3,9 @@ import math
 from UnarySim.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
 from torch.cuda.amp import autocast
 
-class FSULinear(torch.nn.Module):
+class FSULinear(torch.nn.Linear):
     """
-    this module is the fully connected layer,
+    This module is the fully connected layer,
     its API is similar to the parent class (input/output feature count, bias flag), except:
     1) accumulation mode
     2) unary data mode
@@ -25,7 +25,7 @@ class FSULinear(torch.nn.Module):
                  btype=torch.float, 
                  rtype=torch.float, 
                  stype=torch.float):
-        super(FSULinear, self).__init__()
+        super(FSULinear, self).__init__(in_features, out_features, bias=bias)
         self.in_features = in_features
         self.out_features = out_features
         self.stype = stype
@@ -62,47 +62,66 @@ class FSULinear(torch.nn.Module):
         self.rng = RNG(self.bitwidth, 1, "Sobol")()
         
         # define the linear weight and bias
-        self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
-        if self.has_bias is True:
-            self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+        if binary_weight is not None:
+            self.weight.data = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+        
+        if bias and (binary_bias is not None):
+            self.bias.data = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
 
         # define the kernel linear
-        self.kernel = torch.nn.Linear(self.in_features, self.out_features, bias=self.has_bias)
-        self.buf_wght_bs = BSGen(self.buf_wght, self.rng, stype=stype)
-        self.rng_wght_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.weight, dtype=torch.long), requires_grad=False)
+        self.weight_bsg = BSGen(self.weight, self.rng, stype=stype)
+        self.weight_rng_idx = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
         if self.has_bias is True:
-            self.buf_bias_bs = BSGen(self.buf_bias, self.rng, stype=stype)
-            self.rng_bias_idx = torch.nn.Parameter(torch.zeros_like(self.kernel.bias, dtype=torch.long), requires_grad=False)
+            self.bias_bsg = BSGen(self.bias, self.rng, stype=stype)
+            self.bias_rng_idx = torch.nn.Parameter(torch.zeros_like(self.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
         if self.mode == "bipolar":
-            self.kernel_inv = torch.nn.Linear(self.in_features, self.out_features, bias=False)
-            self.buf_wght_bs_inv = BSGen(self.buf_wght, self.rng, stype=stype)
-            self.rng_wght_idx_inv = torch.nn.Parameter(torch.zeros_like(self.kernel_inv.weight, dtype=torch.long), requires_grad=False)
+            self.weight_bsg_inv = BSGen(self.weight, self.rng, stype=stype)
+            self.weight_rng_idx_inv = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
 
         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         if self.scaled is False:
             self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
     def FSUKernel_accumulation(self, input):
+        # first dim should always be batch
+        batch = input.size()[0]
+
         # generate weight and bias bits for current cycle
-        self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
-        self.rng_wght_idx.add_(input.type(torch.long))
+        weight_bs = self.weight_bsg(self.weight_rng_idx).type(torch.float)
+        if weight_bs.size()[0] != batch:
+            weight_bs = torch.cat(batch*[weight_bs], 0)
+            self.weight_rng_idx = torch.cat(batch*[self.weight_rng_idx], 0)
+        torch.add(self.weight_rng_idx, input.unsqueeze(1).type(torch.long), out=self.weight_rng_idx)
+        
+        kernel_out = torch.empty(0, device=input.device)
+        torch.matmul(input.unsqueeze(1).type(torch.float), weight_bs.transpose(1, 2), out=kernel_out)
+        kernel_out.squeeze_(1)
+        
         if self.has_bias is True:
-            self.kernel.bias.data = self.buf_bias_bs(self.rng_bias_idx).type(torch.float)
-            self.rng_bias_idx.add_(1)
-            
-        kernel_out = self.kernel(input.type(torch.float))
+            bias_bs = self.bias_bsg(self.bias_rng_idx).type(torch.float)
+            self.bias_rng_idx.add_(1)
+            kernel_out += bias_bs.unsqueeze(0).expand_as(kernel_out)
 
         if self.mode == "unipolar":
             return kernel_out
         
         if self.mode == "bipolar":
-            self.kernel_inv.weight.data = 1 - self.buf_wght_bs_inv(self.rng_wght_idx_inv).type(torch.float)
-            self.rng_wght_idx_inv.add_(1 - input.type(torch.long))
-            kernel_out_inv = self.kernel_inv(1 - input.type(torch.float))
+            # generate weight and bias bits for current cycle
+            weight_bs_inv = 1 - self.weight_bsg_inv(self.weight_rng_idx_inv).type(torch.float)
+            if weight_bs_inv.size()[0] != batch:
+                weight_bs_inv = torch.cat(batch*[weight_bs_inv], 0)
+                self.weight_rng_idx_inv = torch.cat(batch*[self.weight_rng_idx_inv], 0)
+            torch.add(self.weight_rng_idx_inv, 1 - input.unsqueeze(1).type(torch.long), out=self.weight_rng_idx_inv)
+            
+            kernel_out_inv = torch.empty(0, device=input.device)
+            torch.matmul(1 - input.unsqueeze(1).type(torch.float), weight_bs_inv.transpose(1, 2), out=kernel_out_inv)
+            kernel_out_inv.squeeze_(1)
+
             return kernel_out + kernel_out_inv
 
+    @autocast()
     def forward(self, input):
         kernel_out_total = self.FSUKernel_accumulation(input)
         self.accumulator.data = self.accumulator.add(kernel_out_total)
