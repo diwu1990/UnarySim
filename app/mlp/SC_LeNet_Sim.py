@@ -29,7 +29,7 @@ testset = torchvision.datasets.MNIST(root='./data/mnist', train=False, download=
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, num_workers=4)
 
 # %%
- class LeNet(nn.Module):
+class LeNet(nn.Module):
 
     def __init__(self):
         super(LeNet, self).__init__()

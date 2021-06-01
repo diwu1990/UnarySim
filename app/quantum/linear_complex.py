@@ -2,7 +2,7 @@ import torch
 import math
 from UnarySim.sw.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
 
-class UnaryLinearComplex(torch.nn.Module):
+class FSULinearComplex(torch.nn.Module):
     """
     this module is the matrix multiplication for unary complex data, which is always in bipolar format.
     1. input feature and weight are both complex values
@@ -19,7 +19,7 @@ class UnaryLinearComplex(torch.nn.Module):
                  btype=torch.float,
                  rtype=torch.float,
                  stype=torch.float):
-        super(UnaryLinearComplex, self).__init__()
+        super(FSULinearComplex, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.scaled = scaled

@@ -1,7 +1,7 @@
 import torch
 from UnarySim.stream.gen import RNG
 
-class UnaryAdd(torch.nn.Module):
+class FSUAdd(torch.nn.Module):
     """
     this module is for unary addition, including scaled/non-scaled, unipolar/bipolar.
     """
@@ -10,7 +10,7 @@ class UnaryAdd(torch.nn.Module):
                  scaled=True, 
                  acc_dim=0,
                  stype=torch.float):
-        super(UnaryAdd, self).__init__()
+        super(FSUAdd, self).__init__()
         
         # data representation
         self.mode = mode

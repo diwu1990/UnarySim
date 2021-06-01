@@ -1,14 +1,13 @@
 import torch
 from UnarySim.stream.gen import RNG
-from UnarySim.stream.shuffle import Bi2Uni, Uni2Bi
-from UnarySim.stream.shuffle_int import SkewedSyncInt
+from UnarySim.stream.shuffle import Bi2Uni
 from UnarySim.kernel.shiftreg import ShiftReg
 from UnarySim.kernel.jkff import JKFF
-from UnarySim.kernel.div import CORDIV_kernel, UnaryDiv
-from UnarySim.kernel.add import UnaryAdd
+from UnarySim.kernel.div import CORDIV_kernel
+from UnarySim.kernel.add import FSUAdd
 import math
 
-class UnarySqrt(torch.nn.Module):
+class FSUSqrt(torch.nn.Module):
     """
     this module is for unary square root, including iscbdiv-based and jkdiv-based.
     """
@@ -21,7 +20,7 @@ class UnarySqrt(torch.nn.Module):
                  emit=True, 
                  depth_sr=2, 
                  stype=torch.float):
-        super(UnarySqrt, self).__init__()
+        super(FSUSqrt, self).__init__()
         
         assert math.ceil(math.log2(depth_kernel)) == math.floor(math.log2(depth_kernel)) , "Input depth_kernel needs to be power of 2."
         assert math.ceil(math.log2(depth_sr)) == math.floor(math.log2(depth_sr)) , "Input depth_sr needs to be power of 2."
@@ -31,7 +30,7 @@ class UnarySqrt(torch.nn.Module):
         self.emit = emit
         if emit is True:
             self.emit_out = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-            self.nsadd = UnaryAdd(mode="unipolar", scaled=False, acc_dim=0, stype=torch.int8)
+            self.nsadd = FSUAdd(mode="unipolar", scaled=False, acc_dim=0, stype=torch.int8)
             self.sr = ShiftReg(depth_sr, stype=torch.int8)
             self.depth_sr = depth_sr
             self.rng = RNG(int(math.log2(depth_sr)), rng_dim, rng, torch.long)()
@@ -60,7 +59,7 @@ class UnarySqrt(torch.nn.Module):
             # use JKFF
             trace = self.jkff(output, torch.ones_like(output))
         else:
-            # use UnaryDiv
+            # use FSUDiv
             dividend = (1 - self.dff) & output
             divisor = self.dff + dividend
             

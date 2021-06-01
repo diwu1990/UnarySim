@@ -4,7 +4,7 @@
 
 # %%
 import torch
-from UnarySim.sw.quantum.linear_complex import UnaryLinearComplex, LinearComplex
+from UnarySim.sw.quantum.linear_complex import FSULinearComplex, LinearComplex
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.sw.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -34,7 +34,7 @@ def unary_linear_complex_test(rng="Sobol", in_feature=16, out_feature=16, bitwid
         
         fc = LinearComplex(in_feature, out_feature, wr, wi).to(device)
         
-        ufc = UnaryLinearComplex(in_feature, out_feature, wr, wi, 
+        ufc = FSULinearComplex(in_feature, out_feature, wr, wi, 
                                  bitwidth=bitwidth, scaled=scale, 
                                  stype=stype, btype=btype, rtype=rtype).to(device)
 

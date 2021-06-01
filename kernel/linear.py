@@ -3,7 +3,7 @@ import math
 from UnarySim.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
 from torch.cuda.amp import autocast
 
-class UnaryLinear(torch.nn.Module):
+class FSULinear(torch.nn.Module):
     """
     this module is the fully connected layer,
     its API is similar to the parent class (input/output feature count, bias flag), except:
@@ -16,16 +16,16 @@ class UnaryLinear(torch.nn.Module):
     def __init__(self, 
                  in_features, 
                  out_features, 
+                 bias=True, 
                  binary_weight=None, 
                  binary_bias=None, 
                  bitwidth=8, 
-                 bias=True, 
                  mode="bipolar", 
                  scaled=True, 
                  btype=torch.float, 
                  rtype=torch.float, 
                  stype=torch.float):
-        super(UnaryLinear, self).__init__()
+        super(FSULinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.stype = stype
@@ -50,7 +50,7 @@ class UnaryLinear(torch.nn.Module):
             if bias is True:
                 self.offset.add_(1/2)
         else:
-            raise ValueError("UnaryLinear mode is not implemented.")
+            raise ValueError("FSULinear mode is not implemented.")
         
         # bias indication for original linear layer
         self.has_bias = bias
@@ -61,7 +61,7 @@ class UnaryLinear(torch.nn.Module):
         # random_sequence from sobol RNG
         self.rng = RNG(self.bitwidth, 1, "Sobol")()
         
-        # define the convolution weight and bias
+        # define the linear weight and bias
         self.buf_wght = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
         if self.has_bias is True:
             self.buf_bias = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
@@ -84,7 +84,7 @@ class UnaryLinear(torch.nn.Module):
         if self.scaled is False:
             self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
-    def UnaryKernel_accumulation(self, input):
+    def FSUKernel_accumulation(self, input):
         # generate weight and bias bits for current cycle
         self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
         self.rng_wght_idx.add_(input.type(torch.long))
@@ -104,7 +104,7 @@ class UnaryLinear(torch.nn.Module):
             return kernel_out + kernel_out_inv
 
     def forward(self, input):
-        kernel_out_total = self.UnaryKernel_accumulation(input)
+        kernel_out_total = self.FSUKernel_accumulation(input)
         self.accumulator.data = self.accumulator.add(kernel_out_total)
         if self.scaled is True:
             output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
@@ -161,7 +161,7 @@ class GainesLinear1(torch.nn.Module):
             if bias is True:
                 self.offset.add_(1/2)
         else:
-            raise ValueError("UnaryLinear mode is not implemented.")
+            raise ValueError("GainesLinear1 mode is not implemented.")
         
         # bias indication for original linear layer
         self.has_bias = bias
@@ -280,7 +280,7 @@ class GainesLinear2(torch.nn.Module):
             if bias is True:
                 self.offset.add_(1/2)
         else:
-            raise ValueError("UnaryLinear mode is not implemented.")
+            raise ValueError("GainesLinear2 mode is not implemented.")
         
         # bias indication for original linear layer
         self.has_bias = bias
@@ -390,7 +390,7 @@ class GainesLinear3(torch.nn.Module):
             if bias is True:
                 self.offset.add_(1/2)
         else:
-            raise ValueError("UnaryLinear mode is not implemented.")
+            raise ValueError("GainesLinear3 mode is not implemented.")
         
         # bias indication for original linear layer
         self.has_bias = bias
@@ -431,7 +431,7 @@ class GainesLinear3(torch.nn.Module):
             self.half_max = torch.nn.Parameter(torch.ones(1, dtype=torch.long).fill_(2**(depth-1)), requires_grad=False)
             self.cnt = torch.nn.Parameter(torch.zeros(1, dtype=torch.long).fill_(2**(depth-1)), requires_grad=False)
             
-    def UnaryKernel_accumulation(self, input):
+    def GainesKernel_accumulation(self, input):
         # generate weight and bias bits for current cycle
         self.kernel.weight.data = self.buf_wght_bs(self.rng_wght_idx).type(torch.float)
         self.rng_wght_idx.add_(input.type(torch.long))
@@ -451,7 +451,7 @@ class GainesLinear3(torch.nn.Module):
             return kernel_out + kernel_out_inv
 
     def forward(self, input):
-        self.parallel_cnt.data = self.UnaryKernel_accumulation(input).type(torch.long)
+        self.parallel_cnt.data = self.GainesKernel_accumulation(input).type(torch.long)
 
         if self.scaled is True:
             output = torch.ge(self.parallel_cnt.data, self.rng_scale[self.rng_scale_idx%len(self.rng_scale)])
@@ -512,7 +512,7 @@ class GainesLinear4(torch.nn.Module):
             if bias is True:
                 self.offset.add_(1/2)
         else:
-            raise ValueError("UnaryLinear mode is not implemented.")
+            raise ValueError("GainesLinear4 mode is not implemented.")
         
         # bias indication for original linear layer
         self.has_bias = bias
@@ -587,8 +587,8 @@ class GainesLinear4(torch.nn.Module):
         return output.type(torch.int8)
     
 
-# the commented UnaryLinearSA and UnaryLinearSAFunction are cycle accurate implementations
-# class UnaryLinearSA(torch.nn.Linear):
+# the commented FSULinearSA and FSULinearSAFunction are cycle accurate implementations
+# class FSULinearSA(torch.nn.Linear):
 #     """
 #     this module is the fully connected layer, with binary input and binary output
 #     its API is similar to the parent class (input/output feature count, bias flag), except:
@@ -606,7 +606,7 @@ class GainesLinear4(torch.nn.Module):
 #                  input_format=(1, 3, 4), 
 #                  weight_format=(1, 3, 4), 
 #                  cycle=128):
-#         super(UnaryLinearSA, self).__init__(in_features, out_features, bias)
+#         super(FSULinearSA, self).__init__(in_features, out_features, bias)
         
 #         # weight and bias
 #         if binary_weight is not None:
@@ -634,11 +634,11 @@ class GainesLinear4(torch.nn.Module):
 #     @autocast()
 #     def forward(self, input):
 #         # See the autograd section for explanation of what happens here.
-#         return UnaryLinearSAFunction.apply(input, self.weight, self.bias, self.input_format, self.weight_format, self.cycle, self.bitwidth, self.rng)
+#         return FSULinearSAFunction.apply(input, self.weight, self.bias, self.input_format, self.weight_format, self.cycle, self.bitwidth, self.rng)
     
     
 # # Inherit from Function
-# class UnaryLinearSAFunction(torch.autograd.Function):
+# class FSULinearSAFunction(torch.autograd.Function):
 
 #     # Note that both forward and backward are @staticmethods
 #     @staticmethod

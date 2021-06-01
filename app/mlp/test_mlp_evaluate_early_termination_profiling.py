@@ -14,8 +14,8 @@ import time
 import os
 
 from UnarySim.sw.kernel.nn_utils import *
-from UnarySim.sw.kernel.linear import UnaryLinear
-from UnarySim.sw.kernel.relu import UnaryReLU
+from UnarySim.sw.kernel.linear import FSULinear
+from UnarySim.sw.kernel.relu import FSUReLU
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.sw.metric.metric import ProgressiveError
 
@@ -121,22 +121,22 @@ with torch.no_grad():
         image_ERR = ProgressiveError(image, mode=mode).to(device)
         
         # unary mlp is decomposed into separate layers
-        fc1_unary = UnaryLinear(32*32, 512, model_clamp.fc1.weight.data, model_clamp.fc1.bias.data, 
+        fc1_unary = FSULinear(32*32, 512, model_clamp.fc1.weight.data, model_clamp.fc1.bias.data, 
                         mode=mode, scaled=scaled, bias=bias).to(device)
         fc1_ERR = ProgressiveError(model_clamp.fc1_out, mode=mode).to(device)
         
-        fc2_unary = UnaryLinear(512, 512, model_clamp.fc2.weight.data, model_clamp.fc2.bias.data, 
+        fc2_unary = FSULinear(512, 512, model_clamp.fc2.weight.data, model_clamp.fc2.bias.data, 
                                 mode=mode, scaled=scaled, bias=bias).to(device)
         fc2_ERR = ProgressiveError(model_clamp.fc2_out, mode=mode).to(device)
 
-        fc3_unary = UnaryLinear(512, 10, model_clamp.fc3.weight.data, model_clamp.fc3.bias.data, 
+        fc3_unary = FSULinear(512, 10, model_clamp.fc3.weight.data, model_clamp.fc3.bias.data, 
                                 mode=mode, scaled=scaled, bias=bias).to(device)
         fc3_ERR = ProgressiveError(model_clamp.fc3_out, mode=mode).to(device)
         
-        relu1_unary = UnaryReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
+        relu1_unary = FSUReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
         relu1_ERR = ProgressiveError(model_clamp.relu1_out, mode=mode).to(device)
         
-        relu2_unary = UnaryReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
+        relu2_unary = FSUReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
         relu2_ERR = ProgressiveError(model_clamp.relu2_out, mode=mode).to(device)
         
         if total%100 == 0:

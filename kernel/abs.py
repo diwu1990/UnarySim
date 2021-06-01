@@ -1,7 +1,7 @@
 import torch
 from UnarySim.kernel.shiftreg import ShiftReg
 
-class UnaryAbs(torch.nn.Module):
+class FSUAbs(torch.nn.Module):
     """
     this module is to calculate the bipolar absolute value unary data, based on non-scaled unipolar unary addition.
     only works for rate-coded data.
@@ -12,7 +12,7 @@ class UnaryAbs(torch.nn.Module):
                  interleave=False, 
                  btype=torch.float, 
                  stype=torch.float):
-        super(UnaryAbs, self).__init__()
+        super(FSUAbs, self).__init__()
         self.depth = depth
         self.sr = shiftreg
         self.interleave = interleave
@@ -30,7 +30,7 @@ class UnaryAbs(torch.nn.Module):
             self.buf_half = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(btype), requires_grad=False)
             self.acc = torch.nn.Parameter(torch.zeros(1).fill_(2**(depth - 1)).type(btype), requires_grad=False)
     
-    def UnaryAbs_sr_forward(self, input):
+    def FSUAbs_sr_forward(self, input):
         # update shiftreg based on input
         _, self.sr_cnt.data = self.shiftreg(input)
         half_prob_flag = torch.ge(self.sr_cnt, self.depth_half).type(torch.int8)
@@ -42,7 +42,7 @@ class UnaryAbs(torch.nn.Module):
         output = sign ^ input_int8
         return sign.type(self.stype), output.type(self.stype)
     
-    def UnaryAbs_cnt_forward(self, input):
+    def FSUAbs_cnt_forward(self, input):
         # update the accumulator based on input
         self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.btype)).clamp(0, self.buf_max.item())
         half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
@@ -54,7 +54,7 @@ class UnaryAbs(torch.nn.Module):
         output = sign ^ input_int8
         return sign.type(self.stype), output.type(self.stype)
     
-    def UnaryAbs_fsm_forward(self, input):
+    def FSUAbs_fsm_forward(self, input):
         # update the accumulator based on input
         self.acc.data = self.acc.add(input.mul(2).sub(1).type(self.btype)).clamp(0, self.buf_max.item())
         half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
@@ -68,10 +68,10 @@ class UnaryAbs(torch.nn.Module):
     
     def forward(self, input):
         if self.sr is True:
-            return self.UnaryAbs_sr_forward(input)
+            return self.FSUAbs_sr_forward(input)
         else:
             if self.interleave is False:
-                return self.UnaryAbs_cnt_forward(input)
+                return self.FSUAbs_cnt_forward(input)
             else:
-                return self.UnaryAbs_fsm_forward(input)
+                return self.FSUAbs_fsm_forward(input)
     

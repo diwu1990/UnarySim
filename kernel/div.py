@@ -2,7 +2,7 @@ import torch
 from UnarySim.stream.gen import RNG
 from UnarySim.stream.shuffle import SkewedSync, Bi2Uni, Uni2Bi
 from UnarySim.kernel.shiftreg import ShiftReg
-from UnarySim.kernel.abs import UnaryAbs
+from UnarySim.kernel.abs import FSUAbs
 import math
 
 class CORDIV_kernel(torch.nn.Module):
@@ -53,9 +53,9 @@ class CORDIV_kernel(torch.nn.Module):
         return quotient.type(self.stype)
     
     
-class UnaryDiv(torch.nn.Module):
+class FSUDiv(torch.nn.Module):
     """
-    this module is for unary div, i.e., iscbdiv.
+    this module is for fully streaming unary div, i.e., iscbdiv.
     """
     def __init__(self, 
                  depth_abs=3, 
@@ -67,15 +67,15 @@ class UnaryDiv(torch.nn.Module):
                  rng_dim=4, 
                  btype=torch.float, 
                  stype=torch.float):
-        super(UnaryDiv, self).__init__()
+        super(FSUDiv, self).__init__()
         
         # data representation
         self.mode = mode
         self.stype = stype
         
         if self.mode == "bipolar":
-            self.abs_dividend = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
-            self.abs_divisor  = UnaryAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
+            self.abs_dividend = FSUAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
+            self.abs_divisor  = FSUAbs(depth=depth_abs, shiftreg=shiftreg_abs, stype=stype, btype=btype)
             self.bi2uni_dividend = Bi2Uni(stype=stype)
             self.bi2uni_divisor  = Bi2Uni(stype=stype)
             self.uni2bi_quotient = Uni2Bi(stype=stype)

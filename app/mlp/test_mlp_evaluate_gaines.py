@@ -15,7 +15,7 @@ import os
 
 from UnarySim.sw.kernel.nn_utils import *
 from UnarySim.sw.kernel.linear import *
-from UnarySim.sw.kernel.relu import UnaryReLU
+from UnarySim.sw.kernel.relu import FSUReLU
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.sw.metric.metric import ProgressiveError
 
@@ -133,10 +133,10 @@ with torch.no_grad():
                                  bitwidth=bitwidth, mode=mode, scaled=scaled, bias=bias, depth=bitwidth, rng_idx=4).to(device)
         fc3_ERR = ProgressiveError(model_clamp.fc3_out, mode=mode).to(device)
         
-        relu1_unary = UnaryReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
+        relu1_unary = FSUReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
         relu1_ERR = ProgressiveError(model_clamp.relu1_out, mode=mode).to(device)
         
-        relu2_unary = UnaryReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
+        relu2_unary = FSUReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
         relu2_ERR = ProgressiveError(model_clamp.relu2_out, mode=mode).to(device)
         
         if total%100 == 0:

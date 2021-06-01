@@ -1,11 +1,11 @@
 import torch
 import math
 
-class UnaryAvgPool2d(torch.nn.modules.pooling.AvgPool2d):
+class FSUAvgPool2d(torch.nn.modules.pooling.AvgPool2d):
     """unary 2d average pooling based on scaled addition"""
     def __init__(self, kernel_size, input_shape, stride=None, padding=0, ceil_mode=False,
                  count_include_pad=True, divisor_override=None):
-        super(UnaryAvgPool2d, self).__init__(kernel_size, input_shape)
+        super(FSUAvgPool2d, self).__init__(kernel_size, input_shape)
 
         self.input_shape = input_shape
         
@@ -41,13 +41,13 @@ class UnaryAvgPool2d(torch.nn.modules.pooling.AvgPool2d):
                                             count_include_pad=self.count_include_pad, 
                                             divisor_override=self.divisor_override)
         
-    def UnaryScaledADD_forward(self, input):
+    def FSUScaledADD_forward(self, input):
         self.in_accumulator.add_(self.avgpool2d(input))
         self.output = torch.ge(self.in_accumulator, 1).type(torch.float)
         self.in_accumulator.sub_(self.output)
         return self.output
 
     def forward(self, input):
-        return self.UnaryScaledADD_forward(input)
+        return self.FSUScaledADD_forward(input)
 
 

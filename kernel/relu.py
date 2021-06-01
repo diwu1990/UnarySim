@@ -1,7 +1,7 @@
 import torch
 from UnarySim.kernel.shiftreg import ShiftReg
 
-class UnaryReLU(torch.nn.Module):
+class FSUReLU(torch.nn.Module):
     """
     unary ReLU activation based on comparing with bipolar 0
     data is always in bipolar representation
@@ -14,7 +14,7 @@ class UnaryReLU(torch.nn.Module):
                  shiftreg=False, 
                  btype=torch.float, 
                  stype=torch.float):
-        super(UnaryReLU, self).__init__()
+        super(FSUReLU, self).__init__()
         self.depth = depth
         self.encode = encode
         self.sr = shiftreg
@@ -35,9 +35,9 @@ class UnaryReLU(torch.nn.Module):
             self.acc = torch.nn.Parameter(torch.zeros(1).type(btype), requires_grad=False)
             self.cycle = torch.nn.Parameter(torch.zeros(1).type(btype), requires_grad=False)
         else:
-            raise ValueError("UnaryReLU encode other than \"RC\", \"TC\" is illegal.")
+            raise ValueError("FSUReLU encode other than \"RC\", \"TC\" is illegal.")
     
-    def UnaryReLU_forward_rc(self, input):
+    def FSUReLU_forward_rc(self, input):
         # check whether acc is larger than or equal to half.
         half_prob_flag = torch.ge(self.acc, self.buf_half).type(torch.int8)
         # only when input is 0 and flag is 1, output 0; otherwise 1
@@ -46,7 +46,7 @@ class UnaryReLU(torch.nn.Module):
         self.acc.data = self.acc.add(output.mul(2).sub(1).type(self.btype)).clamp(0, self.buf_max.item())
         return output.type(self.stype)
     
-    def UnaryReLU_forward_rc_sr(self, input):
+    def FSUReLU_forward_rc_sr(self, input):
         # check whether sr sum is larger than or equal to half.
         if self.init is True:
             output = torch.ones_like(input).type(self.stype)
@@ -57,7 +57,7 @@ class UnaryReLU(torch.nn.Module):
         _, self.sr_cnt.data = self.shiftreg(output)
         return output.type(self.stype)
     
-    def UnaryReLU_forward_tc(self, input):
+    def FSUReLU_forward_tc(self, input):
         # check reach half total cycle
         self.cycle.add_(1)
         half_cycle_flag = torch.gt(self.cycle, self.threshold).type(self.btype)
@@ -71,9 +71,9 @@ class UnaryReLU(torch.nn.Module):
     def forward(self, input):
         if self.encode == "RC":
             if self.sr is False:
-                return self.UnaryReLU_forward_rc(input)
+                return self.FSUReLU_forward_rc(input)
             else:
-                return self.UnaryReLU_forward_rc_sr(input)
+                return self.FSUReLU_forward_rc_sr(input)
         elif self.encode == "TC":
-            return self.UnaryReLU_forward_tc(input)
+            return self.FSUReLU_forward_tc(input)
 

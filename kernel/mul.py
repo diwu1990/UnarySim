@@ -1,7 +1,7 @@
 import torch
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 
-class UnaryMul(torch.nn.Module):
+class FSUMul(torch.nn.Module):
     """
     this module is for unary multiplication, supporting static/non-static computation, unipolar/bipolar
     input_prob_1 is a don't care if the multiplier is non-static, defualt value is None.
@@ -14,7 +14,7 @@ class UnaryMul(torch.nn.Module):
                  input_prob_1=None,
                  rtype=torch.float,
                  stype=torch.float):
-        super(UnaryMul, self).__init__()
+        super(FSUMul, self).__init__()
         
         self.bitwidth = bitwidth
         self.mode = mode
@@ -44,9 +44,9 @@ class UnaryMul(torch.nn.Module):
                 self.bs_inv = BSGen(self.source_gen, self.rng, torch.int8)
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         else:
-            raise ValueError("UnaryMul in-stream mode is not implemented.")
+            raise ValueError("FSUMul in-stream mode is not implemented.")
 
-    def UnaryMul_forward(self, input_0, input_1=None):
+    def FSUMul_forward(self, input_0, input_1=None):
         # currently only support static mode
         if self.static is True:
             # for input0 is 0.
@@ -63,10 +63,10 @@ class UnaryMul(torch.nn.Module):
                 self.rng_idx_inv.data = self.rng_idx_inv.add(1 - input_0.type(torch.long))
                 return path_0 | path_1
             else:
-                raise ValueError("UnaryMul mode is not implemented.")
+                raise ValueError("FSUMul mode is not implemented.")
             
     def forward(self, input_0, input_1=None):
-        return self.UnaryMul_forward(input_0, input_1).type(self.stype)
+        return self.FSUMul_forward(input_0, input_1).type(self.stype)
 
     
 class GainesMul(torch.nn.Module):
@@ -80,15 +80,15 @@ class GainesMul(torch.nn.Module):
         self.mode = mode
         self.stype = stype
 
-    def UnaryMul_forward(self, input_0, input_1):
+    def GainesMul_forward(self, input_0, input_1):
         if self.mode == "unipolar":
             return input_0.type(torch.int8) & input_1.type(torch.int8)
         elif self.mode == "bipolar":
             return 1 - (input_0.type(torch.int8) ^ input_1.type(torch.int8))
         else:
-            raise ValueError("UnaryMul mode is not implemented.")
+            raise ValueError("GainesMul mode is not implemented.")
             
     def forward(self, input_0, input_1):
-        return self.UnaryMul_forward(input_0, input_1).type(self.stype)
+        return self.GainesMul_forward(input_0, input_1).type(self.stype)
     
     

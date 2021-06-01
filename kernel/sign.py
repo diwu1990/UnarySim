@@ -1,7 +1,7 @@
 import torch
 from UnarySim.kernel.shiftreg import ShiftReg
 
-class UnarySign(torch.nn.Module):
+class FSUSign(torch.nn.Module):
     """
     return the sign of unary bipolar rate-coded data
     0 for non-negative, and 1 for negative
@@ -11,7 +11,7 @@ class UnarySign(torch.nn.Module):
                  shiftreg=False, 
                  btype=torch.float, 
                  stype=torch.float):
-        super(UnarySign, self).__init__()
+        super(FSUSign, self).__init__()
         self.depth = depth
         self.sr = shiftreg
         self.stype = stype
