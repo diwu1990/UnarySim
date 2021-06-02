@@ -1,5 +1,6 @@
 import torch
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
+from UnarySim.kernel.shiftreg import ShiftReg
 
 class FSUMul(torch.nn.Module):
     """
@@ -10,7 +11,7 @@ class FSUMul(torch.nn.Module):
     def __init__(self,
                  bitwidth=8,
                  mode="bipolar",
-                 static=True,
+                 static=False,
                  input_prob_1=None,
                  rtype=torch.float,
                  stype=torch.float):
@@ -24,6 +25,8 @@ class FSUMul(torch.nn.Module):
         # the probability of input_1 used in static computation
         self.input_prob_1 = input_prob_1
         
+        assert self.mode == "unipolar" or self.mode == "bipolar", "Unsupported mode in FSUMul."
+        
         # the random number generator used in computation
         self.rng = RNG(
             bitwidth=self.bitwidth,
@@ -31,39 +34,53 @@ class FSUMul(torch.nn.Module):
             rng="Sobol",
             rtype=self.rtype)()
         
-        # currently only support static mode
         if self.static is True:
             # directly create an unchange bitstream generator for static computation
             self.source_gen = SourceGen(self.input_prob_1, self.bitwidth, self.mode, self.rtype)()
-            self.bs = BSGen(self.source_gen, self.rng, torch.int8)
+            self.bsg = BSGen(self.source_gen, self.rng, torch.int8)
             # rng_idx is used later as an enable signal, get update every cycled
             self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
             
             # Generate two seperate bitstream generators and two enable signals for bipolar mode
             if self.mode == "bipolar":
-                self.bs_inv = BSGen(self.source_gen, self.rng, torch.int8)
+                self.bsg_inv = BSGen(self.source_gen, self.rng, torch.int8)
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         else:
-            raise ValueError("FSUMul in-stream mode is not implemented.")
+            # use a shift register to store the count of 1s in one bitstream to generate data
+            self.sr = ShiftReg(depth=2**bitwidth, stype=self.stype)
+            self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
+            if self.mode == "bipolar":
+                self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
     def FSUMul_forward(self, input_0, input_1=None):
         # currently only support static mode
         if self.static is True:
             # for input0 is 0.
-            path_0 = input_0.type(torch.int8) & self.bs(self.rng_idx)
+            path = input_0.type(torch.int8) & self.bsg(self.rng_idx)
             # conditional update for rng index when input0 is 1. The update simulates enable signal of bs gen.
             self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long))
             
             if self.mode == "unipolar":
-                return path_0
-            elif self.mode == "bipolar":
+                return path
+            else:
                 # for input0 is 0.
-                path_1 = (1 - input_0.type(torch.int8)) & (1 - self.bs_inv(self.rng_idx_inv))
+                path_inv = (1 - input_0.type(torch.int8)) & (1 - self.bsg_inv(self.rng_idx_inv))
                 # conditional update for rng_idx_inv
                 self.rng_idx_inv.data = self.rng_idx_inv.add(1 - input_0.type(torch.long))
-                return path_0 | path_1
+                return path | path_inv
+        else:
+            _, source = self.sr(input_1)
+            path = input_0.type(torch.int8) & torch.gt(source, self.rng[self.rng_idx]).type(torch.int8)
+            self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long)) % (2**self.bitwidth)
+
+            if self.mode == "unipolar":
+                return path
             else:
-                raise ValueError("FSUMul mode is not implemented.")
+                # for input0 is 0.
+                path_inv = (1 - input_0.type(torch.int8)) & (1 - torch.gt(source, self.rng[self.rng_idx_inv]).type(torch.int8))
+                # conditional update for rng_idx_inv
+                self.rng_idx_inv.data = self.rng_idx_inv.add(1 - input_0.type(torch.long)) % (2**self.bitwidth)
+                return path | path_inv
             
     def forward(self, input_0, input_1=None):
         return self.FSUMul_forward(input_0, input_1).type(self.stype)

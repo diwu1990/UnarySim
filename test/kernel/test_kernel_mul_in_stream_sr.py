@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.mul import GainesMul
+from UnarySim.kernel.mul import FSUMul
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -15,7 +15,8 @@ rng = "Sobol"
 # %%
 col = (1000, 1000)
 modes = ["bipolar", "unipolar"]
-bitwidth = 8
+bitwidth = 12
+depth = 4
 
 for mode in modes:
     if mode == "unipolar":
@@ -25,7 +26,7 @@ for mode in modes:
         input_prob_0 = torch.rand(col).mul(2).sub(1).mul(2**bitwidth).round().div(2**bitwidth).to(device)
         input_prob_1 = torch.rand(col).mul(2).sub(1).mul(2**bitwidth).round().div(2**bitwidth).to(device)
 
-    dut_mul = GainesMul(mode).to(device)
+    dut_mul = FSUMul(bitwidth=depth, mode=mode, static=False).to(device)
 
     oVec = torch.mul(input_prob_0, input_prob_1).mul(2**bitwidth).round().div(2**bitwidth).to(device)
 
@@ -38,7 +39,7 @@ for mode in modes:
     prob_1_Source = SourceGen(input_prob_1, bitwidth, mode=mode)().to(device)
 
     iVecRNG0 = RNG(bitwidth, 1, rng)().to(device)
-    iVecRNG1 = RNG(bitwidth, 1111, rng)().to(device)
+    iVecRNG1 = RNG(bitwidth, 1, rng)().to(device)
     prob_0_BS = BSGen(prob_0_Source, iVecRNG0).to(device)
     prob_1_BS = BSGen(prob_1_Source, iVecRNG1).to(device)
 

@@ -2,7 +2,7 @@ import torch
 
 class ShiftReg(torch.nn.Module):
     """
-    this module is a shift register for int8 tensor.
+    this module is a shift register for tensor.
     it takes in unary bits and output shifter register value, as well as the total number of 1s in current shift register.
     """
     def __init__(self,
