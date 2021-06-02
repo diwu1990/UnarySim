@@ -51,17 +51,17 @@ This directory contains the components for **Stream Manipulation**, which manipu
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
+| Bi2Uni               | Mar 31, 2020 | RC       | Bi       | [13]      | <ul><li>[x] </li></ul> |
 | BSGen                | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
 | BSGenMulti           | Nov 11, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
+| DeCorr               |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> |
+| DeSync               |              | RC       | Both     | [6]       | <ul><li>[ ] </li></ul> |
 | RawScale             | Dec 07, 2019 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 | RNG                  | Seq 07, 2019 | Both     | Both     | [5]       | <ul><li>[x] </li></ul> |
 | RNGMulti             | Nov 11, 2019 | Both     | Both     | [5]       | <ul><li>[x] </li></ul> |
 | SourceGen            | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
-| Decorr               |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> |
-| DeSync               |              | RC       | Both     | [6]       | <ul><li>[ ] </li></ul> |
 | SkewedSync           | Seq 07, 2019 | Both     | Both     | [7]       | <ul><li>[x] </li></ul> |
 | Sync                 |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> |
-| Bi2Uni               | Mar 31, 2020 | RC       | Bi       | [13]      | <ul><li>[x] </li></ul> |
 | Uni2Bi               | Mar 31, 2020 | RC       | Uni      | [13]      | <ul><li>[x] </li></ul> |
 
 #### _'kernel'_ subdirectory
@@ -69,7 +69,6 @@ This directory contains the components for **Computing Kernel**, which take bits
 The components currently supported or to be implemented are listed in the table below.
 
 1. Fully Streaming Unary (FSU) components that both consume and produce unary bitstreams.
-
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | FSUAbs               | Mar 25, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
@@ -85,11 +84,14 @@ The components currently supported or to be implemented are listed in the table 
 | FSUSqrt              | Apr 02, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |
 
 2. Hybrid Unary Binary (HUB) components that both consume and produce binary data but compute on bitstreams.
-
+| Name                 | Date         | Encoding | Polarity | Reference | Status                 |
+| -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | HUBConv2d            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 | HUBLinear            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 
 3. Useful sub-components.
+| Name                 | Date         | Encoding | Polarity | Reference | Status                 |
+| -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [5]       | <ul><li>[x] </li></ul> |
 | GainesAdd            | Mar 02, 2020 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
 | GainesDiv            | Mar 08, 2020 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
@@ -109,10 +111,10 @@ The components currently supported or to be implemented are listed in the table 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | Correlation          | Seq 07, 2019 | Both     | Both     | [9]       | <ul><li>[x] </li></ul> |
-| ProgressiveError     | Seq 07, 2019 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
-| Stability            | Dec 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
 | NormStability        | Dec 18, 2019 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
 | NSBuilder            | Mar 31, 2020 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
+| ProgressiveError     | Seq 07, 2019 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
+| Stability            | Dec 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
 
 #### _'test'_ subdirectory
 This directory contains simple testing examples for above components.
@@ -139,7 +141,7 @@ This directory includes the hardware implementation of components in **Stream Ma
 [13] D. Wu, R. Yin and J. San Miguel, "In-Stream Correlation-Based Division and Bit-Inserting Square Root in Stochastic Computing", in _IEEE Design & Test_ 2021.
 
 ## Citing
-If you find UnarySim or uGEMM is useful for your research, please use the following bibtex to cite us,
+If you find UnarySim is useful for your research, please use the following bibtex to cite us,
 
 ```
 @inproceedings{diwu2020uGEMM,
