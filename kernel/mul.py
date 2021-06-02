@@ -18,6 +18,7 @@ class FSUMul(torch.nn.Module):
         super(FSUMul, self).__init__()
         
         self.bitwidth = bitwidth
+        self.depth = 2**bitwidth
         self.mode = mode
         self.static = static
         self.stype = stype
@@ -26,7 +27,7 @@ class FSUMul(torch.nn.Module):
         self.input_prob_1 = input_prob_1
         
         assert self.mode == "unipolar" or self.mode == "bipolar", "Unsupported mode in FSUMul."
-        
+
         # the random number generator used in computation
         self.rng = RNG(
             bitwidth=self.bitwidth,
@@ -47,7 +48,7 @@ class FSUMul(torch.nn.Module):
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         else:
             # use a shift register to store the count of 1s in one bitstream to generate data
-            self.sr = ShiftReg(depth=2**bitwidth, stype=self.stype)
+            self.sr = ShiftReg(depth=self.depth, stype=self.stype)
             self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
             if self.mode == "bipolar":
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
@@ -71,7 +72,7 @@ class FSUMul(torch.nn.Module):
         else:
             _, source = self.sr(input_1)
             path = input_0.type(torch.int8) & torch.gt(source, self.rng[self.rng_idx]).type(torch.int8)
-            self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long)) % (2**self.bitwidth)
+            self.rng_idx.data = self.rng_idx.add(input_0.type(torch.long)) % self.depth
 
             if self.mode == "unipolar":
                 return path
@@ -79,7 +80,7 @@ class FSUMul(torch.nn.Module):
                 # for input0 is 0.
                 path_inv = (1 - input_0.type(torch.int8)) & (1 - torch.gt(source, self.rng[self.rng_idx_inv]).type(torch.int8))
                 # conditional update for rng_idx_inv
-                self.rng_idx_inv.data = self.rng_idx_inv.add(1 - input_0.type(torch.long)) % (2**self.bitwidth)
+                self.rng_idx_inv.data = self.rng_idx_inv.add(1 - input_0.type(torch.long)) % self.depth
                 return path | path_inv
             
     def forward(self, input_0, input_1=None):
