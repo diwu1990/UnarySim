@@ -69,6 +69,7 @@ This directory contains the components for **Computing Kernel**, which take bits
 The components currently supported or to be implemented are listed in the table below.
 
 1. Fully Streaming Unary (FSU) components that both consume and produce unary bitstreams.
+
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | FSUAbs               | Mar 25, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
@@ -84,12 +85,14 @@ The components currently supported or to be implemented are listed in the table 
 | FSUSqrt              | Apr 02, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |
 
 2. Hybrid Unary Binary (HUB) components that both consume and produce binary data but compute on bitstreams.
+
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | HUBConv2d            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 | HUBLinear            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 
 3. Useful sub-components.
+
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [5]       | <ul><li>[x] </li></ul> |
@@ -101,6 +104,7 @@ The components currently supported or to be implemented are listed in the table 
 | JKFF                 | Apr 01, 2020 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
 | ShiftReg             | Dec 06, 2019 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
 | exponentiation       |              |          |          |           | <ul><li>[ ] </li></ul> |
+| tanh                 |              |          |          |           | <ul><li>[ ] </li></ul> |
 | max                  |              |          |          |           | <ul><li>[ ] </li></ul> |
 | min                  |              |          |          |           | <ul><li>[ ] </li></ul> |
 
