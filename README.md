@@ -53,10 +53,10 @@ This directory contains the components for **Stream Manipulation**, which manipu
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | BSGen                | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
 | BSGenMulti           | Nov 11, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
-| RawScale             | Dec 07, 2019 | Both     | Either   | NA        | <ul><li>[x] </li></ul> |
+| RawScale             | Dec 07, 2019 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 | RNG                  | Seq 07, 2019 | Both     | Both     | [5]       | <ul><li>[x] </li></ul> |
 | RNGMulti             | Nov 11, 2019 | Both     | Both     | [5]       | <ul><li>[x] </li></ul> |
-| SourceGen            | Seq 07, 2019 | Both     | Either   | [4]       | <ul><li>[x] </li></ul> |
+| SourceGen            | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
 | Decorr               |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> |
 | DeSync               |              | RC       | Both     | [6]       | <ul><li>[ ] </li></ul> |
 | SkewedSync           | Seq 07, 2019 | Both     | Both     | [7]       | <ul><li>[x] </li></ul> |
@@ -68,31 +68,39 @@ This directory contains the components for **Stream Manipulation**, which manipu
 This directory contains the components for **Computing Kernel**, which take bitstreams as inputs and perform actual unary computation. The supported kernels are listed as follows.
 The components currently supported or to be implemented are listed in the table below.
 
+1. Fully Streaming Unary (FSU) components that both consume and produce unary bitstreams.
+
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| UnaryAbs             | Mar 25, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
-| UnarySign            | Mar 31, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
-| UnaryAdd             | Oct 10, 2019 | Both     | Either   | [8]       | <ul><li>[x] </li></ul> |
-| UnaryMul             | Nov 05, 2019 | Both     | Either   | [8]       | <ul><li>[x] </li></ul> |
-| UnaryLinear          | Seq 27, 2019 | Both     | Either   | [8]       | <ul><li>[x] </li></ul> |
-| UnaryReLU            | Nov 23, 2019 | Either   | Either   | [8]       | <ul><li>[x] </li></ul> |
+| FSUAbs               | Mar 25, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
+| FSUAdd               | Oct 10, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| FSUAvgPool2d         |              |          |          |           | <ul><li>[ ] </li></ul> |
+| FSUCompare           |              |          |          |           | <ul><li>[ ] </li></ul> |
+| FSUConv2d            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
+| FSUDiv               | Apr 01, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |
+| FSULinear            | Seq 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| FSUMul               | Nov 05, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| FSUReLU              | Nov 23, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| FSUSign              | Mar 31, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
+| FSUSqrt              | Apr 02, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |
+
+2. Hybrid Unary Binary (HUB) components that both consume and produce binary data but compute on bitstreams.
+
+| HUBConv2d            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
+| HUBLinear            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
+
+3. Useful sub-components.
 | CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [5]       | <ul><li>[x] </li></ul> |
-| UnaryDiv             | Apr 01, 2020 | RC       | Either   | [5]       | <ul><li>[x] </li></ul> |
-| UnarySqrt            | Apr 02, 2020 | RC       | Either   | [5]       | <ul><li>[x] </li></ul> |
-| GainesAdd            | Mar 02, 2020 | Both     | Either   | [4]       | <ul><li>[x] </li></ul> |
-| GainesMul            | Dec 06, 2019 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
-| GainesLinear         | Nov 25, 2019 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
-| GainesDiv            | Mar 08, 2020 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
-| GainesSqrt           | Mar 24, 2020 | RC       | Either   | [4]       | <ul><li>[x] </li></ul> |
-| nn_utils             | Nov 25, 2019 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
+| GainesAdd            | Mar 02, 2020 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
+| GainesDiv            | Mar 08, 2020 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
+| GainesLinear         | Nov 25, 2019 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
+| GainesMul            | Dec 06, 2019 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
+| GainesSqrt           | Mar 24, 2020 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
 | JKFF                 | Apr 01, 2020 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
 | ShiftReg             | Dec 06, 2019 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
-| comparison           |              |          |          |           | <ul><li>[ ] </li></ul> |
-| conv                 |              |          |          |           | <ul><li>[ ] </li></ul> |
 | exponentiation       |              |          |          |           | <ul><li>[ ] </li></ul> |
 | max                  |              |          |          |           | <ul><li>[ ] </li></ul> |
 | min                  |              |          |          |           | <ul><li>[ ] </li></ul> |
-| pool                 |              |          |          |           | <ul><li>[ ] </li></ul> |
 
 #### _'metric'_ subdirectory
 This directory contains the components for **Performance Metric**, which take bit streams as input and calculate certain performance metrics.
@@ -101,10 +109,10 @@ The components currently supported or to be implemented are listed in the table 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
 | Correlation          | Seq 07, 2019 | Both     | Both     | [9]       | <ul><li>[x] </li></ul> |
-| ProgressiveError     | Seq 07, 2019 | Both     | Either   | [10]      | <ul><li>[x] </li></ul> |
-| Stability            | Dec 27, 2019 | Both     | Either   | [8]       | <ul><li>[x] </li></ul> |
-| NormStability        | Dec 18, 2019 | Both     | Either   | [12]      | <ul><li>[x] </li></ul> |
-| NSBuilder            | Mar 31, 2020 | Both     | Either   | [12]      | <ul><li>[x] </li></ul> |
+| ProgressiveError     | Seq 07, 2019 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
+| Stability            | Dec 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| NormStability        | Dec 18, 2019 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
+| NSBuilder            | Mar 31, 2020 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
 
 #### _'test'_ subdirectory
 This directory contains simple testing examples for above components.
