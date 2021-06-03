@@ -46,6 +46,7 @@ class FSUAdd(torch.nn.Module):
             else:
                 self.scale_carry.fill_(1.0)
             if scale_carry is not None:
+                # runtime scale_carry will override all default settings
                 self.scale_carry.fill_(scale_carry)
             if self.mode == "bipolar":
                 self.offset.data = (input.size()[self.acc_dim] - self.scale_carry)/2
@@ -57,7 +58,7 @@ class FSUAdd(torch.nn.Module):
         return output.type(self.stype)
 
 
-class FSUAdd_old(torch.nn.Module):
+class FSUAdduGEMM(torch.nn.Module):
     """
     This module is for unary addition in uGEMM, including scaled/non-scaled, unipolar/bipolar.
     """
@@ -66,7 +67,7 @@ class FSUAdd_old(torch.nn.Module):
                  scaled=True, 
                  acc_dim=0, 
                  stype=torch.float):
-        super(FSUAdd_old, self).__init__()
+        super(FSUAdduGEMM, self).__init__()
         
         # data representation
         self.mode = mode

@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.add import FSUAdd_old
+from UnarySim.kernel.add import FSUAdduGEMM
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ def add_test(rng="Sobol", row=128, col=10000, bitwidth=8, plot_en=False):
             run_time = 0
             acc_dim = 0
             result_pe_cycle = []
-            uadd = FSUAdd_old(mode=mode, scaled=scale, acc_dim=acc_dim).to(device)
+            uadd = FSUAdduGEMM(mode=mode, scaled=scale, acc_dim=acc_dim).to(device)
 
             if mode == "unipolar":
                 iVec = torch.rand(row, col).mul(2**bitwidth).round().div(2**bitwidth).to(device)
