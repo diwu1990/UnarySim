@@ -18,10 +18,13 @@ class FSUAdd(torch.nn.Module):
         self.mode = mode
         # whether it is scaled addition
         self.scaled = scaled
+        # scale is an arbitrary value that larger than 0
         self.scale = scale
-        # dimension to do reduce sum
+        # dimension to do reduced sum
         self.acc_dim = (acc_dim)
+        # min value in the accumulator
         self.acc_max = 2**(acc_depth-2)
+        # max value in the accumulator
         self.acc_min = -2**(acc_depth-2)
         self.stype = stype
         
@@ -33,7 +36,7 @@ class FSUAdd(torch.nn.Module):
         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.first = True
 
-    def forward(self, input):
+    def forward(self, input, scale_carry=None):
         if self.first:
             if self.scaled is True:
                 if self.scale is None:
@@ -42,6 +45,8 @@ class FSUAdd(torch.nn.Module):
                     self.scale_carry.fill_(self.scale)
             else:
                 self.scale_carry.fill_(1.0)
+            if scale_carry is not None:
+                self.scale_carry.fill_(scale_carry)
             if self.mode == "bipolar":
                 self.offset.data = (input.size()[self.acc_dim] - self.scale_carry)/2
             self.first = False
