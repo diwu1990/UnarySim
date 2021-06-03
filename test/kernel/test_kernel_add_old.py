@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.add import FSUAdd
+from UnarySim.kernel.add import FSUAdd_old
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -18,14 +18,13 @@ def add_test(rng="Sobol", row=128, col=10000, bitwidth=8, plot_en=False):
     stype = torch.float
     btype = torch.float
     rtype = torch.float
-    scale_mod = row
 
     for mode in modes:
         for scale in scaled:
             run_time = 0
             acc_dim = 0
             result_pe_cycle = []
-            uadd = FSUAdd(mode=mode, scaled=scale, scale=scale_mod, acc_dim=acc_dim).to(device)
+            uadd = FSUAdd_old(mode=mode, scaled=scale, acc_dim=acc_dim).to(device)
 
             if mode == "unipolar":
                 iVec = torch.rand(row, col).mul(2**bitwidth).round().div(2**bitwidth).to(device)
@@ -35,15 +34,17 @@ def add_test(rng="Sobol", row=128, col=10000, bitwidth=8, plot_en=False):
             oVec = torch.sum(iVec, acc_dim).to(device)
 
             iVecSource = SourceGen(iVec, bitwidth=bitwidth, mode=mode, rtype=rtype)().to(device)
+
             iVecRNG = RNG(bitwidth, 1, rng, rtype)().to(device)
             iVecBS = BSGen(iVecSource, iVecRNG, stype).to(device)
+
             iVecPE = ProgressiveError(iVec, scale=1, mode=mode).to(device)
             
             if scale is True:
                 if acc_dim == 0:
-                    oVecPE = ProgressiveError(oVec, scale=scale_mod, mode=mode).to(device)
+                    oVecPE = ProgressiveError(oVec, scale=row, mode=mode).to(device)
                 elif acc_dim ==1:
-                    oVecPE = ProgressiveError(oVec, scale=scale_mod, mode=mode).to(device)
+                    oVecPE = ProgressiveError(oVec, scale=col, mode=mode).to(device)
             else:
                 oVecPE = ProgressiveError(oVec, scale=1, mode=mode).to(device)
 
