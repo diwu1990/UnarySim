@@ -3,14 +3,14 @@ from UnarySim.stream.gen import RNG
 
 class FSUAdd(torch.nn.Module):
     """
-    this module is for unary addition, including scaled/non-scaled, unipolar/bipolar.
+    This module is for unary addition for arbitrary scale, including scaled/non-scaled, unipolar/bipolar.
     """
     def __init__(self, 
                  mode="bipolar", 
                  scaled=True, 
                  scale=None, 
                  acc_dim=0, 
-                 acc_depth=8, 
+                 acc_depth=10, 
                  stype=torch.float):
         super(FSUAdd, self).__init__()
         
@@ -21,8 +21,8 @@ class FSUAdd(torch.nn.Module):
         self.scale = scale
         # dimension to do reduce sum
         self.acc_dim = (acc_dim)
-        self.acc_max = 2**(acc_depth-1)
-        self.acc_min = -2**(acc_depth-1)
+        self.acc_max = 2**(acc_depth-2)
+        self.acc_min = -2**(acc_depth-2)
         self.stype = stype
         
         # the carry scale at the output
@@ -46,9 +46,9 @@ class FSUAdd(torch.nn.Module):
                 self.offset.data = (input.size()[self.acc_dim] - self.scale_carry)/2
             self.first = False
         acc_delta = torch.sum(input.type(torch.float), self.acc_dim) - self.offset
-        self.accumulator.data = self.accumulator.add(acc_delta)
+        self.accumulator.data = self.accumulator.add(acc_delta).clamp(self.acc_min, self.acc_max)
         output = torch.gt(self.accumulator, self.scale_carry).type(torch.float)
-        self.accumulator.sub_(output * self.scale_carry)
+        self.accumulator.sub_(output * self.scale_carry).clamp_(self.acc_min, self.acc_max)
         return output.type(self.stype)
 
 
