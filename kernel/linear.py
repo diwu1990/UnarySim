@@ -2,10 +2,162 @@ import torch
 import math
 from UnarySim.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
 from torch.cuda.amp import autocast
+from UnarySim.kernel.add import FSUAdd
 
-class FSULinear(torch.nn.Linear):
+class FSULinear(torch.nn.Module):
     """
     This module is the fully connected layer,
+    its API is similar to the parent class (input/output feature count, bias flag), except:
+    1) accumulation mode
+    2) unary data mode
+    3) binary data width
+    4) binary weight
+    5) binary bias
+    """
+    def __init__(self, 
+                 in_features, 
+                 out_features, 
+                 bias=True, 
+                 binary_weight=None, 
+                 binary_bias=None, 
+                 bitwidth=8, 
+                 mode="bipolar", 
+                 scaled=True, 
+                 scale=None, 
+                 depth=12, 
+                 btype=torch.float, 
+                 rtype=torch.float, 
+                 stype=torch.float):
+        super(FSULinear, self).__init__()
+        
+        self.stype = stype
+        self.PC = FSULinearPC(in_features, 
+                                out_features, 
+                                bias=bias, 
+                                binary_weight=binary_weight, 
+                                binary_bias=binary_bias, 
+                                bitwidth=bitwidth, 
+                                mode=mode, 
+                                btype=btype, 
+                                rtype=rtype, 
+                                stype=stype)
+        if scaled is True:
+            if scale is None:
+                scale_add = in_features + bias
+            else:
+                scale_add = scale
+        else:
+            scale_add = 1.0
+        self.ACC = FSUAdd(mode=mode, 
+                                scaled=scaled, 
+                                scale=scale_add, 
+                                dim=0, 
+                                depth=depth, 
+                                entry=in_features + bias, 
+                                stype=stype)
+
+    @autocast()
+    def forward(self, input, scale=None, entry=None):
+        pc = self.PC(input)
+        output = self.ACC(pc.unsqueeze(0), scale, entry)
+        return output.type(self.stype)
+
+
+class FSULinearPC(torch.nn.Linear):
+    """
+    This module is the parallel counter result of FSULinear before generating the bitstreams.
+    """
+    def __init__(self, 
+                 in_features, 
+                 out_features, 
+                 bias=True, 
+                 binary_weight=None, 
+                 binary_bias=None, 
+                 bitwidth=8, 
+                 mode="bipolar", 
+                 btype=torch.float, 
+                 rtype=torch.float, 
+                 stype=torch.float):
+        super(FSULinearPC, self).__init__(in_features, out_features, bias=bias)
+        self.stype = stype
+        self.btype = btype
+        self.rtype = rtype
+        
+        self.mode = mode
+        
+        # bias indication for original linear layer
+        self.has_bias = bias
+        
+        # data bit width
+        self.bitwidth = bitwidth
+        
+        # random_sequence from sobol RNG
+        self.rng = RNG(self.bitwidth, 1, "Sobol")()
+        
+        # define the linear weight and bias
+        if binary_weight is not None:
+            self.weight.data = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+        
+        if bias and (binary_bias is not None):
+            self.bias.data = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+
+        # define the kernel linear
+        self.weight_bsg = BSGen(self.weight, self.rng, stype=stype)
+        self.weight_rng_idx = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
+        if self.has_bias is True:
+            self.bias_bsg = BSGen(self.bias, self.rng, stype=stype)
+            self.bias_rng_idx = torch.nn.Parameter(torch.zeros_like(self.bias, dtype=torch.long), requires_grad=False)
+        
+        # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
+        if self.mode == "bipolar":
+            self.weight_bsg_inv = BSGen(self.weight, self.rng, stype=stype)
+            self.weight_rng_idx_inv = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
+
+    def FSULinear_PC(self, input):
+        # first dim should always be batch
+        batch = input.size()[0]
+
+        # generate weight and bias bits for current cycle
+        weight_bs = self.weight_bsg(self.weight_rng_idx).type(torch.float)
+        if weight_bs.size()[0] != batch:
+            weight_bs = torch.cat(batch*[weight_bs], 0)
+            self.weight_rng_idx = torch.cat(batch*[self.weight_rng_idx], 0)
+        torch.add(self.weight_rng_idx, input.unsqueeze(1).type(torch.long), out=self.weight_rng_idx)
+        
+        kernel_out = torch.empty(0, device=input.device)
+        torch.matmul(input.unsqueeze(1).type(torch.float), weight_bs.transpose(1, 2), out=kernel_out)
+        kernel_out.squeeze_(1)
+        
+        if self.has_bias is True:
+            bias_bs = self.bias_bsg(self.bias_rng_idx).type(torch.float)
+            self.bias_rng_idx.add_(1)
+            kernel_out += bias_bs.unsqueeze(0).expand_as(kernel_out)
+
+        if self.mode == "unipolar":
+            return kernel_out
+        
+        if self.mode == "bipolar":
+            # generate weight and bias bits for current cycle
+            weight_bs_inv = 1 - self.weight_bsg_inv(self.weight_rng_idx_inv).type(torch.float)
+            if weight_bs_inv.size()[0] != batch:
+                weight_bs_inv = torch.cat(batch*[weight_bs_inv], 0)
+                self.weight_rng_idx_inv = torch.cat(batch*[self.weight_rng_idx_inv], 0)
+            torch.add(self.weight_rng_idx_inv, 1 - input.unsqueeze(1).type(torch.long), out=self.weight_rng_idx_inv)
+            
+            kernel_out_inv = torch.empty(0, device=input.device)
+            torch.matmul(1 - input.unsqueeze(1).type(torch.float), weight_bs_inv.transpose(1, 2), out=kernel_out_inv)
+            kernel_out_inv.squeeze_(1)
+
+            return kernel_out + kernel_out_inv
+
+    @autocast()
+    def forward(self, input):
+        return self.FSULinear_PC(input).type(self.stype)
+        
+
+class FSULinearuGEMM(torch.nn.Linear):
+    """
+    This module is the fully connected layer using uGEMM add implementation
     its API is similar to the parent class (input/output feature count, bias flag), except:
     1) accumulation mode
     2) unary data mode
@@ -25,7 +177,7 @@ class FSULinear(torch.nn.Linear):
                  btype=torch.float, 
                  rtype=torch.float, 
                  stype=torch.float):
-        super(FSULinear, self).__init__(in_features, out_features, bias=bias)
+        super(FSULinearuGEMM, self).__init__(in_features, out_features, bias=bias)
         self.in_features = in_features
         self.out_features = out_features
         self.stype = stype
@@ -134,7 +286,7 @@ class FSULinear(torch.nn.Linear):
             self.out_accumulator.data = self.out_accumulator.add(output)
 
         return output.type(self.stype)
-        
+
         
 class GainesLinear1(torch.nn.Module):
     """

@@ -92,14 +92,14 @@ def linear_test(rng="Sobol",
 
 # %%
 rng = "Sobol"
-in_channels=4
-out_channels=16
+in_channels=16
+out_channels=128
 kernel_size=3
 stride=3
 padding=3
 dilation=4
 groups=1
-bias=False
+bias=True
 padding_mode='zeros'
-bitwidth=8
+bitwidth=10
 linear_test(rng, in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, groups=groups, bias=bias, bitwidth=bitwidth)

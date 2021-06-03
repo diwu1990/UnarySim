@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.kernel.linear import FSULinear
+from UnarySim.kernel.linear import FSULinearuGEMM
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgressiveError
 import matplotlib.pyplot as plt
@@ -31,8 +31,8 @@ def linear_test(rng="Sobol", in_feature=128, out_feature=10000, bitwidth=8, bias
                 if bias is True:
                     fc.bias.data = torch.rand(out_feature).mul(2).sub(1).mul(length).round().div(length).to(device)
 
-            ufc = FSULinear(in_feature, out_feature, bias=bias, binary_weight=fc.weight, binary_bias=fc.bias, 
-                              bitwidth=bitwidth, mode=mode, scaled=scale, depth=14).to(device)
+            ufc = FSULinearuGEMM(in_feature, out_feature, bias=bias, binary_weight=fc.weight, binary_bias=fc.bias, 
+                              bitwidth=bitwidth, mode=mode, scaled=scale).to(device)
 
             iVec = ((torch.rand(32, in_feature)*length).round()/length).to(device)
             oVec = fc(iVec)

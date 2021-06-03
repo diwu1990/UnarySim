@@ -23,7 +23,7 @@ def add_test(rng="Sobol", row=128, col=10000, bitwidth=8):
         for scale in scaled:
             acc_dim = 0
             result_pe_cycle = []
-            uadd = GainesAdd(mode=mode, scaled=scale, acc_dim=acc_dim, 
+            uadd = GainesAdd(mode=mode, scaled=scale, dim=acc_dim, 
                              rng="Sobol", rng_dim=5, rng_width=int(math.log2(row)), 
                              stype=stype, rtype=rtype).to(device)
 

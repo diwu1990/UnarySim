@@ -6,12 +6,13 @@ class FSUAdd(torch.nn.Module):
     This module is for unary addition for arbitrary scale, including scaled/non-scaled, unipolar/bipolar.
     """
     def __init__(self, 
-                 mode="bipolar", 
-                 scaled=True, 
-                 scale=None, 
-                 acc_dim=0, 
-                 acc_depth=10, 
-                 stype=torch.float):
+                    mode="bipolar", 
+                    scaled=True, 
+                    scale=None, 
+                    dim=0, 
+                    depth=10, 
+                    entry=None, 
+                    stype=torch.float):
         super(FSUAdd, self).__init__()
         
         # data representation
@@ -21,37 +22,43 @@ class FSUAdd(torch.nn.Module):
         # scale is an arbitrary value that larger than 0
         self.scale = scale
         # dimension to do reduced sum
-        self.acc_dim = (acc_dim)
+        self.dim = dim
         # min value in the accumulator
-        self.acc_max = 2**(acc_depth-2)
+        self.acc_max = 2**(depth-2)
         # max value in the accumulator
-        self.acc_min = -2**(acc_depth-2)
+        self.acc_min = -2**(depth-2)
+        # number of entries in dim to do reduced sum
+        self.entry = entry
         self.stype = stype
         
         # the carry scale at the output
-        self.scale_carry = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.scale_carry = torch.nn.Parameter(torch.ones(1), requires_grad=False)
         # accumulation offset
         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         # accumulator for (PC - offset)
         self.accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.first = True
 
-    def forward(self, input, scale_carry=None):
+    def forward(self, input, scale=None, entry=None):
         if self.first:
             if self.scaled is True:
                 if self.scale is None:
-                    self.scale_carry.fill_(input.size()[self.acc_dim])
+                    self.scale_carry.fill_(input.size()[self.dim])
                 else:
                     self.scale_carry.fill_(self.scale)
-            else:
-                self.scale_carry.fill_(1.0)
-            if scale_carry is not None:
-                # runtime scale_carry will override all default settings
-                self.scale_carry.fill_(scale_carry)
+                if scale is not None:
+                    # runtime scale will override the default value
+                    self.scale_carry.fill_(scale)
             if self.mode == "bipolar":
-                self.offset.data = (input.size()[self.acc_dim] - self.scale_carry)/2
+                if self.entry is None:
+                    self.offset.data = (input.size()[self.dim] - self.scale_carry)/2
+                else:
+                    self.offset.data = (self.entry - self.scale_carry)/2
+                if entry is not None:
+                    # runtime entry will override the default value in bipolar mode
+                    self.offset.data = (entry - self.scale_carry)/2
             self.first = False
-        acc_delta = torch.sum(input.type(torch.float), self.acc_dim) - self.offset
+        acc_delta = torch.sum(input.type(torch.float), self.dim) - self.offset
         self.accumulator.data = self.accumulator.add(acc_delta).clamp(self.acc_min, self.acc_max)
         output = torch.gt(self.accumulator, self.scale_carry).type(torch.float)
         self.accumulator.sub_(output * self.scale_carry).clamp_(self.acc_min, self.acc_max)
@@ -65,7 +72,7 @@ class FSUAdduGEMM(torch.nn.Module):
     def __init__(self, 
                  mode="bipolar", 
                  scaled=True, 
-                 acc_dim=0, 
+                 dim=0, 
                  stype=torch.float):
         super(FSUAdduGEMM, self).__init__()
         
@@ -74,12 +81,12 @@ class FSUAdduGEMM(torch.nn.Module):
         # whether it is scaled addition
         self.scaled = scaled
         # dimension to do reduce sum
-        self.acc_dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.acc_dim.fill_(acc_dim)
+        self.dim = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
+        self.dim.fill_(dim)
         self.stype = stype
         
         # upper bound for accumulation counter in scaled mode
-        # it is the number of inputs, e.g., the size along the acc_dim dimension
+        # it is the number of inputs, e.g., the size along the dim dimension
         self.acc_bound = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         # accumulation offset
         self.offset = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -89,10 +96,10 @@ class FSUAdduGEMM(torch.nn.Module):
             self.out_accumulator = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
 
     def forward(self, input):
-        self.acc_bound.fill_(input.size()[self.acc_dim.item()])
+        self.acc_bound.fill_(input.size()[self.dim.item()])
         if self.mode == "bipolar":
             self.offset.fill_((self.acc_bound.item()-1)/2)
-        self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.acc_dim.item()))
+        self.accumulator.data = self.accumulator.add(torch.sum(input.type(torch.float), self.dim.item()))
         
         if self.scaled is True:
             output = torch.ge(self.accumulator, self.acc_bound).type(torch.float)
@@ -114,7 +121,7 @@ class GainesAdd(torch.nn.Module):
     def __init__(self, 
                  mode="bipolar", 
                  scaled=True, 
-                 acc_dim=0, 
+                 dim=0, 
                  rng="Sobol", 
                  rng_dim=5, 
                  rng_width=8, 
@@ -129,7 +136,7 @@ class GainesAdd(torch.nn.Module):
         if self.mode == "bipolar" and self.scaled is False:
             raise ValueError("Non-scaled addition for biploar data is not supported in Gaines approach.")
         # dimension to do reduce sum
-        self.acc_dim = acc_dim
+        self.dim = dim
         self.stype = stype
         self.rng = RNG(rng_width, rng_dim, rng, rtype=rtype)()
         self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
@@ -137,13 +144,13 @@ class GainesAdd(torch.nn.Module):
     def forward(self, input):
         if self.scaled is True:
             randNum = self.rng[self.rng_idx.item()]
-            assert randNum.item() < input.size()[self.acc_dim], "randNum should be smaller than the dimension size of addition."
+            assert randNum.item() < input.size()[self.dim], "randNum should be smaller than the dimension size of addition."
             # using a MUX for both unipolar and bipolar
-            output = torch.unbind(torch.index_select(input, self.acc_dim, randNum.type(torch.long).view(1)), self.acc_dim)[0]
+            output = torch.unbind(torch.index_select(input, self.dim, randNum.type(torch.long).view(1)), self.dim)[0]
             self.rng_idx.data = self.rng_idx.add(1)%self.rng.numel()
         else:
             # only support unipolar data using an OR gate
-            output = torch.gt(torch.sum(input, self.acc_dim), 0)
+            output = torch.gt(torch.sum(input, self.dim), 0)
             
         return output.type(self.stype)
     
