@@ -2,7 +2,7 @@
 import torch
 from UnarySim.kernel.div import FSUDiv
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -70,12 +70,12 @@ def test(mode="unipolar",
     
     result_pe_total = []
     for rand_idx in range(1, total_cnt+1):
-        quotientPE = ProgressiveError(quotient, mode=mode).to(device)
+        quotientPE = ProgError(quotient, mode=mode).to(device)
     
-        dividendPE = ProgressiveError(dividend, mode=mode).to(device)
+        dividendPE = ProgError(dividend, mode=mode).to(device)
         dividendSRC = SourceGen(dividend, bitwidth, mode=mode, rtype=rtype)().to(device)
 
-        divisorPE  = ProgressiveError(divisor,  mode=mode).to(device)
+        divisorPE  = ProgError(divisor,  mode=mode).to(device)
         divisorSRC = SourceGen(divisor, bitwidth, mode=mode, rtype=rtype)().to(device)
         dut_div = FSUDiv(depth_abs=depth_abs, 
                        depth_kernel=depth_kernel, 

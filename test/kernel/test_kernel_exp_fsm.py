@@ -3,7 +3,7 @@ import torch
 import math
 from UnarySim.kernel.exp import expNG
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import math
@@ -40,8 +40,8 @@ def exp_fsm_test(bw=8, mode="unipolar", rng="Sobol", depth=5):
     result_pe_total = []
     for rand_idx in range(1, total_cnt+1):
         
-        outputPE = ProgressiveError(output, mode="unipolar").to(device)
-        inputPE  = ProgressiveError(input,  mode=mode).to(device)
+        outputPE = ProgError(output, mode="unipolar").to(device)
+        inputPE  = ProgError(input,  mode=mode).to(device)
         
         inputSRC = SourceGen(input, bitwidth, mode=mode, rtype=rtype)().to(device)
         inputRNG = RNG(bitwidth, rand_idx, rng, rtype)().to(device)

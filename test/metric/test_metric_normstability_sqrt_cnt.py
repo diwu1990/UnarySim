@@ -1,6 +1,6 @@
 # %%
 import torch
-from UnarySim.metric.metric import NormStability, NSbuilder, Stability, ProgressiveError
+from UnarySim.metric.metric import NormStability, NSbuilder, Stability, ProgError
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.kernel.sqrt import GainesSqrt
 import random

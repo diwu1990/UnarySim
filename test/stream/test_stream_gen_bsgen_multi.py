@@ -1,7 +1,7 @@
 # %%
 import torch
 from UnarySim.stream.gen import RNGMulti, SourceGen, BSGenMulti
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 
@@ -26,7 +26,7 @@ iVecSource = SourceGen(iVec, bitwidth=bitwidth, mode=mode)().to(device)
 iVecRNG = RNGMulti(bitwidth, row, rng, False).to(device)()
 iVecBS = BSGenMulti(iVecSource, iVecRNG, dim=0).to(device)
 
-iVecPE = ProgressiveError(iVec, mode=mode).to(device)
+iVecPE = ProgError(iVec, mode=mode).to(device)
 with torch.no_grad():
     idx = torch.zeros(iVecSource.size()).type(torch.long).to(device)
     start_time = time.time()

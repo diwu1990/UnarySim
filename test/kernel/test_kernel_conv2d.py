@@ -3,7 +3,7 @@ import math
 import torch
 from UnarySim.kernel.conv import FSUConv2d
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import torch.autograd.profiler as profiler
@@ -54,15 +54,15 @@ def linear_test(rng="Sobol",
             iVecRNG = RNG(bitwidth, 1, rng)().to(device)
             iVecBS = BSGen(iVecSource, iVecRNG).to(device)
 
-            iVecPE = ProgressiveError(iVec, mode=mode).to(device)
+            iVecPE = ProgError(iVec, mode=mode).to(device)
             
             if scale is True:
                 if bias == 0:
-                    oVecPE = ProgressiveError(oVec, scale=kernel_size * kernel_size * in_channels, mode=mode).to(device)
+                    oVecPE = ProgError(oVec, scale=kernel_size * kernel_size * in_channels, mode=mode).to(device)
                 elif bias ==1:
-                    oVecPE = ProgressiveError(oVec, scale=kernel_size * kernel_size * in_channels+1, mode=mode).to(device)
+                    oVecPE = ProgError(oVec, scale=kernel_size * kernel_size * in_channels+1, mode=mode).to(device)
             else:
-                oVecPE = ProgressiveError(oVec, scale=1, mode=mode).to(device)
+                oVecPE = ProgError(oVec, scale=1, mode=mode).to(device)
             
             with torch.no_grad():
                 idx = torch.zeros(iVecSource.size()).type(torch.long).to(device)

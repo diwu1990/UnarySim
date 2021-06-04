@@ -2,7 +2,7 @@
 import torch
 from UnarySim.kernel.div import CORDIV_kernel
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import ticker, cm
@@ -67,14 +67,14 @@ for mode in modes:
     
     dut_div = CORDIV_kernel(depth=depth_kernel, rng=rng, rng_dim=rng_dim, stype=stype).to(device)
     
-    quotientPE = ProgressiveError(quotient, mode=mode).to(device)
+    quotientPE = ProgError(quotient, mode=mode).to(device)
     
-    dividendPE = ProgressiveError(dividend, mode=mode).to(device)
+    dividendPE = ProgError(dividend, mode=mode).to(device)
     dividendSRC = SourceGen(dividend, bitwidth, mode=mode, rtype=rtype)().to(device)
     dividendRNG = RNG(bitwidth, 1, rng, rtype)().to(device)
     dividendBS = BSGen(dividendSRC, dividendRNG, stype).to(device)
     
-    divisorPE  = ProgressiveError(divisor,  mode=mode).to(device)
+    divisorPE  = ProgError(divisor,  mode=mode).to(device)
     divisorSRC = SourceGen(divisor, bitwidth, mode=mode, rtype=rtype)().to(device)
     divisorRNG = RNG(bitwidth, 1, rng, rtype)().to(device)
     divisorBS = BSGen(divisorSRC, divisorRNG, stype).to(device)

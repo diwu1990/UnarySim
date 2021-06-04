@@ -3,7 +3,7 @@ import torch
 import math
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.kernel.add import GainesAdd
-from UnarySim.metric.metric import ProgressiveError, NormStability
+from UnarySim.metric.metric import ProgError, NormStability
 from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import imshow
@@ -17,7 +17,7 @@ from UnarySim.kernel.shiftreg import ShiftReg
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.kernel.add import GainesAdd
 from UnarySim.kernel.abs import FSUAbs
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 
 
 class UnaryEdgeDetect(torch.nn.Module):
@@ -141,8 +141,8 @@ inputBS = BSGen(source=inputSRC, rng_seq=inputRNG, stype=stype).to(device)
 
 Ued = UnaryEdgeDetect(rng=rng,rng_width=1,rng_dim=4,rtype=rtype,btype=btype,stype=stype).to(device)
 
-inputPE  = ProgressiveError(in_value=input, mode=mode).to(device)
-outputPE = ProgressiveError(in_value=(B_output.type(torch.float))/255/4, mode=mode).to(device)
+inputPE  = ProgError(in_value=input, mode=mode).to(device)
+outputPE = ProgError(in_value=(B_output.type(torch.float))/255/4, mode=mode).to(device)
 
 inijNs = NormStability(in_value=inp_Pr_i_j/255, mode="bipolar", threshold=0.05).to(device)
 ini1j1Ns = NormStability(in_value=inp_Pr_i1_j1/255, mode="bipolar", threshold=0.05).to(device)

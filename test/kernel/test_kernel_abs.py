@@ -2,7 +2,7 @@
 import torch
 from UnarySim.kernel.abs import FSUAbs
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import numpy as np
@@ -43,9 +43,9 @@ def test(rng="Sobol",
     
     result_pe_total = []
     for rand_idx in range(1, total_cnt+1):
-        outputPE = ProgressiveError(output, mode=mode).to(device)
+        outputPE = ProgError(output, mode=mode).to(device)
     
-        inputPE  = ProgressiveError(input,  mode=mode).to(device)
+        inputPE  = ProgError(input,  mode=mode).to(device)
         inputSRC = SourceGen(input, bitwidth, mode=mode, rtype=rtype)().to(device)
 
         dut = FSUAbs(depth=depth, shiftreg=shiftreg, interleave=interleave).to(device)

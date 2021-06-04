@@ -2,7 +2,7 @@
 import torch
 from UnarySim.kernel.shiftreg import ShiftReg
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import math

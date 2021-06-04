@@ -4,7 +4,7 @@ from UnarySim.kernel.shiftreg import ShiftReg
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.kernel.add import FSUAdd, GainesAdd
 from UnarySim.kernel.abs import FSUAbs
-from UnarySim.metric.metric import ProgressiveError, Stability, NormStability
+from UnarySim.metric.metric import ProgError, Stability, NormStability
 import math
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -226,8 +226,8 @@ def detect(
     else:
         Ued = UnaryEdgeDetect(depth=depth, scaled=scaled, interleave=interleave, rtype=rtype, btype=btype, stype=stype).to(device)
 
-    inputPE  = ProgressiveError(in_value=input,                 mode=mode).to(device)
-    outputPE = ProgressiveError(in_value=B_output/output_scale, mode=mode).to(device)
+    inputPE  = ProgError(in_value=input,                 mode=mode).to(device)
+    outputPE = ProgError(in_value=B_output/output_scale, mode=mode).to(device)
 
     if ns is True:
         inijNs   = NormStability(in_value=inp_Pr_i_j/input_scale,   mode="bipolar", threshold=threshold).to(device)
@@ -328,8 +328,8 @@ def detect(
     else:
         Ued = UnaryEdgeDetect(depth=depth, scaled=scaled, interleave=interleave, rtype=rtype, btype=btype, stype=stype).to(device)
 
-    inputPE  = ProgressiveError(in_value=input,                 mode=mode).to(device)
-    outputPE = ProgressiveError(in_value=B_output/output_scale, mode=mode).to(device)
+    inputPE  = ProgError(in_value=input,                 mode=mode).to(device)
+    outputPE = ProgError(in_value=B_output/output_scale, mode=mode).to(device)
 
     # result_pe_cycle = []
     with torch.no_grad():

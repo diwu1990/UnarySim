@@ -2,7 +2,7 @@
 import torch
 from UnarySim.kernel.add import GainesAdd
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time, math
 
@@ -39,15 +39,15 @@ def add_test(rng="Sobol", row=128, col=10000, bitwidth=8):
             iVecRNG = RNG(bitwidth, 1, rng, rtype=rtype)().to(device)
             iVecBS = BSGen(iVecSource, iVecRNG, stype=stype).to(device)
 
-            iVecPE = ProgressiveError(iVec, scale=1, mode=mode).to(device)
+            iVecPE = ProgError(iVec, scale=1, mode=mode).to(device)
             
             if scale is True:
                 if acc_dim == 0:
-                    oVecPE = ProgressiveError(oVec, scale=row, mode=mode).to(device)
+                    oVecPE = ProgError(oVec, scale=row, mode=mode).to(device)
                 elif acc_dim ==1:
-                    oVecPE = ProgressiveError(oVec, scale=col, mode=mode).to(device)
+                    oVecPE = ProgError(oVec, scale=col, mode=mode).to(device)
             else:
-                oVecPE = ProgressiveError(oVec, scale=1, mode=mode).to(device)
+                oVecPE = ProgError(oVec, scale=1, mode=mode).to(device)
             
             
             with torch.no_grad():

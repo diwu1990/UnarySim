@@ -117,7 +117,7 @@ The components currently supported or to be implemented are listed in the table 
 | Correlation          | Seq 07, 2019 | Both     | Both     | [9]       | <ul><li>[x] </li></ul> |
 | NormStability        | Dec 18, 2019 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
 | NSBuilder            | Mar 31, 2020 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
-| ProgressiveError     | Seq 07, 2019 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
+| ProgError            | Seq 07, 2019 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
 | Stability            | Dec 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
 
 #### _'test'_ subdirectory

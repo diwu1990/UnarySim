@@ -6,7 +6,7 @@
 import torch
 from UnarySim.sw.quantum.linear_complex import FSULinearComplex, LinearComplex
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.sw.metric.metric import ProgressiveError
+from UnarySim.sw.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 
@@ -53,15 +53,15 @@ def unary_linear_complex_test(rng="Sobol", in_feature=16, out_feature=16, bitwid
         iVecBS_r = BSGen(iVecSRC_r, iVecRNG, stype=stype).to(device)
         iVecBS_i = BSGen(iVecSRC_i, iVecRNG, stype=stype).to(device)
             
-        iVecPE_r = ProgressiveError(iVec_r, scale=1, mode=mode).to(device)
-        iVecPE_i = ProgressiveError(iVec_i, scale=1, mode=mode).to(device)
+        iVecPE_r = ProgError(iVec_r, scale=1, mode=mode).to(device)
+        iVecPE_i = ProgError(iVec_i, scale=1, mode=mode).to(device)
         
         if scale is True:
-            oVecPE_r = ProgressiveError(oVec_r, scale=in_feature*2, mode=mode).to(device)
-            oVecPE_i = ProgressiveError(oVec_i, scale=in_feature*2, mode=mode).to(device)
+            oVecPE_r = ProgError(oVec_r, scale=in_feature*2, mode=mode).to(device)
+            oVecPE_i = ProgError(oVec_i, scale=in_feature*2, mode=mode).to(device)
         else:
-            oVecPE_r = ProgressiveError(oVec_r, scale=1, mode=mode).to(device)
-            oVecPE_i = ProgressiveError(oVec_i, scale=1, mode=mode).to(device)
+            oVecPE_r = ProgError(oVec_r, scale=1, mode=mode).to(device)
+            oVecPE_i = ProgError(oVec_i, scale=1, mode=mode).to(device)
         
         with torch.no_grad():
             idx = torch.zeros(iVecSRC_r.size()).type(torch.long).to(device)

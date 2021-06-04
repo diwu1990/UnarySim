@@ -6,7 +6,7 @@
 import torch
 from UnarySim.sw.kernel.linear_st import LinearST
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.sw.metric.metric import ProgressiveError
+from UnarySim.sw.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import torch.nn as nn

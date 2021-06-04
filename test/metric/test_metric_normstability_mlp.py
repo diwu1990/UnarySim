@@ -13,7 +13,7 @@ from UnarySim.kernel.nn_utils import *
 from UnarySim.kernel.linear import FSULinear
 from UnarySim.kernel.relu import FSUReLU
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError, NormStability
+from UnarySim.metric.metric import ProgError, NormStability
 import time
 import math
 import numpy as np
@@ -128,31 +128,31 @@ with torch.no_grad():
         image_SRC = SourceGen(image, bitwidth=bitwidth, mode=mode)().to(device)
         image_RNG = RNG(bitwidth, rng_dim, rng)().to(device)
         image_BSG = BSGen(image_SRC, image_RNG).to(device)
-        image_ERR = ProgressiveError(image, mode=mode).to(device)
+        image_ERR = ProgError(image, mode=mode).to(device)
         image_NS = NormStability(image, mode=mode, threshold=threshold).to(device)
         
         # unary mlp is decomposed into separate layers
         fc1_unary = FSULinear(32*32, 512, model_clamp.fc1.weight.data, model_clamp.fc1.bias.data, 
                                 bitwidth=bitwidth, mode=mode, scaled=scaled, bias=bias).to(device)
-        fc1_ERR = ProgressiveError(model_clamp.fc1_out.clamp(-1, 1), mode=mode).to(device)
+        fc1_ERR = ProgError(model_clamp.fc1_out.clamp(-1, 1), mode=mode).to(device)
         fc1_NS = NormStability(model_clamp.fc1_out.clamp(-1, 1), mode=mode, threshold=threshold).to(device)
 
         fc2_unary = FSULinear(512, 512, model_clamp.fc2.weight.data, model_clamp.fc2.bias.data, 
                                 bitwidth=bitwidth, mode=mode, scaled=scaled, bias=bias).to(device)
-        fc2_ERR = ProgressiveError(model_clamp.fc2_out.clamp(-1, 1), mode=mode).to(device)
+        fc2_ERR = ProgError(model_clamp.fc2_out.clamp(-1, 1), mode=mode).to(device)
         fc2_NS = NormStability(model_clamp.fc2_out.clamp(-1, 1), mode=mode, threshold=threshold).to(device)
 
         fc3_unary = FSULinear(512, 10, model_clamp.fc3.weight.data, model_clamp.fc3.bias.data, 
                                 bitwidth=bitwidth, mode=mode, scaled=scaled, bias=bias).to(device)
-        fc3_ERR = ProgressiveError(model_clamp.fc3_out.clamp(-1, 1), mode=mode).to(device)
+        fc3_ERR = ProgError(model_clamp.fc3_out.clamp(-1, 1), mode=mode).to(device)
         fc3_NS = NormStability(model_clamp.fc3_out.clamp(-1, 1), mode=mode, threshold=threshold).to(device)
 
         relu1_unary = FSUReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
-        relu1_ERR = ProgressiveError(model_clamp.relu1_out.clamp(-1, 1), mode=mode).to(device)
+        relu1_ERR = ProgError(model_clamp.relu1_out.clamp(-1, 1), mode=mode).to(device)
         relu1_NS = NormStability(model_clamp.relu1_out.clamp(-1, 1), mode=mode, threshold=threshold).to(device)
 
         relu2_unary = FSUReLU(depth=relu_buf_dep, bitwidth=bitwidth, encode=encode).to(device)
-        relu2_ERR = ProgressiveError(model_clamp.relu2_out.clamp(-1, 1), mode=mode).to(device)
+        relu2_ERR = ProgError(model_clamp.relu2_out.clamp(-1, 1), mode=mode).to(device)
         relu2_NS = NormStability(model_clamp.relu2_out.clamp(-1, 1), mode=mode, threshold=threshold).to(device)
         
         if total%100 == 0:

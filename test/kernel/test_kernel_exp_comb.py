@@ -3,7 +3,7 @@ import torch
 import math
 from UnarySim.kernel.exp import expN1
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import math
@@ -40,8 +40,8 @@ def exp_comb_test(bw=8, mode="unipolar", rng="Sobol"):
     result_pe_total = []
     for rand_idx in range(1, total_cnt+1):
         
-        outputPE = ProgressiveError(output, mode=mode).to(device)
-        inputPE  = ProgressiveError(input,  mode=mode).to(device)
+        outputPE = ProgError(output, mode=mode).to(device)
+        inputPE  = ProgError(input,  mode=mode).to(device)
         
         dut_exp_comb = expN1(mode=mode, 
                              rng=rng, 

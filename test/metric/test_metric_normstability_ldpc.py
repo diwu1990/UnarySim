@@ -4,7 +4,7 @@ import math
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.kernel.add import GainesAdd
 from UnarySim.kernel.shiftreg import ShiftReg
-from UnarySim.metric.metric import ProgressiveError, NormStability
+from UnarySim.metric.metric import ProgError, NormStability
 from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import imshow

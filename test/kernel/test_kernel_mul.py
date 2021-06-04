@@ -2,7 +2,7 @@
 import torch
 from UnarySim.kernel.mul import FSUMul
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import math
@@ -32,8 +32,8 @@ for mode in modes:
 
     oVec = torch.mul(iVec, input_prob).mul(2**bitwidth).round().div(2**bitwidth).to(device)
 
-    iVecPE = ProgressiveError(iVec, mode=mode).to(device)
-    oVecPE = ProgressiveError(oVec, mode=mode).to(device)
+    iVecPE = ProgError(iVec, mode=mode).to(device)
+    oVecPE = ProgError(oVec, mode=mode).to(device)
 
     iVecSource = SourceGen(iVec, bitwidth, mode=mode)().to(device)
     iVecRNG = RNG(bitwidth, 1, rng)().to(device)

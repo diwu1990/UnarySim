@@ -55,20 +55,20 @@ class Correlation(torch.nn.Module):
         return ad_gt_bc * corr_ad_gt_bc + ad_le_bc * corr_ad_le_bc
     
     
-class ProgressiveError(torch.nn.Module):
+class ProgError(torch.nn.Module):
     """
     calculate progressive error based on progressive precision of input bit stream.
     progressive precision: "Fast and accurate computation using stochastic circuits"
     scale=1 indicates non-scale, scale>1 indicates scale.
     """
     def __init__(self, in_value, scale=1, mode="bipolar"):
-        super(ProgressiveError, self).__init__()
+        super(ProgError, self).__init__()
         # in_value is always binary
         # after scaling, unipolar should be within (0, 1), bipolar should be within (-1, 1).
         # therefore, clamping with (-1, 1) always works
         self.in_value = torch.clamp(in_value/scale, -1., 1.)
         self.mode = mode
-        assert self.mode == "unipolar" or self.mode == "bipolar", "ProgressiveError mode is not implemented."
+        assert self.mode == "unipolar" or self.mode == "bipolar", "ProgError mode is not implemented."
         self.len = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.one_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.out_pp = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -100,7 +100,7 @@ class Stability(torch.nn.Module):
         self.err = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.stable_len = torch.zeros_like(in_value)
         self.stability = torch.zeros_like(in_value)
-        self.pp = ProgressiveError(in_value, scale=1, mode=mode)
+        self.pp = ProgError(in_value, scale=1, mode=mode)
         
     def Monitor(self, in_1):
         self.pp.Monitor(in_1)

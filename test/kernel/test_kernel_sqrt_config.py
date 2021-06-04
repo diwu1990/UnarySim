@@ -2,7 +2,7 @@
 import torch
 from UnarySim.kernel.sqrt import FSUSqrt
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
-from UnarySim.metric.metric import ProgressiveError
+from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import math
@@ -43,9 +43,9 @@ def test(rng="Sobol",
     input = torch.tensor(input_list).type(torch.float).div(up_bound).to(device)
 
     output = torch.sqrt(input).to(device)
-    outputPE = ProgressiveError(output, mode=mode).to(device)
+    outputPE = ProgError(output, mode=mode).to(device)
     
-    inputPE  = ProgressiveError(input,  mode=mode).to(device)
+    inputPE  = ProgError(input,  mode=mode).to(device)
     inputSRC = SourceGen(input, bitwidth, mode=mode, rtype=rtype)().to(device)
     
     result_pe_total = []

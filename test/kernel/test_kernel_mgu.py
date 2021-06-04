@@ -50,25 +50,25 @@ for i in range(win_sz):
     iSource = SourceGen(iVec, bitwidth=bitwidth, mode=mode)().to(device)
     iRNG = RNG(bitwidth, 1, rng)().to(device)
     iBSG = BSGen(iSource, iRNG).to(device)
-    iPE = ProgressiveError(iVec, scale=1, mode=mode).to(device)
+    iPE = ProgError(iVec, scale=1, mode=mode).to(device)
 
     hSource = SourceGen(hVec, bitwidth=bitwidth, mode=mode)().to(device)
     hRNG = RNG(bitwidth, 1, rng)().to(device)
     hBSG = BSGen(hSource, hRNG).to(device)
-    hPE = ProgressiveError(hVec, scale=1, mode=mode).to(device)
+    hPE = ProgError(hVec, scale=1, mode=mode).to(device)
 
     oVec = output1[i]
-    oPE = ProgressiveError(oVec, scale=1, mode=mode).to(device)
+    oPE = ProgError(oVec, scale=1, mode=mode).to(device)
     
-    forgetgate_in_PE    = ProgressiveError(rnn1.forgetgate_in,  scale=1, mode=mode).to(device)
-    forgetgate_PE       = ProgressiveError(rnn1.forgetgate,     scale=1, mode=mode).to(device)
-    h_n_hardtanh_PE     = ProgressiveError(rnn1.h_n_hardtanh,   scale=1, mode=mode).to(device)
-    newgate_prod_PE     = ProgressiveError(rnn1.newgate_prod,   scale=1, mode=mode).to(device)
-    i_n_hardtanh_PE     = ProgressiveError(rnn1.i_n_hardtanh,   scale=1, mode=mode).to(device)
-    newgate_in_PE       = ProgressiveError(rnn1.newgate_in,     scale=1, mode=mode).to(device)
-    newgate_PE          = ProgressiveError(rnn1.newgate,        scale=1, mode=mode).to(device)
-    forgetgate_inv_prod_PE      = ProgressiveError(rnn1.forgetgate_inv_prod,        scale=1, mode=mode).to(device)
-    forgetgate_prod_PE          = ProgressiveError(rnn1.forgetgate_prod,        scale=1, mode=mode).to(device)
+    forgetgate_in_PE    = ProgError(rnn1.forgetgate_in,  scale=1, mode=mode).to(device)
+    forgetgate_PE       = ProgError(rnn1.forgetgate,     scale=1, mode=mode).to(device)
+    h_n_hardtanh_PE     = ProgError(rnn1.h_n_hardtanh,   scale=1, mode=mode).to(device)
+    newgate_prod_PE     = ProgError(rnn1.newgate_prod,   scale=1, mode=mode).to(device)
+    i_n_hardtanh_PE     = ProgError(rnn1.i_n_hardtanh,   scale=1, mode=mode).to(device)
+    newgate_in_PE       = ProgError(rnn1.newgate_in,     scale=1, mode=mode).to(device)
+    newgate_PE          = ProgError(rnn1.newgate,        scale=1, mode=mode).to(device)
+    forgetgate_inv_prod_PE      = ProgError(rnn1.forgetgate_inv_prod,        scale=1, mode=mode).to(device)
+    forgetgate_prod_PE          = ProgError(rnn1.forgetgate_prod,        scale=1, mode=mode).to(device)
 
     for i in range(2**bitwidth):
         idx = torch.zeros(iSource.size()).type(torch.long).to(device)
