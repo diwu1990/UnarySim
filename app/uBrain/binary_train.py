@@ -82,7 +82,7 @@ parser.add_argument('-dp', '--keep_prob', default=0.5, type=float, help=hpstr)
 hpstr = "set train batch size"
 parser.add_argument('-bstrain', '--train_batch_sz', default=1024, type=int, help=hpstr)
 
-hpstr = "set train batch size"
+hpstr = "set test batch size"
 parser.add_argument('-bstest', '--test_batch_sz', default=2048, type=int, help=hpstr)
 
 hpstr = "set epoch"
