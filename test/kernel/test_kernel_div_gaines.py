@@ -4,13 +4,11 @@ from UnarySim.kernel.div import GainesDiv
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import ticker, cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import time
 import math
 import numpy as np
-import seaborn as sns
 
 # %%
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

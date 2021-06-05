@@ -3,10 +3,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from UnarySim.kernel.rnn import FSUMGUCell
-from UnarySim.app.uBrain.binary_model import HardMGUCell, HardMGUCell_i, truncated_normal
+from UnarySim.kernel.rnn import FSUMGUCell_test
+from UnarySim.app.uBrain.binary_model import HardMGUCell_test, truncated_normal
 from UnarySim.stream.gen import *
-from UnarySim.metric.metric import *
+from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
 import time
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -30,11 +30,7 @@ hx2 = hx1.clone().detach().to(device)
 output1 = []
 output2 = []
 
-rnn1 = HardMGUCell_i(input_sz, hidden_sz, bias=bias, hard=True).to(device)
-
-# rnn2 = FSUMGUCell(input_sz, hidden_sz, bias=bias, 
-#                     binary_weight_ih=rnn1.weight_ih, binary_bias_ih=rnn1.bias_ih, binary_weight_hh=rnn1.weight_hh, binary_bias_hh=rnn1.bias_hh, 
-#                     bitwidth=bitwidth, mode=mode, depth=depth).to(device)
+rnn1 = HardMGUCell_test(input_sz, hidden_sz, bias=bias, hard=True).to(device)
 
 for i in range(win_sz):
     hx1 = rnn1(input[i], hx1)
@@ -43,7 +39,7 @@ for i in range(win_sz):
     iVec, hVec = input[i], hx2
 
     # rnn2 in the loop to mimic the hw reset
-    rnn2 = FSUMGUCell(input_sz, hidden_sz, bias=bias, 
+    rnn2 = FSUMGUCell_test(input_sz, hidden_sz, bias=bias, 
                     binary_weight_ih=rnn1.weight_ih, binary_bias_ih=rnn1.bias_ih, binary_weight_hh=rnn1.weight_hh, binary_bias_hh=rnn1.bias_hh, 
                     bitwidth=bitwidth, mode=mode, depth=depth).to(device)
 
@@ -125,6 +121,5 @@ for i in range(win_sz):
     print("forgetgate_prod error:       min: "+"{:10f}".format(torch.min(forgetgate_prod_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(forgetgate_prod_PE()[1]).item())+"    rsme: "+"{:10f}".format(forgetgate_prod_rmse.item()))
 
     print("output error:                min: "+"{:10f}".format(torch.min(oPE()[1]).item())+"    max: "+"{:10f}".format(torch.max(oPE()[1]).item())+"    rsme: "+"{:10f}".format(rmse.item()))
-
 
 print()

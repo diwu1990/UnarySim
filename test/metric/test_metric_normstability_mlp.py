@@ -17,7 +17,7 @@ from UnarySim.metric.metric import ProgError, NormStability
 import time
 import math
 import numpy as np
-import seaborn as sns
+
 from tqdm import tqdm
 
 # %%

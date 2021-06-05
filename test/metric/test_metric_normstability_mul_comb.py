@@ -5,13 +5,13 @@ from UnarySim.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.kernel.mul import GainesMul
 import random
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
 from matplotlib import ticker, cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import time
 import math
 import numpy as np
-import seaborn as sns
+
 from tqdm import tqdm
 
 # %%

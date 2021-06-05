@@ -13,7 +13,7 @@ from torch.cuda.amp import autocast
 
 class FSUMGUCell(torch.nn.Module):
     """
-    This is a minimal gated unit with unary computing
+    This is a minimal gated unit with unary computing.
     The scalehardsigmoid is scaled addition (x+1)/2, and hardtanh is direct pass.
     """
 
@@ -21,20 +21,72 @@ class FSUMGUCell(torch.nn.Module):
                     binary_weight_ih=None, binary_bias_ih=None, binary_weight_hh=None, binary_bias_hh=None, 
                     bitwidth=8, mode="bipolar", depth=10) -> None:
         super(FSUMGUCell, self).__init__()
+        self.bitwidth = bitwidth
+        assert mode=="bipolar", "Unsupported mode in FSUMGUCell."
+
         self.forgetgate_in_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=input_size+hidden_size+bias+bias)
         self.forgetgate_sigmoid = FSUAdd(mode=mode, scaled=True, dim=0, depth=depth)
+        self.h_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=hidden_size+bias)
         self.newgate_in_mul = FSUMul(bitwidth=4, mode=mode, static=False)
+        self.i_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=input_size+bias)
         self.newgate_in_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=2)
         self.newgate_tanh = nn.Identity()
-        self.i_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=input_size+bias)
-        self.h_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=hidden_size+bias)
-
-        self.hy_mul = FSUMul(bitwidth=4, mode=mode, static=False)
         self.hy_inv_mul = FSUMul(bitwidth=4, mode=mode, static=False)
+        self.hy_mul = FSUMul(bitwidth=4, mode=mode, static=False)
         self.hy_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=3)
-        self.bitwidth = bitwidth
 
+        self.gate_i_linearpc = FSULinearPC(2*hidden_size, input_size,  bias=bias, 
+                                            binary_weight=binary_weight_ih, binary_bias=binary_bias_ih, bitwidth=bitwidth, mode=mode)
+        self.gate_h_linearpc = FSULinearPC(2*hidden_size, hidden_size, bias=bias, 
+                                            binary_weight=binary_weight_hh, binary_bias=binary_bias_hh, bitwidth=bitwidth, mode=mode)
+
+    @autocast()
+    def forward(self, input: Tensor, hx: Tensor) -> Tensor:
+        gate_i = self.gate_i_linearpc(input)
+        gate_h = self.gate_h_linearpc(hx)
+        i_f, i_n = gate_i.chunk(2, 1)
+        h_f, h_n = gate_h.chunk(2, 1)
+
+        # The forgetgate is a scaled addition
+        forgetgate_in = self.forgetgate_in_add(torch.stack([i_f, h_f], dim=0))
+        forgetgate = self.forgetgate_sigmoid(torch.stack([forgetgate_in, torch.ones_like(forgetgate_in)], dim=0))
+
+        # The newgate is the non-scaled addition of newgate_in inputs (with the product) in unary computing
+        h_n_hardtanh = self.h_n_acc(h_n.unsqueeze(0))
+        newgate_prod = self.newgate_in_mul(forgetgate, h_n_hardtanh)
+        i_n_hardtanh = self.i_n_acc(i_n.unsqueeze(0))
+        newgate_in = self.newgate_in_add(torch.stack([i_n_hardtanh, newgate_prod], dim=0))
+        newgate = self.newgate_tanh(newgate_in)
+
+        forgetgate_inv_prod = self.hy_inv_mul(1 - forgetgate, newgate)
+        forgetgate_prod = self.hy_mul(forgetgate, hx)
+        hy = self.hy_add(torch.stack([newgate, forgetgate_inv_prod, forgetgate_prod], dim=0))
+
+        return hy
+    
+
+class FSUMGUCell_test(torch.nn.Module):
+    """
+    This is a FSUMGUCell with all internal variable recorded for test.
+    """
+
+    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, 
+                    binary_weight_ih=None, binary_bias_ih=None, binary_weight_hh=None, binary_bias_hh=None, 
+                    bitwidth=8, mode="bipolar", depth=10) -> None:
+        super(FSUMGUCell_test, self).__init__()
+        self.bitwidth = bitwidth
         assert mode=="bipolar", "Unsupported mode in FSUMGUCell."
+
+        self.forgetgate_in_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=input_size+hidden_size+bias+bias)
+        self.forgetgate_sigmoid = FSUAdd(mode=mode, scaled=True, dim=0, depth=depth)
+        self.h_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=hidden_size+bias)
+        self.newgate_in_mul = FSUMul(bitwidth=4, mode=mode, static=False)
+        self.i_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=input_size+bias)
+        self.newgate_in_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=2)
+        self.newgate_tanh = nn.Identity()
+        self.hy_inv_mul = FSUMul(bitwidth=4, mode=mode, static=False)
+        self.hy_mul = FSUMul(bitwidth=4, mode=mode, static=False)
+        self.hy_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=3)
 
         self.gate_i_linearpc = FSULinearPC(2*hidden_size, input_size,  bias=bias, 
                                             binary_weight=binary_weight_ih, binary_bias=binary_bias_ih, bitwidth=bitwidth, mode=mode)
@@ -45,38 +97,23 @@ class FSUMGUCell(torch.nn.Module):
     def forward(self, input: Tensor, hx: Tensor) -> Tensor:
         self.gate_i = self.gate_i_linearpc(input)
         self.gate_h = self.gate_h_linearpc(hx)
-        # print("gate_i, gate_h: ", self.gate_i.shape, self.gate_h.shape)
-
-        # forget and new gates
         self.i_f, self.i_n = self.gate_i.chunk(2, 1)
         self.h_f, self.h_n = self.gate_h.chunk(2, 1)
-        # print("i_f, i_n: ", self.i_f.shape, self.i_n.shape)
-        # print("h_f, h_n: ", self.h_f.shape, self.h_n.shape)
 
+        # The forgetgate is a scaled addition
         self.forgetgate_in = self.forgetgate_in_add(torch.stack([self.i_f, self.h_f], dim=0))
-        # print("forgetgate_in: ", self.forgetgate_in.shape)
-
-        # The forgetgate are scaled additions
         self.forgetgate = self.forgetgate_sigmoid(torch.stack([self.forgetgate_in, torch.ones_like(self.forgetgate_in)], dim=0))
-        # print("forgetgate: ", self.forgetgate.shape)
 
         # The newgate is the non-scaled addition of newgate_in inputs (with the product) in unary computing
         self.h_n_hardtanh = self.h_n_acc(self.h_n.unsqueeze(0))
-        # print("h_n_hardtanh: ", self.h_n_hardtanh.shape)
         self.newgate_prod = self.newgate_in_mul(self.forgetgate, self.h_n_hardtanh)
-        # print("newgate_prod: ", self.newgate_prod.shape)
         self.i_n_hardtanh = self.i_n_acc(self.i_n.unsqueeze(0))
-        # print("i_n_hardtanh: ", self.i_n_hardtanh.shape)
         self.newgate_in = self.newgate_in_add(torch.stack([self.i_n_hardtanh, self.newgate_prod], dim=0))
-        # print("newgate_in: ", self.newgate_in.shape)
-
         self.newgate = self.newgate_tanh(self.newgate_in)
-        # print("newgate: ", self.newgate.shape)
 
         self.forgetgate_inv_prod = self.hy_inv_mul(1 - self.forgetgate, self.newgate)
         self.forgetgate_prod = self.hy_mul(self.forgetgate, hx)
         hy = self.hy_add(torch.stack([self.newgate, self.forgetgate_inv_prod, self.forgetgate_prod], dim=0))
-        # print("hy: ", hy.shape)
 
         return hy
     
