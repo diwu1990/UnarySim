@@ -1,5 +1,4 @@
 import torch
-from scipy.stats import truncnorm
 import matplotlib.pyplot as plt
 
 
@@ -18,10 +17,6 @@ def test_truncnorm():
     fig, ax = plt.subplots(1, 1)
 
     size = 1000000
-
-    # a, b = -2, 2
-    # r = truncnorm.rvs(a, b, size=size)
-    # ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, bins=50, label="scipy")
 
     tensor = torch.zeros(size)
     tensor = truncated_normal(tensor, std=0.05)

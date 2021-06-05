@@ -1,6 +1,5 @@
 import torch
 from torch import nn as nn
-from scipy.stats import truncnorm
 import matplotlib.pyplot as plt
 
 
