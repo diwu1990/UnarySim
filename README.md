@@ -19,6 +19,9 @@ Among those, components in **Stream Manipulation** and **Computing Kernel** can 
 1. PyTorch (Version >= 1.7)
 2. Python (Version >= 3.6)
 3. [pylfsr](https://github.com/Nikeshbajaj/Linear_Feedback_Shift_Register)
+4. numpy
+5. [torchinfo](https://github.com/TylerYep/torchinfo)
+6. matplotlib
 
 ### Data Representation
 UnarySim has five categories of data, with each having default data type as _**'torch.float'**_ in PyTorch.
