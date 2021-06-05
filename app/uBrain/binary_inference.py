@@ -230,7 +230,7 @@ model = Cascade_CNN_RNN_Binary_test(input_sz=input_sz, # size of each window
                                 keep_prob=keep_prob, # prob for drop out after each FC
                                 num_class=num_class) # output size
 model.to(device)
-summary(model, (1, 1, rnn_win_sz, input_sz[0], input_sz[1]))
+summary(model, (1, rnn_win_sz, input_sz[0], input_sz[1]))
 print("********************** Model Configuration End **********************\n")
 
 
@@ -256,7 +256,6 @@ with torch.no_grad():
         predicted = torch.argmax(outputs, dim=1)
         total += torch.argmax(labels, dim=1).size(0)
         correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
-        break
 
     acc = 100 * correct / total
 print("Test Accuracy: %3.3f %%" % (acc))
