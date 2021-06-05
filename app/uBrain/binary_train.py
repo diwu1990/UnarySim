@@ -255,7 +255,7 @@ for epoch in range(training_epochs):
         loss = criterion(outputs, torch.argmax(labels, dim=1))
         loss.backward() # backward
         optimizer.step() # optimize
-        # scheduler.step(epoch + i / iters)
+        scheduler.step(epoch + i / iters)
 
     model.eval()
     correct = 0
