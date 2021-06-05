@@ -227,7 +227,7 @@ model = Cascade_CNN_RNN_Binary(input_sz=input_sz, # size of each window
                                 keep_prob=keep_prob, # prob for drop out after each FC
                                 num_class=num_class) # output size
 model.to(device)
-summary(model, (1, 1, rnn_win_sz, input_sz[0], input_sz[1]))
+summary(model, (1, rnn_win_sz, input_sz[0], input_sz[1]))
 print("********************** Model Configuration End **********************\n")
 
 
