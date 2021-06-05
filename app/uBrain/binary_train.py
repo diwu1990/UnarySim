@@ -24,7 +24,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch import Tensor
 from torch.utils.data import TensorDataset, DataLoader
-# from torchsummaryX import summary
 from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse

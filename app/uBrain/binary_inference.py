@@ -30,7 +30,7 @@ from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse
 
-from binary_model import Cascade_CNN_RNN_Binary_i
+from binary_model import Cascade_CNN_RNN_Binary_test, Cascade_CNN_RNN_Binary
 
 # parse input
 parser = argparse.ArgumentParser()
@@ -214,7 +214,8 @@ print("********************* Dataset Configuration End *********************\n")
 # model configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("********************* Model Configuration Start *********************")
-model = Cascade_CNN_RNN_Binary_i(input_sz=input_sz, # size of each window
+# model = Cascade_CNN_RNN_Binary(input_sz=input_sz, # size of each window
+model = Cascade_CNN_RNN_Binary_test(input_sz=input_sz, # size of each window
                                 linear_act=linear_act, # activation in CNN
                                 cnn_chn=cnn_chn, # input channle in CNN
                                 cnn_kn_sz=cnn_kn_sz, # kernel (height, width) in CNN

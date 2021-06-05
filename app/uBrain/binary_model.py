@@ -7,8 +7,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
-from torch.nn.modules import dropout
-from scipy.stats import truncnorm
 
 
 def truncated_normal(t, mean=0.0, std=0.01):
@@ -78,22 +76,18 @@ class HardGRUCell(torch.nn.RNNCellBase):
         gate_i = F.linear(input, self.weight_ih, self.bias_ih)
         gate_h = F.linear(hx, self.weight_hh, self.bias_hh)
 
-        # reset, update, and new gates
         i_r, i_z, i_n = gate_i.chunk(3, 1)
         h_r, h_z, h_n = gate_h.chunk(3, 1)
 
         resetgate_in = i_r + h_r
         updategate_in = i_z + h_z
 
-        # The resetgate/updategate are scaled additions
         resetgate = self.resetgate_sigmoid(resetgate_in)
         updategate = self.updategate_sigmoid(updategate_in)
 
-        # The newgate is the non-scaled addition of newgate_in inputs (with the product) in unary computing
         newgate_in = i_n + (resetgate * h_n)
         newgate = self.newgate_tanh(newgate_in)
 
-        # this is a MUX function in unary computing
         hy = (1 - updategate) * newgate + updategate * hx
 
         return hy
@@ -129,20 +123,14 @@ class HardMGUCell(torch.nn.RNNCellBase):
         
         gate_i = F.linear(input, self.weight_ih, self.bias_ih)
         gate_h = F.linear(hx, self.weight_hh, self.bias_hh)
-
-        # foget and new gates
         i_f, i_n = gate_i.chunk(2, 1)
         h_f, h_n = gate_h.chunk(2, 1)
 
         forgetgate_in = i_f + h_f
-
-        # The forgetgate are scaled additions
         forgetgate = self.forgetgate_sigmoid(forgetgate_in)
 
-        # The newgate is the non-scaled addition of newgate_in inputs (with the product) in unary computing
         newgate_prod = forgetgate * h_n
         newgate_in = i_n + newgate_prod
-        
         newgate = self.newgate_tanh(newgate_in)
 
         hy = (1 - forgetgate) * newgate + forgetgate * hx
@@ -150,12 +138,12 @@ class HardMGUCell(torch.nn.RNNCellBase):
         return hy
 
 
-class HardMGUCell_i(torch.nn.RNNCellBase):
+class HardMGUCell_test(torch.nn.RNNCellBase):
     """
     This is a HardMGUCell with hardtanh to bound some data to legal unary range.
     """
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
-        super(HardMGUCell_i, self).__init__(input_size, hidden_size, bias, num_chunks=2)
+        super(HardMGUCell_test, self).__init__(input_size, hidden_size, bias, num_chunks=2)
         self.hard = hard
         if hard == True:
             self.forgetgate_sigmoid = ScaleHardsigmoid()
@@ -178,39 +166,22 @@ class HardMGUCell_i(torch.nn.RNNCellBase):
         
         self.gate_i = F.linear(input, self.weight_ih, self.bias_ih)
         self.gate_h = F.linear(hx, self.weight_hh, self.bias_hh)
-        # print("gate_i, gate_h: ", self.gate_i.shape, self.gate_h.shape)
-
-        # foget and new gates
         self.i_f, self.i_n = self.gate_i.chunk(2, 1)
         self.h_f, self.h_n = self.gate_h.chunk(2, 1)
-        # print("i_f, i_n: ", self.i_f.shape, self.i_n.shape)
-        # print("h_f, h_n: ", self.h_f.shape, self.h_n.shape)
 
+        # The forgetgate is a scaled addition
         self.forgetgate_in = self.i_f + self.h_f
-        # print("forgetgate_in: ", self.forgetgate_in.shape)
-
-        # The forgetgate are scaled additions
         self.forgetgate = self.forgetgate_sigmoid(self.forgetgate_in)
-        # print("forgetgate: ", self.forgetgate.shape)
 
-        # The newgate is the non-scaled addition of newgate_in inputs (with the product) in unary computing
         self.h_n_hardtanh = nn.Hardtanh()(self.h_n)
-        # print("h_n_hardtanh: ", self.h_n_hardtanh.shape)
         self.newgate_prod = self.forgetgate * self.h_n_hardtanh
-        # print("newgate_prod: ", self.newgate_prod.shape)
         self.i_n_hardtanh = nn.Hardtanh()(self.i_n)
-        # print("i_n_hardtanh: ", self.i_n_hardtanh.shape)
         self.newgate_in = self.i_n_hardtanh + self.newgate_prod
-        # print("newgate_in: ", self.newgate_in.shape)
-        
         self.newgate = self.newgate_tanh(self.newgate_in)
-        # print("newgate: ", self.newgate.shape)
 
         self.forgetgate_inv_prod = (0 - self.forgetgate) * self.newgate
         self.forgetgate_prod = self.forgetgate * hx
         hy = self.newgate + self.forgetgate_inv_prod + self.forgetgate_prod
-        # print("hy: ", hy.shape)
-        # print()
 
         return hy
 
@@ -342,7 +313,7 @@ class Cascade_CNN_RNN_Binary(torch.nn.Module):
 
 
 
-class Cascade_CNN_RNN_Binary_i(torch.nn.Module):
+class Cascade_CNN_RNN_Binary_test(torch.nn.Module):
     """
     This is the binary version of the cascade CNN RNN for BCI
     """
@@ -361,7 +332,7 @@ class Cascade_CNN_RNN_Binary_i(torch.nn.Module):
                     init_std=None,
                     keep_prob=0.5,
                     num_class=5):
-        super(Cascade_CNN_RNN_Binary_i, self).__init__()
+        super(Cascade_CNN_RNN_Binary_test, self).__init__()
         self.input_sz = input_sz
         self.fc_sz = fc_sz
         self.rnn_win_sz = rnn_win_sz
@@ -378,7 +349,7 @@ class Cascade_CNN_RNN_Binary_i(torch.nn.Module):
         if rnn.lower() == "gru":
             self.rnncell4 = HardGRUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
         elif rnn.lower() == "mgu":
-            self.rnncell4 = HardMGUCell_i(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
+            self.rnncell4 = HardMGUCell_test(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
 
         # MLP
         self.fc5 = nn.Linear(rnn_hidden_sz, num_class, bias=bias)
@@ -468,7 +439,7 @@ class Cascade_CNN_RNN_Binary_i(torch.nn.Module):
         return self.fc5_o
 
 
-def print_fn(tensor, name):
+def print_tensor_outlier(tensor, name):
     min = tensor.min().item()
     max = tensor.max().item()
     outlier = torch.sum(torch.gt(tensor, 1)) + torch.sum(torch.lt(tensor, -1))
