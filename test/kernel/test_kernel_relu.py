@@ -25,7 +25,7 @@ def test(rng="Sobol",
     rtype = torch.float
 
     print("========================================================")
-    print(mode)
+    print(rng + " " + mode + " using shift register: " + sr)
     print("========================================================")
     # all input values are non-negative
     low_bound = 0
