@@ -30,7 +30,7 @@ from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse
 
-from binary_model import Cascade_CNN_RNN_Binary_test, Cascade_CNN_RNN_Binary
+from binary_model import Cascade_CNN_RNN_Binary_test, Cascade_CNN_RNN_Binary, print_tensor_unary_outlier
 
 # parse input
 parser = argparse.ArgumentParser()
@@ -247,6 +247,9 @@ print("Loading model state dict: ", file)
 model.load_state_dict(torch.load(file)["state_dict"])
 model.eval()
 
+for weight in model.parameters():
+    print_tensor_unary_outlier(weight, "weight")
+
 correct = 0
 total = 0
 with torch.no_grad():
@@ -256,6 +259,8 @@ with torch.no_grad():
         predicted = torch.argmax(outputs, dim=1)
         total += torch.argmax(labels, dim=1).size(0)
         correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
+        print_tensor_unary_outlier(outputs, "outputs")
+        break
 
     acc = 100 * correct / total
 print("Test Accuracy: %3.3f %%" % (acc))

@@ -439,7 +439,7 @@ class Cascade_CNN_RNN_Binary_test(torch.nn.Module):
         return self.fc5_o
 
 
-def print_tensor_outlier(tensor, name):
+def print_tensor_unary_outlier(tensor, name):
     min = tensor.min().item()
     max = tensor.max().item()
     outlier = torch.sum(torch.gt(tensor, 1)) + torch.sum(torch.lt(tensor, -1))

@@ -28,7 +28,7 @@ from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse
 
-from binary_model import Cascade_CNN_RNN_Binary
+from binary_model import Cascade_CNN_RNN_Binary, print_tensor_unary_outlier
 
 # parse input
 parser = argparse.ArgumentParser()
@@ -255,7 +255,7 @@ for epoch in range(training_epochs):
         loss = criterion(outputs, torch.argmax(labels, dim=1))
         loss.backward() # backward
         optimizer.step() # optimize
-        scheduler.step(epoch + i / iters)
+        # scheduler.step(epoch + i / iters)
 
     model.eval()
     correct = 0
@@ -286,6 +286,9 @@ for epoch in range(training_epochs):
                 shutil.copyfile(model_dir+filename+'.check_point.tmp.pth.tar', model_dir+filename+'.model_best.tmp.pth.tar')
     
     print("Epoch %3d:\tTime: %3.3f sec;\tLR: %1.7f;\tTrain Loss: %3.3f;\tTest Accuracy: %3.3f %%" % (epoch, time.time() - total_time, optimizer.param_groups[0]["lr"], loss.detach().cpu().item(), acc))
+
+for weight in model.parameters():
+    print_tensor_unary_outlier(weight, "weight")
 
 if set_store:
     shutil.copyfile(model_dir+filename+'.model_best.tmp.pth.tar', model_dir+filename+'_acc_'+'%2.2f' % (best_acc)+'.pth.tar')
