@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 
-from UnarySim.kernel.nn_utils import *
+from UnarySim.kernel.utils import *
 from UnarySim.kernel.linear import FSULinear
 from UnarySim.kernel.relu import FSUReLU
 from UnarySim.stream.gen import RNG, SourceGen, BSGen

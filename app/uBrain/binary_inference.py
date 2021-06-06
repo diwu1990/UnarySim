@@ -25,12 +25,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch import Tensor
 from torch.utils.data import TensorDataset, DataLoader
-# from torchsummaryX import summary
 from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse
 
-from binary_model import Cascade_CNN_RNN_Binary, print_tensor_unary_outlier
+from binary_model import Cascade_CNN_RNN_Binary
+from UnarySim.kernel.utils import tensor_unary_outlier
 
 # parse input
 parser = argparse.ArgumentParser()
@@ -240,14 +240,14 @@ print("**************************** Test Start *****************************")
 filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_t_"+str(threshold)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
 print("Target filename prefix: " + filename)
 path=model_dir+filename+"_acc_*.pth.tar"
-file=glob.glob(path)[1]
+file=glob.glob(path)[0]
 print("Loading model state dict: ", file)
 model.load_state_dict(torch.load(file)["state_dict"])
 model.eval()
 
 print("\nWeight profiling: ")
 for weight in model.parameters():
-    print_tensor_unary_outlier(weight, "weight")
+    tensor_unary_outlier(weight, "weight")
 
 correct = 0
 total = 0
@@ -260,14 +260,14 @@ with torch.no_grad():
         correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
     
     print("\nActivation profiling in the last test epoch: ")
-    print_tensor_unary_outlier(model.conv1_i, "conv1_i")
-    print_tensor_unary_outlier(model.conv1_act_o, "conv1_act_o")
-    print_tensor_unary_outlier(model.conv2_act_o, "conv2_act_o")
-    print_tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
+    tensor_unary_outlier(model.conv1_i, "conv1_i")
+    tensor_unary_outlier(model.conv1_act_o, "conv1_act_o")
+    tensor_unary_outlier(model.conv2_act_o, "conv2_act_o")
+    tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
     for idx in range(rnn_win_sz):
-        print_tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
-    print_tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
-    print_tensor_unary_outlier(outputs, "outputs")
+        tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
+    tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
+    tensor_unary_outlier(outputs, "outputs")
 
     acc = 100 * correct / total
 print("Test Accuracy: %3.3f %%" % (acc))

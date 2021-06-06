@@ -7,8 +7,8 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from six.moves import urllib
-from UnarySim.sw.kernel.conv import FxpConv2d
-from UnarySim.sw.kernel.linear import FxpLinear
+from UnarySim.kernel.conv import FxpConv2d
+from UnarySim.kernel.linear import FxpLinear
 
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]

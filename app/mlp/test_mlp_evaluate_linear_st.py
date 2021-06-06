@@ -4,7 +4,7 @@
 
 # %%
 import torch
-from UnarySim.sw.kernel.linear_st import LinearST
+from UnarySim.kernel.linear_st import LinearST
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.sw.metric.metric import ProgError
 import matplotlib.pyplot as plt
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 import numpy as np
-from UnarySim.sw.kernel.nn_utils import *
+from UnarySim.kernel.utils import *
 
 # %%
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

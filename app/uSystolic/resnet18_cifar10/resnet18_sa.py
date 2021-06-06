@@ -7,8 +7,8 @@ Reference:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from UnarySim.sw.kernel.conv import HUBConv2d
-from UnarySim.sw.kernel.linear import HUBLinear
+from UnarySim.kernel.conv import HUBConv2d
+from UnarySim.kernel.linear import HUBLinear
 
 class BasicBlock(nn.Module):
     expansion = 1

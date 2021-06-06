@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
-from UnarySim.sw.kernel.conv import HUBConv2d
-from UnarySim.sw.kernel.linear import HUBLinear
-from UnarySim.sw.kernel.nn_utils import conv2d_output_shape
+from UnarySim.kernel.conv import HUBConv2d
+from UnarySim.kernel.linear import HUBLinear
+from UnarySim.kernel.utils import conv2d_output_shape
 
 
 __all__ = ['AlexNet', 'alexnet']

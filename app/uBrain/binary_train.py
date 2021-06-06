@@ -29,7 +29,8 @@ import matplotlib.pyplot as plt
 import argparse
 from tqdm import tqdm
 
-from binary_model import Cascade_CNN_RNN_Binary, print_tensor_unary_outlier
+from binary_model import Cascade_CNN_RNN_Binary
+from UnarySim.kernel.utils import tensor_unary_outlier
 
 # parse input
 parser = argparse.ArgumentParser()
@@ -290,7 +291,7 @@ for epoch in pbar:
     pbar.set_description("Epoch %3d ==> LR: %1.7f; Train Loss: %3.3f; Test Accuracy: %3.3f %%" % (epoch, optimizer.param_groups[0]["lr"], loss.detach().cpu().item(), acc))
 
 for weight in model.parameters():
-    print_tensor_unary_outlier(weight, "weight")
+    tensor_unary_outlier(weight, "weight")
 
 if set_store:
     shutil.copyfile(model_dir+filename+'.model_best.tmp.pth.tar', model_dir+filename+'_acc_'+'%2.2f' % (best_acc)+'.pth.tar')

@@ -1,7 +1,7 @@
 import torch
 import math
 from UnarySim.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
-from UnarySim.kernel.nn_utils import conv2d_output_shape, num2tuple
+from UnarySim.kernel.utils import conv2d_output_shape, num2tuple
 from UnarySim.kernel.linear import HUBLinearFunction
 from UnarySim.kernel.linear import FxpLinearFunction
 from UnarySim.kernel.add import FSUAdd

@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 import time
 import os
 
-from UnarySim.sw.kernel.nn_utils import *
-from UnarySim.sw.kernel.linear import *
-from UnarySim.sw.kernel.relu import FSUReLU
+from UnarySim.kernel.utils import *
+from UnarySim.kernel.linear import *
+from UnarySim.kernel.relu import FSUReLU
 from UnarySim.sw.stream.gen import RNG, SourceGen, BSGen
 from UnarySim.sw.metric.metric import ProgError
 

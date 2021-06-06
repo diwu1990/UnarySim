@@ -81,8 +81,11 @@ The components currently supported or to be implemented are listed in the table 
 | FSUCompare           |              |          |          |           | <ul><li>[ ] </li></ul> |
 | FSUConv2d            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 | FSUDiv               | Apr 01, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |
+| FSUHardsigmoid       | Jun 06, 2021 | RC       | Both     | NA        | <ul><li>[x] </li></ul> |
+| FSUHardtanh          | Jun 06, 2021 | RC       | Both     | NA        | <ul><li>[x] </li></ul> |
 | FSULinear            | Seq 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
-| FSUMul               | Nov 05, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| FSUMGUCell           | Jun 06, 2021 | RC       | Both     | NA        | <ul><li>[x] </li></ul> |
+| FSUMul               | Nov 05, 2019 | RC       | Both     | [8]       | <ul><li>[x] </li></ul> |
 | FSUReLU              | Nov 23, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
 | FSUSign              | Mar 31, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
 | FSUSqrt              | Apr 02, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |

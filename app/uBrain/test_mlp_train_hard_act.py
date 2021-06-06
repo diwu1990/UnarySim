@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 
-from UnarySim.sw.kernel.nn_utils import *
+from UnarySim.kernel.utils import *
 
 # %%
 cwd = os.getcwd()

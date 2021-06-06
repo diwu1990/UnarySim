@@ -102,3 +102,25 @@ def convtransp2d_get_padding(h_w_in, h_w_out, kernel_size=1, stride=1, dilation=
     p_w = -(h_w_out[1] - 1 - out_pad[1] - dilation[1]*(kernel_size[1]-1) - (h_w_in[1] - 1)*stride[1]) / 2
     
     return (math.floor(p_h/2), math.ceil(p_h/2)), (math.floor(p_w/2), math.ceil(p_w/2))
+
+
+def truncated_normal(t, mean=0.0, std=0.01):
+    torch.nn.init.normal_(t, mean=mean, std=std)
+    while True:
+        cond = torch.logical_or(t < mean - 2*std, t > mean + 2*std)
+        if torch.sum(cond):
+            t = torch.where(cond, torch.nn.init.normal_(torch.ones_like(t), mean=mean, std=std), t)
+        else:
+            break
+    return t
+
+
+def tensor_unary_outlier(tensor, name="tensor"):
+    min = tensor.min().item()
+    max = tensor.max().item()
+    outlier = torch.sum(torch.gt(tensor, 1)) + torch.sum(torch.lt(tensor, -1))
+    outlier_ratio = outlier / torch.prod(torch.tensor(tensor.size()))
+    print("{:20s}".format(name) + \
+            ": min:" + "{:10f}".format(min) + \
+            "; max:" + "{:10f}".format(max) + \
+            "; outlier:" + "{:10f} %".format(outlier_ratio * 100))
