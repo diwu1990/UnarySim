@@ -266,7 +266,6 @@ with torch.no_grad():
     tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
     for idx in range(rnn_win_sz):
         tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
-    tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
     tensor_unary_outlier(outputs, "outputs")
 
     acc = 100 * correct / total
