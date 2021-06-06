@@ -27,6 +27,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse
+from tqdm import tqdm
 
 from binary_model import Cascade_CNN_RNN_Binary, print_tensor_unary_outlier
 
@@ -94,7 +95,7 @@ hpstr = "set std for initialization"
 parser.add_argument('-std', '--init_std', default=None, type=float, help=hpstr)
 
 hpstr = "set weight decay"
-parser.add_argument('-wd', '--weight_decay', default=0.0, type=float, help=hpstr)
+parser.add_argument('-wd', '--weight_decay', default=0.0001, type=float, help=hpstr)
 
 hpstr = "set restart iteration"
 parser.add_argument('-t0', '--t0_restart', default=50, type=int, help=hpstr)
@@ -148,6 +149,7 @@ if torch.cuda.is_available():
     print("Using CUDA...")
 else:
     print("Using CPU...")
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # dataset configuration
@@ -208,6 +210,7 @@ test_dataloader = DataLoader(
 
 print("********************* Dataset Configuration End *********************\n")
 
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # model configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -244,7 +247,8 @@ best_acc=0.0
 filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_t_"+str(threshold)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
 iters = len(train_dataloader)
 
-for epoch in range(training_epochs):
+pbar = tqdm(range(training_epochs))
+for epoch in pbar:
     model.train()
     total_time = time.time()
     for i, data in enumerate(train_dataloader, 0):
@@ -285,7 +289,7 @@ for epoch in range(training_epochs):
             if is_best:
                 shutil.copyfile(model_dir+filename+'.check_point.tmp.pth.tar', model_dir+filename+'.model_best.tmp.pth.tar')
     
-    print("Epoch %3d:\tTime: %3.3f sec;\tLR: %1.7f;\tTrain Loss: %3.3f;\tTest Accuracy: %3.3f %%" % (epoch, time.time() - total_time, optimizer.param_groups[0]["lr"], loss.detach().cpu().item(), acc))
+    pbar.set_description("Epoch %3d ==> LR: %1.7f; Train Loss: %3.3f; Test Accuracy: %3.3f %%" % (epoch, optimizer.param_groups[0]["lr"], loss.detach().cpu().item(), acc))
 
 for weight in model.parameters():
     print_tensor_unary_outlier(weight, "weight")
@@ -298,5 +302,4 @@ if set_store:
 print("Total Epoch %3d:\tFinal Train Loss: %3.3f;\tBest Test Accuracy: %3.3f %%" % (training_epochs, loss.detach().cpu().item(), best_acc))
 
 print("***************************** Train End *****************************\n")
-
 
