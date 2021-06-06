@@ -77,3 +77,15 @@ class FSUReLU(torch.nn.Module):
         elif self.encode == "TC":
             return self.FSUReLU_forward_tc(input)
 
+
+class ScaleReLU(torch.nn.Hardtanh):
+    """
+    clip the input when it is larger than 1.
+    """
+    def __init__(self, scale=1., inplace: bool = False):
+        super(ScaleReLU, self).__init__(0., scale, inplace)
+
+    def extra_repr(self) -> str:
+        inplace_str = 'inplace=True' if self.inplace else ''
+        return inplace_str
+        

@@ -1,6 +1,24 @@
 import torch
 from UnarySim.stream.gen import RNG, SourceGen, BSGen
 
+
+class FSUHardtanh(torch.nn.Identity):
+    """
+    This module is used for inference in unary domain.
+    """
+    def __init__(self):
+        super(FSUHardtanh, self).__init__()
+
+
+class ScaleHardtanh(torch.nn.Hardtanh):
+    """
+    Inputs within range [-1, +1] directly pass through, while inputs outsides will be clipped to -1 and +1.
+    This module is used for training and inference in binary domain.
+    """
+    def __init__(self):
+        super(ScaleHardtanh, self).__init__()
+
+
 class tanhP1(torch.nn.Module):
     """
     this module is for combinational tanh. The module is able to compute tanh(ax), where a = 1 in this implementation.
