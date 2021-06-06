@@ -30,7 +30,7 @@ from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse
 
-from binary_model import Cascade_CNN_RNN_Binary_test, Cascade_CNN_RNN_Binary, print_tensor_unary_outlier
+from binary_model import Cascade_CNN_RNN_Binary, print_tensor_unary_outlier
 
 # parse input
 parser = argparse.ArgumentParser()
@@ -151,11 +151,11 @@ if torch.cuda.is_available():
 else:
     print("Using CPU...")
 
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # dataset configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("******************** Dataset Configuration Start ********************")
-
 with open(dataset_dir+"preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
     datasets = pickle.load(fp)
 with open(dataset_dir+"preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
@@ -207,15 +207,14 @@ test_dataloader = DataLoader(
                                 pin_memory=pin_memory, 
                                 drop_last=True
                                 )
-
 print("********************* Dataset Configuration End *********************\n")
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # model configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("********************* Model Configuration Start *********************")
-# model = Cascade_CNN_RNN_Binary(input_sz=input_sz, # size of each window
-model = Cascade_CNN_RNN_Binary_test(input_sz=input_sz, # size of each window
+model = Cascade_CNN_RNN_Binary(input_sz=input_sz, # size of each window
                                 linear_act=linear_act, # activation in CNN
                                 cnn_chn=cnn_chn, # input channle in CNN
                                 cnn_kn_sz=cnn_kn_sz, # kernel (height, width) in CNN
@@ -238,15 +237,15 @@ print("********************** Model Configuration End **********************\n")
 # train
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("**************************** Test Start *****************************")
-
 filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_t_"+str(threshold)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
 print("Target filename prefix: " + filename)
 path=model_dir+filename+"_acc_*.pth.tar"
-file=glob.glob(path)[0]
+file=glob.glob(path)[1]
 print("Loading model state dict: ", file)
 model.load_state_dict(torch.load(file)["state_dict"])
 model.eval()
 
+print("\nWeight profiling: ")
 for weight in model.parameters():
     print_tensor_unary_outlier(weight, "weight")
 
@@ -259,12 +258,19 @@ with torch.no_grad():
         predicted = torch.argmax(outputs, dim=1)
         total += torch.argmax(labels, dim=1).size(0)
         correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
-        print_tensor_unary_outlier(outputs, "outputs")
-        break
+    
+    print("\nActivation profiling in the last test epoch: ")
+    print_tensor_unary_outlier(model.conv1_i, "conv1_i")
+    print_tensor_unary_outlier(model.conv1_act_o, "conv1_act_o")
+    print_tensor_unary_outlier(model.conv2_act_o, "conv2_act_o")
+    print_tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
+    for idx in range(rnn_win_sz):
+        print_tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
+    print_tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
+    print_tensor_unary_outlier(outputs, "outputs")
 
     acc = 100 * correct / total
 print("Test Accuracy: %3.3f %%" % (acc))
-
 print("***************************** Test End ******************************\n")
 
 

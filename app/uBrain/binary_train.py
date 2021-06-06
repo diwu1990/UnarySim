@@ -155,7 +155,6 @@ else:
 # dataset configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("******************** Dataset Configuration Start ********************")
-
 with open(dataset_dir+"preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
     datasets = pickle.load(fp)
 with open(dataset_dir+"preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl", "rb") as fp:
@@ -207,7 +206,6 @@ test_dataloader = DataLoader(
                                 pin_memory=pin_memory, 
                                 drop_last=True
                                 )
-
 print("********************* Dataset Configuration End *********************\n")
 
 
@@ -300,6 +298,5 @@ if set_store:
     os.remove(model_dir+filename+'.model_best.tmp.pth.tar')
 
 print("Total Epoch %3d:\tFinal Train Loss: %3.3f;\tBest Test Accuracy: %3.3f %%" % (training_epochs, loss.detach().cpu().item(), best_acc))
-
 print("***************************** Train End *****************************\n")
 
