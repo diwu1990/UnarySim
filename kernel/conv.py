@@ -484,7 +484,7 @@ class HUBConv2d(torch.nn.Conv2d):
         input_transpose = input_im2col.transpose(1, 2)
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
-        weight = self.weight.view(self.weight.size(0), -1)
+        weight = self.weight.view(self.weight.size()[0], -1)
         mm_out = HUBLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.wght_map)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
@@ -601,7 +601,7 @@ class FxpConv2d(torch.nn.Conv2d):
         input_transpose = input_im2col.transpose(1, 2)
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
-        weight = self.weight.view(self.weight.size(0), -1)
+        weight = self.weight.view(self.weight.size()[0], -1)
         mm_out = FxpLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs_input, self.max_abs_wght)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)

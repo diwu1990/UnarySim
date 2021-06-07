@@ -107,7 +107,7 @@ with torch.no_grad():
         images, labels = data[0].to(device), data[1].to(device)
         outputs = model(images)
         _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
+        total += labels.size()[0]
         correct += (predicted == labels).sum().item()
     print(images.size())
 print('Accuracy of the network on the 10000 test images: %f %%' % (
@@ -571,7 +571,7 @@ with torch.no_grad():
             _, predicted = torch.max(uGEMM_out.data, 1)
             if predicted == labels:
                 print("yes")
-        total += labels.size(0)
+        total += labels.size()[0]
         correct += (predicted == labels).sum().item()
         print(predicted, labels)
 print('Accuracy of the network on the 10000 test images: %f %%' % (

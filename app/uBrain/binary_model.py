@@ -128,7 +128,7 @@ class Cascade_CNN_RNN_Binary(torch.nn.Module):
 
         # RNN
         self.rnn_out = []
-        hx = torch.zeros(self.fc3_trans_o[0].size(0), self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
+        hx = torch.zeros(self.fc3_trans_o[0].size()[0], self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
         for i in range(self.rnn_win_sz):
             hx = self.rnncell4(self.fc3_trans_o[i], hx)
             self.rnn_out.append(hx)

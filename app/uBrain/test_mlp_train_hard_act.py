@@ -137,7 +137,7 @@ for epoch in range(total_epoch):  # loop over the dataset multiple times
             images, labels = data[0].to(device), data[1].to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
+            total += labels.size()[0]
             correct += (predicted == labels).sum().item()
 
     print('Train - Epoch %d, Loss: %f, Test Accuracy: %f %%' \

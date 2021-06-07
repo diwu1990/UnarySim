@@ -76,7 +76,7 @@ print("input reshape size: ", fc_inp.size())
 print()
 
 print("weight size: ", fc_w.size())
-fc_w = fc_w.view(fc_w.size(0), -1)
+fc_w = fc_w.view(fc_w.size()[0], -1)
 print("weight view size: ", fc_w.size())
 fc_w = fc_w.t()
 print("weight transpose size: ", fc_w.size())

@@ -91,7 +91,7 @@ def main():
                 outputs = net(inputs)
 
                 _, predicted = outputs.max(1)
-                total += targets.size(0)
+                total += targets.size()[0]
                 correct += predicted.eq(targets).sum().item()
                 if batch_idx % 10 == 0:
                     print(batch_idx, "/", len(testloader), "| acc:", 100.*correct/total)

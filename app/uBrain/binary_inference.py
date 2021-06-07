@@ -256,7 +256,7 @@ with torch.no_grad():
         inputs, labels = data[0].to(device, non_blocking=non_blocking), data[1].to(device, non_blocking=non_blocking)
         outputs = model(inputs)
         predicted = torch.argmax(outputs, dim=1)
-        total += torch.argmax(labels, dim=1).size(0)
+        total += torch.argmax(labels, dim=1).size()[0]
         correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
     
     print("\nActivation profiling in the last test epoch: ")

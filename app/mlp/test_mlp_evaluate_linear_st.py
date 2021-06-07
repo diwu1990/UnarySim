@@ -66,7 +66,7 @@ with torch.no_grad():
         images, labels = data[0].to(device), data[1].to(device)
         outputs = model(images)
         _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
+        total += labels.size()[0]
         correct += (predicted == labels).sum().item()
 
 print('Accuracy of the network on the 10000 test images: %f %%' % (
@@ -150,7 +150,7 @@ with torch.no_grad():
 #         print(torch.max(fc3_out.data, 1)[1])
         
         _, predicted = torch.max(fc3_out.data, 1)
-        total += labels.size(0)
+        total += labels.size()[0]
         correct += (predicted == labels).sum().item()
         
 print('Accuracy of the network on the 10000 test images: %f %%' % (
@@ -181,7 +181,7 @@ with torch.no_grad():
         images, labels = data[0].to(device), data[1].to(device)
         outputs = model_fp(images.mul(2**bitwidth).round().div(2**bitwidth))
         _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
+        total += labels.size()[0]
         correct += (predicted == labels).sum().item()
 
 print('Accuracy of the network on the 10000 test images: %f %%' % (

@@ -92,7 +92,7 @@ class HardMGUCell(torch.nn.RNNCellBase):
     def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
         self.check_forward_input(input)
         if hx is None:
-            hx = torch.zeros(input.size(0), self.hidden_size, dtype=input.dtype, device=input.device)
+            hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
         self.check_forward_hidden(input, hx, '')
         
         self.gate_i = F.linear(input, self.weight_ih, self.bias_ih)
@@ -144,7 +144,7 @@ class HardGRUCell(torch.nn.RNNCellBase):
     def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
         self.check_forward_input(input)
         if hx is None:
-            hx = torch.zeros(input.size(0), self.hidden_size, dtype=input.dtype, device=input.device)
+            hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
         self.check_forward_hidden(input, hx, '')
         
         gate_i = F.linear(input, self.weight_ih, self.bias_ih)
