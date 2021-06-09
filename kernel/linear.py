@@ -96,9 +96,11 @@ class FSULinearPC(torch.nn.Linear):
         
         # define the linear weight and bias
         if binary_weight is not None:
+            assert (binary_weight.size()[0], binary_weight.size()[1]) == (out_features, in_features), "Incorrect weight shape."
             self.weight.data = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
         
         if bias and (binary_bias is not None):
+            assert binary_bias.size()[0] == out_features, "Incorrect bias shape."
             self.bias.data = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
 
         # define the kernel linear
