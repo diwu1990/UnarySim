@@ -98,7 +98,7 @@ data4 = convnet_mnist_fxp_i_acc[-1]
 # fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(fig_w, fig_h), sharex=True)
 fig, ax1 = plt.subplots(figsize=(fig_w, fig_h))
 
-ax1.plot(x, data1, "-o", label="uSystolic", alpha=alpha, color="#7A81FF", ms=4)
+ax1.plot(x, data1, "-o", label="uSystolic/uGEMM-H", alpha=alpha, color="#7A81FF", ms=4)
 ax1.plot(x, data2, "-s", label="FXP-o-res", alpha=alpha, color="#FF7F7F", ms=4)
 ax1.plot(x, data3, "-^", label="FXP-i-res", alpha=alpha, color="#D783FF", ms=4)
 ax1.plot([x[-1]+1], data4, "*", label="FP32", color="#888888", ms=4)
@@ -133,7 +133,7 @@ data4 = resnet18_cifar10_fxp_i_acc[-1]
 
 fig, ax2 = plt.subplots(figsize=(fig_w, fig_h))
 
-ax2.plot(x, data1, "-o", label="uSystolic", alpha=alpha, color="#7A81FF", ms=4)
+ax2.plot(x, data1, "-o", label="uSystolic/uGEMM-H", alpha=alpha, color="#7A81FF", ms=4)
 ax2.plot(x, data2, "-s", label="FXP-o-res", alpha=alpha, color="#FF7F7F", ms=4)
 ax2.plot(x, data3, "-^", label="FXP-i-res", alpha=alpha, color="#D783FF", ms=4)
 ax2.plot([x[-1]+1], data4, "*", label="FP32", color="#888888", ms=4)
@@ -165,7 +165,7 @@ data4 = alexnet_imagenet_fxp_i_acc[-1]
 
 fig, ax3 = plt.subplots(figsize=(fig_w, fig_h))
 
-ax3.plot(x, data1, "-o", label="uSystolic", alpha=alpha, color="#7A81FF", ms=4)
+ax3.plot(x, data1, "-o", label="uSystolic/uGEMM-H", alpha=alpha, color="#7A81FF", ms=4)
 ax3.plot(x, data2, "-s", label="FXP-o-res", alpha=alpha, color="#FF7F7F", ms=4)
 ax3.plot(x, data3, "-^", label="FXP-i-res", alpha=alpha, color="#D783FF", ms=4)
 ax3.plot([x[-1]+1], data4, "*", label="FP32", color="#888888", ms=4)
