@@ -148,7 +148,7 @@ def search_best_stab_parallel_numpy(P_low_L, P_high_L, L, seach_range):
         B_L = L
         p_L_eq_P_low_L = (p_L == P_low_L).astype("float32")
         P_low_L_le_B_L = (P_low_L <= B_L).astype("float32")
-        R_low = p_L_eq_P_low_L * ((1 - P_low_L_le_B_L) * L) + (1 - p_L_eq_P_low_L) * (P_low_L - B_L)/l_p/l_p_by_p_L_minus_P_low_L
+        R_low = p_L_eq_P_low_L * ((1 - P_low_L_le_B_L) * L) + (1 - p_L_eq_P_low_L) * (P_low_L - B_L)/l_p_by_p_L_minus_P_low_L
         
         P_high_L_eq_p_L = (P_high_L == p_L).astype("float32")
         B_L_le_P_high_L = (B_L <= P_high_L).astype("float32")
