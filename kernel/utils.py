@@ -120,7 +120,46 @@ def tensor_unary_outlier(tensor, name="tensor"):
     max = tensor.max().item()
     outlier = torch.sum(torch.gt(tensor, 1)) + torch.sum(torch.lt(tensor, -1))
     outlier_ratio = outlier / torch.prod(torch.tensor(tensor.size()))
-    print("{:20s}".format(name) + \
-            ": min:" + "{:10f}".format(min) + \
-            "; max:" + "{:10f}".format(max) + \
-            "; outlier:" + "{:10f} %".format(outlier_ratio * 100))
+    print("{:30s}".format(name) + \
+            ": min:" + "{:12f}".format(min) + \
+            "; max:" + "{:12f}".format(max) + \
+            "; outlier:" + "{:12f} %".format(outlier_ratio * 100))
+
+
+def progerror_report(progerror, name="progerror"):
+    min = progerror.in_value.min().item()
+    max = progerror.in_value.max().item()
+    std, mean = torch.std_mean(progerror()[0])
+    print("{:30s}".format(name) + \
+            ": Binary   Value range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
+            "; std:" + "{:12f}".format(std) + \
+            "; mean:" + "{:12f}".format(mean))
+
+    min = progerror()[0].min().item()
+    max = progerror()[0].max().item()
+    std, mean = torch.std_mean(progerror()[0])
+    print("{:30s}".format(name) + \
+            ": Unary    Value range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
+            "; std:" + "{:12f}".format(std) + \
+            "; mean:" + "{:12f}".format(mean))
+
+    min = progerror()[1].min().item()
+    max = progerror()[1].max().item()
+    rmse = torch.sqrt(torch.mean(torch.square(progerror()[1])))
+    std, mean = torch.std_mean(progerror()[1])
+    print("{:30s}".format(name) + \
+            ": Absolute Error range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
+            "; std:" + "{:12f}".format(std) + \
+            "; mean:" + "{:12f}".format(mean) + \
+            "; rmse:" + "{:12f}".format(rmse))
+
+    # relative_error = torch.nan_to_num(progerror()[1]/progerror()[0])
+    # min = relative_error.min().item()
+    # max = relative_error.max().item()
+    # rmse = torch.sqrt(torch.mean(torch.square(relative_error)))
+    # std, mean = torch.std_mean(relative_error)
+    # print("{:30s}".format(name) + \
+    #         ": Relative Error range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
+    #         "; std:" + "{:12f}".format(std) + \
+    #         "; mean:" + "{:12f}".format(mean) + \
+    #         "; rmse:" + "{:12f}".format(rmse))
