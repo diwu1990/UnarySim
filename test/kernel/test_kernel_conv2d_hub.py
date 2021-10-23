@@ -20,6 +20,8 @@ groups = 1
 bias = True
 padding_mode = 'zeros'
 
+# rng = "Sobol"
+rng = "Race"
 cycle = 256
 rounding = "round"
 
@@ -34,7 +36,7 @@ conv2d = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding
 conv2d_o = conv2d(input)
 
 uconv2d = HUBConv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode, 
-                        binary_weight=conv2d.weight.data, binary_bias=conv2d.bias, cycle=cycle, rounding=rounding).to(device)
+                        binary_weight=conv2d.weight.data, binary_bias=conv2d.bias, rng=rng, cycle=cycle, rounding=rounding).to(device)
 uconv2d_o = uconv2d(input)
 
 (conv2d_o - uconv2d_o).abs().mean().backward()

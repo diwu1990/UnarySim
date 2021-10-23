@@ -939,6 +939,7 @@ class HUBLinear(torch.nn.Linear):
                  bias=True, 
                  binary_weight=None, 
                  binary_bias=None, 
+                 rng="Sobol", 
                  cycle=128,
                  rounding="floor"):
         super(HUBLinear, self).__init__(in_features, out_features, bias)
@@ -957,7 +958,8 @@ class HUBLinear(torch.nn.Linear):
         self.bitwidth = (self.cycle - 1).bit_length()
         
         # random_sequence from sobol RNG
-        self.rng = RNG(self.bitwidth, 1, "Sobol")()
+        self.irng = RNG(self.bitwidth, 1, rng)()
+        self.wrng = RNG(self.bitwidth, 1, "Sobol")()
         
         # generate the value map for mul using current rng
         # dim 0 is input index
@@ -966,14 +968,14 @@ class HUBLinear(torch.nn.Linear):
         input_val_cycle = torch.empty(0)
         torch.cat(cycle*[torch.arange(cycle, dtype=torch.float).unsqueeze(1)], 1, out=input_val_cycle)
         input_bit_cycle = torch.empty(0)
-        torch.gt(input_val_cycle, self.rng.unsqueeze(0), out=input_bit_cycle)
+        torch.gt(input_val_cycle, self.irng.unsqueeze(0), out=input_bit_cycle)
         self.input_map.data = torch.sum(input_bit_cycle, 1).squeeze_().type(torch.long)
 
         # dim 0 is input index, dim 1 is weight index
         # the tensor value is the actual weight value produced by the rng, under a specific input and weight
         self.wght_map = torch.nn.Parameter(torch.empty(cycle, cycle), requires_grad=False)
         wght_bit_cycle = torch.empty(0)
-        torch.gt(input_val_cycle, self.rng.unsqueeze(0), out=wght_bit_cycle)
+        torch.gt(input_val_cycle, self.wrng.unsqueeze(0), out=wght_bit_cycle)
         for c in range(cycle):
             self.wght_map.data[c] = torch.sum(wght_bit_cycle[:, 0:self.input_map.data[c]], 1).squeeze_()
         

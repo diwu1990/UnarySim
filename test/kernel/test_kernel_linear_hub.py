@@ -12,6 +12,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 in_feature = 16
 out_feature = 8
 bias = True
+# rng = "Sobol"
+rng = "Race"
 cycle = 128
 rounding = "round"
 
@@ -24,7 +26,7 @@ input = ((torch.rand(256, in_feature) - 0.5) * 2**(2*input_int_bit)).round().div
 fc = torch.nn.Linear(in_feature, out_feature, bias=bias).to(device)
 fc_o = fc(input)
 
-ufc = HUBLinear(in_feature, out_feature, bias=bias, binary_weight=fc.weight.data, binary_bias=fc.bias, cycle=cycle, rounding=rounding).to(device)
+ufc = HUBLinear(in_feature, out_feature, bias=bias, binary_weight=fc.weight.data, binary_bias=fc.bias, rng=rng, cycle=cycle, rounding=rounding).to(device)
 ufc_o = ufc(input)
 
 (fc_o - ufc_o).abs().mean().backward()
