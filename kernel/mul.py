@@ -54,7 +54,6 @@ class FSUMul(torch.nn.Module):
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
 
     def FSUMul_forward(self, input_0, input_1=None):
-        # currently only support static mode
         if self.static is True:
             # for input0 is 0.
             path = input_0.type(torch.int8) & self.bsg(self.rng_idx)
