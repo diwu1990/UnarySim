@@ -23,8 +23,6 @@ class FSUMul(torch.nn.Module):
         self.static = static
         self.stype = stype
         self.rtype = rtype
-        # the probability of input_1 used in static computation
-        self.input_prob_1 = input_prob_1
         
         assert self.mode == "unipolar" or self.mode == "bipolar", "Unsupported mode in FSUMul."
 
@@ -36,6 +34,9 @@ class FSUMul(torch.nn.Module):
             rtype=self.rtype)()
         
         if self.static is True:
+            # the probability of input_1 used in static computation
+            self.input_prob_1 = input_prob_1
+            assert input_prob_1 is not None, "Static multiplier requires input_prob_1."
             # directly create an unchange bitstream generator for static computation
             self.source_gen = SourceGen(self.input_prob_1, self.bitwidth, self.mode, self.rtype)()
             self.bsg = BSGen(self.source_gen, self.rng, torch.int8)
