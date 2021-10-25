@@ -36,7 +36,7 @@ from UnarySim.kernel.utils import tensor_unary_outlier
 parser = argparse.ArgumentParser()
 
 hpstr = "set input dataset directory"
-parser.add_argument('-idir', '--input_directory', default="/mnt/ssd1/data/bci/preprocessed_data/", type=str, help=hpstr)
+parser.add_argument('-idir', '--input_directory', default="/mnt/ssd1/data/bci/motor_imagery/preprocessed_data/", type=str, help=hpstr)
 
 hpstr = "set data scaling threshold"
 parser.add_argument('-t', '--threshold', default=2., type=float, help=hpstr)
@@ -265,6 +265,13 @@ with torch.no_grad():
     tensor_unary_outlier(model.conv2_act_o, "conv2_act_o")
     tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
     for idx in range(rnn_win_sz):
+        tensor_unary_outlier(model.gate_i[idx], "gate_i_[%2d]"%idx)
+        tensor_unary_outlier(model.gate_h[idx], "gate_h_[%2d]"%idx)
+        tensor_unary_outlier(model.forgetgate[idx], "forgetgate_[%2d]"%idx)
+        tensor_unary_outlier(model.newgate_prod[idx], "newgate_prod_[%2d]"%idx)
+        tensor_unary_outlier(model.newgate[idx], "newgate_[%2d]"%idx)
+        tensor_unary_outlier(model.forgetgate_inv_prod[idx], "forgetgate_inv_prod_[%2d]"%idx)
+        tensor_unary_outlier(model.forgetgate_prod[idx], "forgetgate_prod_[%2d]"%idx)
         tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
     tensor_unary_outlier(outputs, "outputs")
 

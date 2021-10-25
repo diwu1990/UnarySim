@@ -12,6 +12,7 @@ import pickle
 import numpy as np
 import time
 import shutil
+import glob
 
 import math
 import warnings
@@ -30,6 +31,7 @@ import argparse
 from tqdm import tqdm
 
 from binary_model import Cascade_CNN_RNN_Binary
+from unary_model import *
 from UnarySim.kernel.utils import tensor_unary_outlier
 
 # parse input
@@ -96,7 +98,7 @@ hpstr = "set std for initialization"
 parser.add_argument('-std', '--init_std', default=None, type=float, help=hpstr)
 
 hpstr = "set weight decay"
-parser.add_argument('-wd', '--weight_decay', default=0.0001, type=float, help=hpstr)
+parser.add_argument('-wd', '--weight_decay', default=0.0, type=float, help=hpstr)
 
 hpstr = "set restart iteration"
 parser.add_argument('-t0', '--t0_restart', default=50, type=int, help=hpstr)
@@ -106,6 +108,15 @@ parser.add_argument('-ol', '--win_overlap', default=5, type=int, help=hpstr)
 
 hpstr = "set whether store model"
 parser.add_argument('--set_store', action='store_true', help=hpstr)
+
+hpstr = "set unary data bitwidth"
+parser.add_argument('-bw', '--unary_bitwidth', default=10, type=int, help=hpstr)
+
+hpstr = "set unary acc depth"
+parser.add_argument('-ad', '--unary_acc_depth', default=12, type=int, help=hpstr)
+
+hpstr = "set unary sr depth"
+parser.add_argument('-sd', '--unary_sr_depth', default=5, type=int, help=hpstr)
 
 args = parser.parse_args()
 
@@ -133,6 +144,9 @@ weight_decay=args.weight_decay
 t0=args.t0_restart
 win_overlap=args.win_overlap
 set_store=args.set_store
+unary_bitwidth=args.unary_bitwidth
+unary_acc_depth=args.unary_acc_depth
+unary_sr_depth=args.unary_sr_depth
 
 num_class=5
 pin_memory=True
@@ -236,34 +250,57 @@ print("********************** Model Configuration End **********************\n")
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # train
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-print("**************************** Train Start ****************************")
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, t0)
-
-loss=0.0
-best_acc=0.0
+print("**************************** Test Start *****************************")
 filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_t_"+str(threshold)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
-iters = len(train_dataloader)
+print("Target filename prefix: " + filename)
+path=model_dir+filename+"_acc_*.pth.tar"
+file=glob.glob(path)[0]
+print("Loading model state dict: ", file)
+model.load_state_dict(torch.load(file)["state_dict"])
+model.eval()
 
-pbar = tqdm(range(training_epochs))
-for epoch in pbar:
-    model.train()
-    total_time = time.time()
-    for i, data in enumerate(train_dataloader, 0):
-        # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = data[0].to(device, non_blocking=non_blocking), data[1].to(device, non_blocking=non_blocking)
-        optimizer.zero_grad() # zero the parameter gradients
-        outputs = model(inputs) # forward
-        loss = criterion(outputs, torch.argmax(labels, dim=1))
-        loss.backward() # backward
-        optimizer.step() # optimize
-        scheduler.step(epoch + i / iters)
+print("\nWeight profiling: ")
+for weight in model.parameters():
+    tensor_unary_outlier(weight, "weight")
 
-    model.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
+print("\nBuilding unary inference model...")
+unary_model = Cascade_CNN_RNN_FSU(input_sz=input_sz, # size of each window
+                                linear_act=linear_act, # activation in CNN
+                                cnn_chn=cnn_chn, # input channle in CNN
+                                cnn_kn_sz=cnn_kn_sz, # kernel (height, width) in CNN
+                                cnn_padding=cnn_padding, # kernel (height, width) in CNN
+                                fc_sz=fc_sz, # fc size in CNN and MLP
+                                rnn=rnn, # gru or mgu
+                                rnn_win_sz=rnn_win_sz, # window size in RNN
+                                rnn_hidden_sz=rnn_hidden_sz, # hidden size in RNN
+                                rnn_hard=rnn_hard, # flag to apply HardGRUCell RNN
+                                bias=bias, # bias of matrix mul
+                                init_std=init_std, # std for initialization of weight
+                                keep_prob=keep_prob, # prob for drop out after each FC
+                                num_class=num_class, # output size
+                                bitwidth=unary_bitwidth, 
+                                acc_depth=unary_acc_depth, 
+                                relu_sr_depth=unary_sr_depth, 
+                                rng="Sobol", 
+                                conv1_weight=model.conv1.weight, 
+                                conv1_bias=model.conv1.bias, 
+                                conv2_weight=model.conv2.weight, 
+                                conv2_bias=model.conv2.bias, 
+                                fc3_weight=model.fc3.weight, 
+                                fc3_bias=model.fc3.bias, 
+                                rnncell4_weight_ih=model.rnncell4.weight_ih, 
+                                rnncell4_bias_ih=model.rnncell4.bias_ih, 
+                                rnncell4_weight_hh=model.rnncell4.weight_hh, 
+                                rnncell4_bias_hh=model.rnncell4.bias_hh, 
+                                fc5_weight=model.fc5.weight, 
+                                fc5_bias=model.fc5.bias, 
+                                debug=False)
+
+unary_correct = 0
+correct = 0
+total = 0
+with torch.no_grad():
+    with tqdm(total=len(test_dataloader)) as progress_bar:
         for data in test_dataloader:
             inputs, labels = data[0].to(device, non_blocking=non_blocking), data[1].to(device, non_blocking=non_blocking)
             outputs = model(inputs)
@@ -271,33 +308,40 @@ for epoch in pbar:
             total += torch.argmax(labels, dim=1).size()[0]
             correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
 
-        # remember best acc and save checkpoint
+            binary_fm_dict = {
+                "conv1_act_o": model.conv1_act_o, 
+                "conv2_act_o": model.conv2_act_o, 
+                "fc3_trans_o": model.fc3_trans_o, 
+                "gate_i": model.gate_i, 
+                "gate_h": model.gate_h, 
+                "forgetgate": model.forgetgate, 
+                "newgate_prod": model.newgate_prod, 
+                "newgate": model.newgate, 
+                "forgetgate_inv_prod": model.forgetgate_inv_prod, 
+                "forgetgate_prod": model.forgetgate_prod, 
+                "rnn_out": model.rnn_out, 
+                "logits": outputs
+            }
+            print(binary_fm_dict["conv1_act_o"].size())
+            print(binary_fm_dict["conv2_act_o"].size())
+            print(binary_fm_dict["fc3_trans_o"].size())
+            for rnn_out in binary_fm_dict["rnn_out"]:
+                print(rnn_out.size())
+            print(binary_fm_dict["logits"].size())
+
+            unary_outputs = unary_model(inputs, binary_fm_dict)
+            unary_predicted = torch.argmax(unary_outputs, dim=1)
+            unary_correct += (unary_predicted == torch.argmax(labels, dim=1)).sum().item()
+
+            progress_bar.set_description("Current Accuracy: Binary: %3.3f %%; Unary: %3.3f %%" % (100 * correct/total, 100 * unary_correct/total))
+            progress_bar.update(1) # update progress
+
+            break
+
         acc = 100 * correct / total
-        is_best = acc > best_acc
-        best_acc = max(acc, best_acc)
-        if set_store:
-            torch.save(
-                {
-                'epoch': epoch + 1,
-                'best_acc': best_acc,
-                'state_dict': model.state_dict(),
-                'optimizer' : optimizer.state_dict(),
-                'scheduler' : scheduler.state_dict(),
-                }, 
-                model_dir+filename+'.check_point.tmp.pth.tar')
-            if is_best:
-                shutil.copyfile(model_dir+filename+'.check_point.tmp.pth.tar', model_dir+filename+'.model_best.tmp.pth.tar')
-    
-    pbar.set_description("Epoch %3d ==> LR: %1.7f; Train Loss: %3.3f; Test Accuracy: %3.3f %%" % (epoch, optimizer.param_groups[0]["lr"], loss.detach().cpu().item(), acc))
+        unary_acc = 100 * unary_correct / total
+    print("Binary Test Accuracy: %3.3f %%" % (acc))
+    print("Unary  Test Accuracy: %3.3f %%" % (unary_acc))
+print("***************************** Test End ******************************\n")
 
-for weight in model.parameters():
-    tensor_unary_outlier(weight, "weight")
-
-if set_store:
-    shutil.copyfile(model_dir+filename+'.model_best.tmp.pth.tar', model_dir+filename+'_acc_'+'%2.2f' % (best_acc)+'.pth.tar')
-    os.remove(model_dir+filename+'.check_point.tmp.pth.tar')
-    os.remove(model_dir+filename+'.model_best.tmp.pth.tar')
-
-print("Total Epoch %3d:\tFinal Train Loss: %3.3f;\tBest Test Accuracy: %3.3f %%" % (training_epochs, loss.detach().cpu().item(), best_acc))
-print("***************************** Train End *****************************\n")
 

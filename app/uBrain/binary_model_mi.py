@@ -10,7 +10,8 @@ from torch import Tensor
 from UnarySim.kernel.sigmoid import ScaleHardsigmoid
 from UnarySim.kernel.relu import ScaleReLU
 from UnarySim.kernel.utils import truncated_normal
-from UnarySim.kernel.rnn import HardMGUCell, HardGRUCell
+from UnarySim.kernel.rnn import HardMGUCell as HardMGUCell
+from UnarySim.kernel.rnn import HardGRUCellNUAPT as HardGRUCell
 
 
 class Cascade_CNN_RNN_Binary(torch.nn.Module):
@@ -127,10 +128,24 @@ class Cascade_CNN_RNN_Binary(torch.nn.Module):
         self.fc3_trans_o    = self.fc3_view_o.transpose(0, 1)
 
         # RNN
+        # self.gate_i = []
+        # self.gate_h = []
+        # self.forgetgate = []
+        # self.newgate_prod = []
+        # self.newgate = []
+        # self.forgetgate_inv_prod = []
+        # self.forgetgate_prod = []
         self.rnn_out = []
         hx = torch.zeros(self.fc3_trans_o[0].size()[0], self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
         for i in range(self.rnn_win_sz):
             hx = self.rnncell4(self.fc3_trans_o[i], hx)
+            # self.gate_i.append(self.rnncell4.gate_i)
+            # self.gate_h.append(self.rnncell4.gate_h)
+            # self.forgetgate.append(self.rnncell4.forgetgate)
+            # self.newgate_prod.append(self.rnncell4.newgate_prod)
+            # self.newgate.append(self.rnncell4.newgate)
+            # self.forgetgate_inv_prod.append(self.rnncell4.forgetgate_inv_prod)
+            # self.forgetgate_prod.append(self.rnncell4.forgetgate_prod)
             self.rnn_out.append(hx)
 
         # MLP
