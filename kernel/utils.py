@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 import math
 
 class NN_SC_Weight_Clipper(object):
@@ -186,17 +187,20 @@ class RoundingNoGrad(torch.autograd.Function):
         return grad_input
     
     
-class Trunc(torch.nn.Module):
+class Round(torch.nn.Module):
     """
-    Trunc is an operation to convert data to format (1, intwidth, fracwidth).
+    Round is an operation to convert data to format (1, intwidth, fracwidth).
     """
     def __init__(self, intwidth=3, fracwidth=4) -> None:
-        super(Trunc, self).__init__()
+        super(Round, self).__init__()
         self.intwidth = intwidth
         self.fracwidth = fracwidth
         self.max_val = (2**(intwidth + fracwidth) - 1)
         self.min_val = 0 - (2**(intwidth + fracwidth))
 
-    def forward(self, input):
-        return RoundingNoGrad.apply(input << self.fracwidth).clamp(self.min_val, self.max_val) >> self.fracwidth
+    def forward(self, input) -> Tensor:
+        if input is None:
+            return None
+        else:
+            return RoundingNoGrad.apply(input << self.fracwidth).clamp(self.min_val, self.max_val) >> self.fracwidth
 
