@@ -3,12 +3,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from UnarySim.kernel.rnn import FSUMGUCell
-from UnarySim.app.uBrain.binary_model import HardMGUCell
+from UnarySim.kernel.rnn import FSUMGUCell, HardMGUCell, HardMGUCellFxp
 from UnarySim.stream.gen import *
 from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
-from UnarySim.kernel.utils import truncated_normal
+from UnarySim.kernel.utils import truncated_normal, progerror_report
 import time
+
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
@@ -17,32 +17,48 @@ win_sz = 10
 batch = 32
 input_sz = 256
 hidden_sz = 64
-bitwidth = 12
+
+bitwidth = 8
+intwidth = 2
+
+
+fracwidth = bitwidth - intwidth
 mode = "bipolar"
 depth = bitwidth + 2
+depth_ismul = bitwidth - 2
 rng = "Sobol"
 bias = False
+output_error_only=True
 
 input = torch.randn(win_sz, batch, input_sz).to(device)
 input = truncated_normal(input, mean=0, std=0.4)
 hx1 = torch.randn(batch, hidden_sz).to(device)
 hx1 = truncated_normal(hx1, mean=0, std=0.1)
 hx2 = hx1.clone().detach().to(device)
+hx3 = hx1.clone().detach().to(device)
 output1 = []
 output2 = []
+output3 = []
 
 rnn1 = HardMGUCell(input_sz, hidden_sz, bias=bias, hard=True).to(device)
+rnn3 = HardMGUCellFxp(input_sz, hidden_sz, bias=bias, hard=True, intwidth=intwidth, fracwidth=fracwidth).to(device)
+rnn3.weight_f.data = rnn1.weight_f.clone().detach().to(device)
+rnn3.weight_n.data = rnn1.weight_n.clone().detach().to(device)
 
 for i in range(win_sz):
     hx1 = rnn1(input[i], hx1)
     output1.append(hx1)
 
+    hx3 = rnn3(input[i], hx3)
+    output3.append(hx3)
+
     iVec, hVec = input[i], hx2
 
     # rnn2 in the loop to mimic the hw reset
     rnn2 = FSUMGUCell(input_sz, hidden_sz, bias=bias, 
-                    binary_weight_ih=rnn1.weight_ih, binary_bias_ih=rnn1.bias_ih, binary_weight_hh=rnn1.weight_hh, binary_bias_hh=rnn1.bias_hh, 
-                    bitwidth=bitwidth, mode=mode, depth=depth).to(device)
+                    binary_weight_f=rnn1.weight_f, binary_bias_f=rnn1.bias_f, binary_weight_n=rnn1.weight_n, binary_bias_n=rnn1.bias_n, 
+                    hx_buffer=hx2, 
+                    bitwidth=bitwidth, mode=mode, depth=depth, depth_ismul=depth_ismul).to(device)
 
     iSource = SourceGen(iVec, bitwidth=bitwidth, mode=mode)().to(device)
     iRNG = RNG(bitwidth, 1, rng)().to(device)
@@ -57,70 +73,71 @@ for i in range(win_sz):
     oVec = output1[i]
     oPE = ProgError(oVec, scale=1, mode=mode).to(device)
     
-    forgetgate_in_PE    = ProgError(rnn1.forgetgate_in,  scale=1, mode=mode).to(device)
-    forgetgate_PE       = ProgError(rnn1.forgetgate,     scale=1, mode=mode).to(device)
-    h_n_hardtanh_PE     = ProgError(rnn1.h_n_hardtanh,   scale=1, mode=mode).to(device)
-    newgate_prod_PE     = ProgError(rnn1.newgate_prod,   scale=1, mode=mode).to(device)
-    i_n_hardtanh_PE     = ProgError(rnn1.i_n_hardtanh,   scale=1, mode=mode).to(device)
-    newgate_in_PE       = ProgError(rnn1.newgate_in,     scale=1, mode=mode).to(device)
-    newgate_PE          = ProgError(rnn1.newgate,        scale=1, mode=mode).to(device)
-    forgetgate_inv_prod_PE      = ProgError(rnn1.forgetgate_inv_prod,        scale=1, mode=mode).to(device)
-    forgetgate_prod_PE          = ProgError(rnn1.forgetgate_prod,        scale=1, mode=mode).to(device)
+    fg_ug_in_PE     = ProgError(rnn1.fg_ug_in,  scale=1, mode=mode).to(device)
+    fg_in_PE        = ProgError(rnn1.fg_in,     scale=1, mode=mode).to(device)
+    fg_PE           = ProgError(rnn1.fg,        scale=1, mode=mode).to(device)
+    fg_hx_PE        = ProgError(rnn1.fg_hx,     scale=1, mode=mode).to(device)
+    ng_ug_in_PE     = ProgError(rnn1.ng_ug_in,  scale=1, mode=mode).to(device)
+    ng_PE           = ProgError(rnn1.ng,        scale=1, mode=mode).to(device)
+    fg_ng_PE        = ProgError(rnn1.fg_ng,     scale=1, mode=mode).to(device)
+    fg_ng_inv_PE    = ProgError(rnn1.fg_ng_inv, scale=1, mode=mode).to(device)
 
-    for i in range(2**bitwidth):
+    for c in range(2**bitwidth):
         idx = torch.zeros(iSource.size()).type(torch.long).to(device)
-        iBS = iBSG(idx + i)
+        iBS = iBSG(idx + c)
         iPE.Monitor(iBS)
 
         hdx = torch.zeros(hSource.size()).type(torch.long).to(device)
-        hBS = hBSG(hdx + i)
+        hBS = hBSG(hdx + c)
         hPE.Monitor(hBS)
 
         start_time = time.time()
 
         oBS = rnn2(iBS, hBS)
 
-        forgetgate_in_PE.Monitor(rnn2.forgetgate_in)
-        forgetgate_PE.Monitor(rnn2.forgetgate)
-        h_n_hardtanh_PE.Monitor(rnn2.h_n_hardtanh)
-        newgate_prod_PE.Monitor(rnn2.newgate_prod)
-        i_n_hardtanh_PE.Monitor(rnn2.i_n_hardtanh)
-        newgate_in_PE.Monitor(rnn2.newgate_in)
-        newgate_PE.Monitor(rnn2.newgate)
-        forgetgate_inv_prod_PE.Monitor(rnn2.forgetgate_inv_prod)
-        forgetgate_prod_PE.Monitor(rnn2.forgetgate_prod)
+        fg_ug_in_PE.Monitor(rnn2.fg_ug_in)
+        fg_in_PE.Monitor(rnn2.fg_in)
+        fg_PE.Monitor(rnn2.fg)
+        fg_hx_PE.Monitor(rnn2.fg_hx)
+        ng_ug_in_PE.Monitor(rnn2.ng_ug_in)
+        ng_PE.Monitor(rnn2.ng)
+        fg_ng_PE.Monitor(rnn2.fg_ng)
+        fg_ng_inv_PE.Monitor(rnn2.fg_ng_inv)
 
         oPE.Monitor(oBS)
-    
-    forgetgate_in_rmse = torch.sqrt(torch.mean(torch.square(forgetgate_in_PE()[1])))
-    forgetgate_rmse = torch.sqrt(torch.mean(torch.square(forgetgate_PE()[1])))
-    h_n_hardtanh_rmse = torch.sqrt(torch.mean(torch.square(h_n_hardtanh_PE()[1])))
-    newgate_prod_rmse = torch.sqrt(torch.mean(torch.square(newgate_prod_PE()[1])))
-    i_n_hardtanh_rmse = torch.sqrt(torch.mean(torch.square(i_n_hardtanh_PE()[1])))
-    newgate_in_rmse = torch.sqrt(torch.mean(torch.square(newgate_in_PE()[1])))
-    newgate_rmse = torch.sqrt(torch.mean(torch.square(newgate_PE()[1])))
-    forgetgate_inv_prod_rmse = torch.sqrt(torch.mean(torch.square(forgetgate_inv_prod_PE()[1])))
-    forgetgate_prod_rmse = torch.sqrt(torch.mean(torch.square(forgetgate_prod_PE()[1])))
-
-    rmse = torch.sqrt(torch.mean(torch.square(oPE()[1])))
 
     hx2 = oPE()[0]
     output2.append(hx2)
 
+    print("======>> window: " + str(i) + "<<======")
     print("--- %s seconds ---" % (time.time() - start_time))
-    print("input error:                 min: "+"{:10f}".format(torch.min(iPE()[1]).item())+"    max: "+"{:10f}".format(torch.max(iPE()[1]).item()))
-    print("hidden error:                min: "+"{:10f}".format(torch.min(hPE()[1]).item())+"    max: "+"{:10f}".format(torch.max(hPE()[1]).item()))
+    if output_error_only:
+        pass
+    else:
+        progerror_report(iPE, "input")
+        progerror_report(hPE, "hidden")
 
-    print("forgetgate_in error:         min: "+"{:10f}".format(torch.min(forgetgate_in_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(forgetgate_in_PE()[1]).item())+"    rsme: "+"{:10f}".format(forgetgate_in_rmse.item()))
-    print("forgetgate error:            min: "+"{:10f}".format(torch.min(forgetgate_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(forgetgate_PE()[1]).item())+"    rsme: "+"{:10f}".format(forgetgate_rmse.item()))
-    print("h_n_hardtanh error:          min: "+"{:10f}".format(torch.min(h_n_hardtanh_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(h_n_hardtanh_PE()[1]).item())+"    rsme: "+"{:10f}".format(h_n_hardtanh_rmse.item()))
-    print("newgate_prod error:          min: "+"{:10f}".format(torch.min(newgate_prod_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(newgate_prod_PE()[1]).item())+"    rsme: "+"{:10f}".format(newgate_prod_rmse.item()))
-    print("i_n_hardtanh error:          min: "+"{:10f}".format(torch.min(i_n_hardtanh_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(i_n_hardtanh_PE()[1]).item())+"    rsme: "+"{:10f}".format(i_n_hardtanh_rmse.item()))
-    print("newgate_in error:            min: "+"{:10f}".format(torch.min(newgate_in_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(newgate_in_PE()[1]).item())+"    rsme: "+"{:10f}".format(newgate_in_rmse.item()))
-    print("newgate error:               min: "+"{:10f}".format(torch.min(newgate_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(newgate_PE()[1]).item())+"    rsme: "+"{:10f}".format(newgate_rmse.item()))
-    print("forgetgate_inv_prod error:   min: "+"{:10f}".format(torch.min(forgetgate_inv_prod_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(forgetgate_inv_prod_PE()[1]).item())+"    rsme: "+"{:10f}".format(forgetgate_inv_prod_rmse.item()))
-    print("forgetgate_prod error:       min: "+"{:10f}".format(torch.min(forgetgate_prod_PE()[1]).item())+"    max: "+"{:10f}".format(torch.max(forgetgate_prod_PE()[1]).item())+"    rsme: "+"{:10f}".format(forgetgate_prod_rmse.item()))
+        progerror_report(fg_ug_in_PE, "fg_ug_in")
+        progerror_report(fg_in_PE, "fg_in")
+        progerror_report(fg_PE, "fg")
+        progerror_report(fg_hx_PE, "fg_hx")
+        progerror_report(ng_ug_in_PE, "ng_ug_in")
+        progerror_report(ng_PE, "ng")
+        progerror_report(fg_ng_PE, "fg_ng")
+        progerror_report(fg_ng_inv_PE, "fg_ng_inv")
 
-    print("output error:                min: "+"{:10f}".format(torch.min(oPE()[1]).item())+"    max: "+"{:10f}".format(torch.max(oPE()[1]).item())+"    rsme: "+"{:10f}".format(rmse.item()))
+    progerror_report(oPE, "output")
+
+    fxp_err = hx1 - hx3
+    min = fxp_err.min().item()
+    max = fxp_err.max().item()
+    rmse = torch.sqrt(torch.mean(torch.square(fxp_err)))
+    std, mean = torch.std_mean(fxp_err)
+    print("{:30s}".format("fxp output") + \
+            ", Absolute Error range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+            ", std," + "{:12f}".format(std) + \
+            ", mean," + "{:12f}".format(mean) + \
+            ", rmse," + "{:12f}".format(rmse))
+
 
 print()

@@ -5,76 +5,267 @@ import torch.nn as nn
 import torch.nn.functional as F
 from UnarySim.kernel.add import FSUAdd
 from UnarySim.kernel.mul import FSUMul
-from UnarySim.kernel.linear import FSULinearPC
+from UnarySim.kernel.linear import FSULinearPC, FSULinear
 from torch.cuda.amp import autocast
 from typing import List, Tuple, Optional, overload, Union
 from UnarySim.kernel.sigmoid import ScaleHardsigmoid
-from UnarySim.kernel.utils import truncated_normal
+from UnarySim.kernel.utils import truncated_normal, Round
 
 
 class FSUMGUCell(torch.nn.Module):
     """
-    This is a minimal gated unit with unary computing.
+    This is a minimal gated unit with unary computing, corresponding to HardMGUCell with "hard" asserted.
     The scalehardsigmoid is scaled addition (x+1)/2, and hardtanh is direct pass.
+    This module follows the uBrain implementation style to maximize hardware reuse.
     """
 
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, 
-                    binary_weight_ih=None, binary_bias_ih=None, binary_weight_hh=None, binary_bias_hh=None, 
-                    bitwidth=8, mode="bipolar", depth=10) -> None:
+                    binary_weight_f=None, binary_bias_f=None, binary_weight_n=None, binary_bias_n=None, 
+                    hx_buffer=None, 
+                    bitwidth=8, mode="bipolar", depth=10, depth_ismul=6) -> None:
         super(FSUMGUCell, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
         self.bitwidth = bitwidth
-        assert mode=="bipolar", "Unsupported mode in FSUMGUCell."
 
-        self.forgetgate_in_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=input_size+hidden_size+bias+bias)
-        self.forgetgate_sigmoid = FSUAdd(mode=mode, scaled=True, dim=0, depth=depth)
-        self.h_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=hidden_size+bias)
-        self.newgate_in_mul = FSUMul(bitwidth=4, mode=mode, static=False)
-        self.i_n_acc = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=input_size+bias)
-        self.newgate_in_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=2)
-        self.newgate_tanh = nn.Identity()
-        self.hy_inv_mul = FSUMul(bitwidth=4, mode=mode, static=False)
-        self.hy_mul = FSUMul(bitwidth=4, mode=mode, static=False)
+        assert mode=="bipolar", "FSUMGUCell requires 'bipolar' mode."
+        assert (binary_weight_f.size()[0], binary_weight_f.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_f shape."
+        assert (binary_weight_n.size()[0], binary_weight_n.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_n shape."
+        if bias is True:
+            assert binary_bias_f.size()[0] == hidden_size, "Incorrect bias_f shape."
+            assert binary_bias_n.size()[0] == hidden_size, "Incorrect bias_n shape."
+
+        self.fg_ug_tanh = FSULinear(hidden_size + input_size, hidden_size, bias=bias, 
+                                            binary_weight=binary_weight_f, binary_bias=binary_bias_f, bitwidth=bitwidth, mode=mode, scaled=False, depth=depth)
+        self.ng_ug_tanh = FSULinear(hidden_size + input_size, hidden_size, bias=bias, 
+                                            binary_weight=binary_weight_n, binary_bias=binary_bias_n, bitwidth=bitwidth, mode=mode, scaled=False, depth=depth)
+
+        self.fg_sigmoid = FSUAdd(mode=mode, scaled=True, dim=0, depth=depth)
+        self.fg_hx_mul = FSUMul(bitwidth=bitwidth, mode=mode, static=True, input_prob_1=hx_buffer)
+        self.fg_ng_mul = FSUMul(bitwidth=depth_ismul, mode=mode, static=False)
         self.hy_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=3)
 
-        self.gate_i_linearpc = FSULinearPC(2*hidden_size, input_size,  bias=bias, 
-                                            binary_weight=binary_weight_ih, binary_bias=binary_bias_ih, bitwidth=bitwidth, mode=mode)
-        self.gate_h_linearpc = FSULinearPC(2*hidden_size, hidden_size, bias=bias, 
-                                            binary_weight=binary_weight_hh, binary_bias=binary_bias_hh, bitwidth=bitwidth, mode=mode)
+    def check_forward_input(self, input: Tensor) -> None:
+        if input.size(1) != self.input_size:
+            raise RuntimeError("input has inconsistent input_size: got {}, expected {}".format(input.size(1), self.input_size))
+
+    def check_forward_hidden(self, input: Tensor, hx: Tensor, hidden_label: str = '') -> None:
+        if input.size(0) != hx.size(0):
+            raise RuntimeError("Input batch size {} doesn't match hidden{} batch size {}".format(input.size(0), hidden_label, hx.size(0)))
+        if hx.size(1) != self.hidden_size:
+            raise RuntimeError("hidden{} has inconsistent hidden_size: got {}, expected {}".format(hidden_label, hx.size(1), self.hidden_size))
 
     @autocast()
     def forward(self, input: Tensor, hx: Tensor) -> Tensor:
-        self.gate_i = self.gate_i_linearpc(input)
-        self.gate_h = self.gate_h_linearpc(hx)
-        self.i_f, self.i_n = self.gate_i.chunk(2, 1)
-        self.h_f, self.h_n = self.gate_h.chunk(2, 1)
+        self.check_forward_input(input)
+        self.check_forward_hidden(input, hx, '')
 
-        # The forgetgate is a scaled addition
-        self.forgetgate_in = self.forgetgate_in_add(torch.stack([self.i_f, self.h_f], dim=0))
-        self.forgetgate = self.forgetgate_sigmoid(torch.stack([self.forgetgate_in, torch.ones_like(self.forgetgate_in)], dim=0))
+        # forget gate
+        self.fg_ug_in = torch.cat((hx, input), 1)
+        self.fg_in = self.fg_ug_tanh(self.fg_ug_in)
+        self.fg = self.fg_sigmoid(torch.stack([self.fg_in, torch.ones_like(self.fg_in)], dim=0))
+        
+        # new gate
+        self.fg_hx = self.fg_hx_mul(self.fg)
+        self.ng_ug_in = torch.cat((self.fg_hx, input), 1)
+        self.ng = self.ng_ug_tanh(self.ng_ug_in)
 
-        # The newgate is the non-scaled addition of newgate_in inputs (with the product) in unary computing
-        self.h_n_hardtanh = self.h_n_acc(self.h_n.unsqueeze(0))
-        self.newgate_prod = self.newgate_in_mul(self.forgetgate, self.h_n_hardtanh)
-        self.i_n_hardtanh = self.i_n_acc(self.i_n.unsqueeze(0))
-        self.newgate_in = self.newgate_in_add(torch.stack([self.i_n_hardtanh, self.newgate_prod], dim=0))
-        self.newgate = self.newgate_tanh(self.newgate_in)
-
-        self.forgetgate_inv_prod = self.hy_inv_mul(1 - self.forgetgate, self.newgate)
-        self.forgetgate_prod = self.hy_mul(self.forgetgate, hx)
-        hy = self.hy_add(torch.stack([self.newgate, self.forgetgate_inv_prod, self.forgetgate_prod], dim=0))
-
+        # output
+        self.fg_ng = self.fg_ng_mul(self.fg, self.ng)
+        self.fg_ng_inv = 1 - self.fg_ng
+        hy = self.hy_add(torch.stack([self.ng, self.fg_ng_inv, self.fg_hx], dim=0))
         return hy
 
 
-class HardMGUCell(torch.nn.RNNCellBase):
+class HardMGUCell(torch.nn.Module):
     """
     This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
     Batch is always the dim[0].
     Refer to "Simplified Minimal Gated Unit Variations for Recurrent Neural Networks" and "Gate-Variants of Gated Recurrent Unit (GRU) Neural Networks" for more details.
     Hardtanh is to bound data to the legal unary range.
+    This module is fully unary computing aware, i.e., all intermediate data are bounded to the legal unary range.
+    This module follows the uBrain implementation style to maximize hardware reuse.
     """
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
-        super(HardMGUCell, self).__init__(input_size, hidden_size, bias, num_chunks=2)
+        super(HardMGUCell, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.bias = bias
+        self.hard = hard
+        if hard == True:
+            self.fg_sigmoid = ScaleHardsigmoid()
+            self.ng_tanh = nn.Hardtanh()
+        else:
+            self.fg_sigmoid = nn.Sigmoid()
+            self.ng_tanh = nn.Tanh()
+
+        self.weight_f = nn.Parameter(torch.empty((hidden_size, hidden_size + input_size)))
+        self.weight_n = nn.Parameter(torch.empty((hidden_size, hidden_size + input_size)))
+        if bias:
+            self.bias_f = nn.Parameter(torch.empty(hidden_size))
+            self.bias_n = nn.Parameter(torch.empty(hidden_size))
+        else:
+            self.register_parameter('bias_f', None)
+            self.register_parameter('bias_n', None)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1.0 / math.sqrt(self.hidden_size)
+        for weight in self.parameters():
+            weight.data = truncated_normal(weight, mean=0, std=stdv)
+
+    def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
+        if hx is None:
+            hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
+        
+        # forget gate
+        self.fg_ug_in = torch.cat((hx, input), 1)
+        self.fg_in = nn.Hardtanh()(F.linear(self.fg_ug_in, self.weight_f, self.bias_f))
+        self.fg = self.fg_sigmoid(self.fg_in)
+        
+        # new gate
+        self.fg_hx = self.fg * hx
+        self.ng_ug_in = torch.cat((self.fg_hx, input), 1)
+        self.ng = self.ng_tanh(F.linear(self.ng_ug_in, self.weight_n, self.bias_n))
+
+        # output
+        self.fg_ng = self.fg * self.ng
+        self.fg_ng_inv = 0 - self.fg_ng
+        hy = nn.Hardtanh()(self.ng + self.fg_ng_inv + self.fg_hx)
+        return hy
+
+
+class HardMGUCellFxp(torch.nn.Module):
+    """
+    This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
+    Batch is always the dim[0].
+    Refer to "Simplified Minimal Gated Unit Variations for Recurrent Neural Networks" and "Gate-Variants of Gated Recurrent Unit (GRU) Neural Networks" for more details.
+    Hardtanh is to bound data to the legal unary range.
+    This module is fully unary computing aware, i.e., all intermediate data are bounded to the legal unary range.
+    This module follows the uBrain implementation style to maximize hardware reuse.
+    This module applies fixed-point quantization.
+    """
+    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True,
+                intwidth=3, fracwidth=4) -> None:
+        super(HardMGUCellFxp, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.bias = bias
+        self.hard = hard
+        self.trunc = Round(intwidth=intwidth, fracwidth=fracwidth)
+
+        if hard == True:
+            self.fg_sigmoid = ScaleHardsigmoid()
+            self.ng_tanh = nn.Hardtanh()
+        else:
+            self.fg_sigmoid = nn.Sigmoid()
+            self.ng_tanh = nn.Tanh()
+
+        self.weight_f = nn.Parameter(torch.empty((hidden_size, hidden_size + input_size)))
+        self.weight_n = nn.Parameter(torch.empty((hidden_size, hidden_size + input_size)))
+        if bias:
+            self.bias_f = nn.Parameter(torch.empty(hidden_size))
+            self.bias_n = nn.Parameter(torch.empty(hidden_size))
+        else:
+            self.register_parameter('bias_f', None)
+            self.register_parameter('bias_n', None)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1.0 / math.sqrt(self.hidden_size)
+        for weight in self.parameters():
+            weight.data = truncated_normal(weight, mean=0, std=stdv)
+
+    def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
+        if hx is None:
+            hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
+        
+        # forget gate
+        self.fg_ug_in = torch.cat((self.trunc(hx), self.trunc(input)), 1)
+        self.fg_in = nn.Hardtanh()(F.linear(self.trunc(self.fg_ug_in), self.trunc(self.weight_f), self.trunc(self.bias_f)))
+        self.fg = self.fg_sigmoid(self.trunc(self.fg_in))
+        
+        # new gate
+        self.fg_hx = self.trunc(self.fg) * self.trunc(hx)
+        self.ng_ug_in = torch.cat((self.trunc(self.fg_hx), self.trunc(input)), 1)
+        self.ng = self.ng_tanh(self.trunc(F.linear(self.trunc(self.ng_ug_in), self.trunc(self.weight_n), self.trunc(self.bias_n))))
+
+        # output
+        self.fg_ng = self.trunc(self.fg) * self.trunc(self.ng)
+        self.fg_ng_inv = 0 - self.trunc(self.fg_ng)
+        hy = nn.Hardtanh()(self.trunc(self.ng) + self.trunc(self.fg_ng_inv) + self.trunc(self.fg_hx))
+        return hy
+
+
+class HardMGUCellNUA(torch.nn.Module):
+    """
+    This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
+    Batch is always the dim[0].
+    Refer to "Simplified Minimal Gated Unit Variations for Recurrent Neural Networks" and "Gate-Variants of Gated Recurrent Unit (GRU) Neural Networks" for more details.
+    Hardtanh is to bound data to the legal unary range.
+    This module follows the uBrain implementation style to maximize hardware reuse.
+    """
+    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
+        super(HardMGUCellNUA, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.bias = bias
+        self.hard = hard
+        if hard == True:
+            self.fg_sigmoid = ScaleHardsigmoid()
+            self.ng_tanh = nn.Hardtanh()
+        else:
+            self.fg_sigmoid = nn.Sigmoid()
+            self.ng_tanh = nn.Tanh()
+
+        self.weight_f = nn.Parameter(torch.empty((hidden_size, hidden_size + input_size)))
+        self.weight_n = nn.Parameter(torch.empty((hidden_size, hidden_size + input_size)))
+        if bias:
+            self.bias_f = nn.Parameter(torch.empty(hidden_size))
+            self.bias_n = nn.Parameter(torch.empty(hidden_size))
+        else:
+            self.register_parameter('bias_f', None)
+            self.register_parameter('bias_n', None)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1.0 / math.sqrt(self.hidden_size)
+        for weight in self.parameters():
+            weight.data = truncated_normal(weight, mean=0, std=stdv)
+
+    def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
+        if hx is None:
+            hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
+        
+        # forget gate
+        self.fg_ug_in = torch.cat((hx, input), 1)
+        self.fg_in = F.linear(self.fg_ug_in, self.weight_f, self.bias_f)
+        self.fg = self.fg_sigmoid(self.fg_in)
+        
+        # new gate
+        self.fg_hx = self.fg * hx
+        self.ng_ug_in = torch.cat((self.fg_hx, input), 1)
+        self.ng_in = F.linear(self.ng_ug_in, self.weight_n, self.bias_n)
+        self.ng = self.ng_tanh(self.ng_in)
+
+        # output
+        self.fg_ng_inv = (0 - self.fg) * self.ng
+        hy = self.ng + self.fg_ng_inv + self.fg_hx
+
+        return hy
+
+
+class HardMGUCellPT(torch.nn.RNNCellBase):
+    """
+    This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
+    Batch is always the dim[0].
+    Refer to "Simplified Minimal Gated Unit Variations for Recurrent Neural Networks" and "Gate-Variants of Gated Recurrent Unit (GRU) Neural Networks" for more details.
+    Hardtanh is to bound data to the legal unary range.
+    This module is fully unary computing aware, i.e., all intermediate data are bounded to the legal unary range.
+    This module follows the PyTorch implementation style (PT).
+    """
+    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
+        super(HardMGUCellPT, self).__init__(input_size, hidden_size, bias, num_chunks=2)
         self.hard = hard
         if hard == True:
             self.forgetgate_sigmoid = ScaleHardsigmoid()
@@ -90,41 +281,38 @@ class HardMGUCell(torch.nn.RNNCellBase):
             weight.data = truncated_normal(weight, mean=0, std=stdv)
 
     def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
-        self.check_forward_input(input)
         if hx is None:
             hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
-        self.check_forward_hidden(input, hx, '')
         
-        self.gate_i = F.linear(input, self.weight_ih, self.bias_ih)
-        self.gate_h = F.linear(hx, self.weight_hh, self.bias_hh)
+        self.gate_i = nn.Hardtanh()(F.linear(input, self.weight_ih, self.bias_ih))
+        self.gate_h = nn.Hardtanh()(F.linear(hx, self.weight_hh, self.bias_hh))
         self.i_f, self.i_n = self.gate_i.chunk(2, 1)
         self.h_f, self.h_n = self.gate_h.chunk(2, 1)
 
-        self.forgetgate_in = self.i_f + self.h_f
+        self.forgetgate_in = nn.Hardtanh()(self.i_f + self.h_f)
         self.forgetgate = self.forgetgate_sigmoid(self.forgetgate_in)
 
-        # newgate = newgate_tanh(forgetgate * h_n + newgate_prod)
-        self.h_n_hardtanh = nn.Hardtanh()(self.h_n)
-        self.newgate_prod = self.forgetgate * self.h_n_hardtanh
-        self.i_n_hardtanh = nn.Hardtanh()(self.i_n)
-        self.newgate_in = self.i_n_hardtanh + self.newgate_prod
-        self.newgate = self.newgate_tanh(self.newgate_in)
+        # newgate = newgate_tanh(i_n + forgetgate * h_n)
+        self.newgate_prod = self.forgetgate * self.h_n
+        self.newgate = self.newgate_tanh(self.i_n + self.newgate_prod)
 
         # hy = (1 - forgetgate) * newgate + forgetgate * hx
         self.forgetgate_inv_prod = (0 - self.forgetgate) * self.newgate
         self.forgetgate_prod = self.forgetgate * hx
-        hy = self.newgate + self.forgetgate_inv_prod + self.forgetgate_prod
+        hy = nn.Hardtanh()(self.newgate + self.forgetgate_inv_prod + self.forgetgate_prod)
 
         return hy
 
 
-class HardGRUCell(torch.nn.RNNCellBase):
+class HardGRUCellNUAPT(torch.nn.RNNCellBase):
     """
     This is a standard GRUCell by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
     Batch is always the dim[0].
+    This module is not fully unary computing aware (NUA), i.e., not all intermediate data are bounded to the legal unary range.
+    This module follows the PyTorch implementation style (PT).
     """
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
-        super(HardGRUCell, self).__init__(input_size, hidden_size, bias, num_chunks=3)
+        super(HardGRUCellNUAPT, self).__init__(input_size, hidden_size, bias, num_chunks=3)
         self.hard = hard
         if hard == True:
             self.resetgate_sigmoid = ScaleHardsigmoid()
@@ -142,10 +330,8 @@ class HardGRUCell(torch.nn.RNNCellBase):
             weight.data = truncated_normal(weight, mean=0, std=stdv)
 
     def forward(self, input: Tensor, hx: Optional[Tensor] = None) -> Tensor:
-        self.check_forward_input(input)
         if hx is None:
             hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
-        self.check_forward_hidden(input, hx, '')
         
         gate_i = F.linear(input, self.weight_ih, self.bias_ih)
         gate_h = F.linear(hx, self.weight_hh, self.bias_hh)
@@ -165,3 +351,5 @@ class HardGRUCell(torch.nn.RNNCellBase):
         hy = (1 - updategate) * newgate + updategate * hx
 
         return hy
+
+
