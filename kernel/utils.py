@@ -127,22 +127,23 @@ def tensor_unary_outlier(tensor, name="tensor"):
             "; outlier:" + "{:12f} %".format(outlier_ratio * 100))
 
 
-def progerror_report(progerror, name="progerror", report_relative=False):
-    min = progerror.in_value.min().item()
-    max = progerror.in_value.max().item()
-    std, mean = torch.std_mean(progerror()[0])
-    print("{:30s}".format(name) + \
-            ", Binary   Value range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
-            ", std," + "{:12f}".format(std) + \
-            ", mean," + "{:12f}".format(mean))
+def progerror_report(progerror, name="progerror", report_value=False, report_relative=False):
+    if report_value:
+        min = progerror.in_value.min().item()
+        max = progerror.in_value.max().item()
+        std, mean = torch.std_mean(progerror()[0])
+        print("{:30s}".format(name) + \
+                ", Binary   Value range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+                ", std," + "{:12f}".format(std) + \
+                ", mean," + "{:12f}".format(mean))
 
-    min = progerror()[0].min().item()
-    max = progerror()[0].max().item()
-    std, mean = torch.std_mean(progerror()[0])
-    print("{:30s}".format(name) + \
-            ", Unary    Value range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
-            ", std," + "{:12f}".format(std) + \
-            ", mean," + "{:12f}".format(mean))
+        min = progerror()[0].min().item()
+        max = progerror()[0].max().item()
+        std, mean = torch.std_mean(progerror()[0])
+        print("{:30s}".format(name) + \
+                ", Unary    Value range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+                ", std," + "{:12f}".format(std) + \
+                ", mean," + "{:12f}".format(mean))
 
     min = progerror()[1].min().item()
     max = progerror()[1].max().item()
