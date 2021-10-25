@@ -126,40 +126,77 @@ def tensor_unary_outlier(tensor, name="tensor"):
             "; outlier:" + "{:12f} %".format(outlier_ratio * 100))
 
 
-def progerror_report(progerror, name="progerror"):
+def progerror_report(progerror, name="progerror", report_relative=False):
     min = progerror.in_value.min().item()
     max = progerror.in_value.max().item()
     std, mean = torch.std_mean(progerror()[0])
     print("{:30s}".format(name) + \
-            ": Binary   Value range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
-            "; std:" + "{:12f}".format(std) + \
-            "; mean:" + "{:12f}".format(mean))
+            ", Binary   Value range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+            ", std," + "{:12f}".format(std) + \
+            ", mean," + "{:12f}".format(mean))
 
     min = progerror()[0].min().item()
     max = progerror()[0].max().item()
     std, mean = torch.std_mean(progerror()[0])
     print("{:30s}".format(name) + \
-            ": Unary    Value range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
-            "; std:" + "{:12f}".format(std) + \
-            "; mean:" + "{:12f}".format(mean))
+            ", Unary    Value range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+            ", std," + "{:12f}".format(std) + \
+            ", mean," + "{:12f}".format(mean))
 
     min = progerror()[1].min().item()
     max = progerror()[1].max().item()
     rmse = torch.sqrt(torch.mean(torch.square(progerror()[1])))
     std, mean = torch.std_mean(progerror()[1])
     print("{:30s}".format(name) + \
-            ": Absolute Error range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
-            "; std:" + "{:12f}".format(std) + \
-            "; mean:" + "{:12f}".format(mean) + \
-            "; rmse:" + "{:12f}".format(rmse))
+            ", Absolute Error range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+            ", std," + "{:12f}".format(std) + \
+            ", mean," + "{:12f}".format(mean) + \
+            ", rmse," + "{:12f}".format(rmse))
 
-    # relative_error = torch.nan_to_num(progerror()[1]/progerror()[0])
-    # min = relative_error.min().item()
-    # max = relative_error.max().item()
-    # rmse = torch.sqrt(torch.mean(torch.square(relative_error)))
-    # std, mean = torch.std_mean(relative_error)
-    # print("{:30s}".format(name) + \
-    #         ": Relative Error range: (" + "{:12f}".format(min) + ", {:12f})".format(max) + \
-    #         "; std:" + "{:12f}".format(std) + \
-    #         "; mean:" + "{:12f}".format(mean) + \
-    #         "; rmse:" + "{:12f}".format(rmse))
+    if report_relative:
+        relative_error = torch.nan_to_num(progerror()[1]/progerror()[0])
+        min = relative_error.min().item()
+        max = relative_error.max().item()
+        rmse = torch.sqrt(torch.mean(torch.square(relative_error)))
+        std, mean = torch.std_mean(relative_error)
+        print("{:30s}".format(name) + \
+                ", Relative Error range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+                ", std," + "{:12f}".format(std) + \
+                ", mean," + "{:12f}".format(mean) + \
+                ", rmse," + "{:12f}".format(rmse))
+
+
+class RoundingNoGrad(torch.autograd.Function):
+    """
+    RoundingNoGrad is a rounding operation which bypasses the input gradient to output directly.
+    Original round()/floor()/ceil() opertions have a gradient of 0 everywhere, which is not useful 
+    when doing approximate computing.
+    This is something like the straight-through estimator (STE) for quantization-aware training.
+    Code is taken from RAVEN (https://github.com/diwu1990/RAVEN/blob/master/pe/appr_utils.py)
+    """
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    def forward(ctx, input):
+        return torch.round(input)
+    
+    # This function has only a single output, so it gets only one gradient
+    @staticmethod
+    def backward(ctx, grad_output):
+        grad_input = grad_output
+        return grad_input
+    
+    
+class Trunc(torch.nn.Module):
+    """
+    Trunc is an operation to convert data to format (1, intwidth, fracwidth).
+    """
+    def __init__(self, intwidth=3, fracwidth=4) -> None:
+        super(Trunc, self).__init__()
+        self.intwidth = intwidth
+        self.fracwidth = fracwidth
+        self.max_val = (2**(intwidth + fracwidth) - 1)
+        self.min_val = 0 - (2**(intwidth + fracwidth))
+
+    def forward(self, input):
+        return RoundingNoGrad.apply(input << self.fracwidth).clamp(self.min_val, self.max_val) >> self.fracwidth
+
