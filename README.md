@@ -54,18 +54,19 @@ This directory contains the components for **Stream Manipulation**, which manipu
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| Bi2Uni               | Mar 31, 2020 | RC       | Bi       | [13]      | <ul><li>[x] </li></ul> |
+| Bi2Uni               | Mar 31, 2020 | RC       | Bi       | [11]      | <ul><li>[x] </li></ul> |
 | BSGen                | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
 | BSGenMulti           | Nov 11, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
-| DeCorr               |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> |
-| DeSync               |              | RC       | Both     | [6]       | <ul><li>[ ] </li></ul> |
 | RawScale             | Dec 07, 2019 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
 | RNG                  | Seq 07, 2019 | Both     | Both     | [5]       | <ul><li>[x] </li></ul> |
 | RNGMulti             | Nov 11, 2019 | Both     | Both     | [5]       | <ul><li>[x] </li></ul> |
 | SourceGen            | Seq 07, 2019 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
-| SkewedSync           | Seq 07, 2019 | Both     | Both     | [7]       | <ul><li>[x] </li></ul> |
-| Sync                 |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> |
-| Uni2Bi               | Mar 31, 2020 | RC       | Uni      | [13]      | <ul><li>[x] </li></ul> |
+| SkewedSync           | Seq 07, 2019 | Both     | Both     | [6]       | <ul><li>[x] </li></ul> |
+| Uni2Bi               | Mar 31, 2020 | RC       | Uni      | [11]      | <ul><li>[x] </li></ul> |
+<!-- | DeCorr               |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> |
+| DeSync               |              | RC       | Both     | [6]       | <ul><li>[ ] </li></ul> |
+| Sync                 |              | Both     | Both     | [6]       | <ul><li>[ ] </li></ul> | -->
+<!-- V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in DATE 2018. -->
 
 #### _'kernel'_ subdirectory
 This directory contains the components for **Computing Kernel**, which take bitstreams as inputs and perform actual unary computation. The supported kernels are listed as follows.
@@ -75,33 +76,33 @@ The components currently supported or to be implemented are listed in the table 
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| FSUAbs               | Mar 25, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
-| FSUAdd               | Oct 10, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
-| FSUAvgPool2d         |              |          |          |           | <ul><li>[ ] </li></ul> |
-| FSUCompare           |              |          |          |           | <ul><li>[ ] </li></ul> |
+| FSUAbs               | Mar 25, 2020 | RC       | Bi       | [11]      | <ul><li>[x] </li></ul> |
+| FSUAdd               | Oct 10, 2019 | Both     | Both     | [7]       | <ul><li>[x] </li></ul> |
 | FSUConv2d            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
-| FSUDiv               | Apr 01, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |
+| FSUDiv               | Apr 01, 2020 | RC       | Both     | [6]       | <ul><li>[x] </li></ul> |
 | FSUHardsigmoid       | Jun 06, 2021 | RC       | Both     | NA        | <ul><li>[x] </li></ul> |
 | FSUHardtanh          | Jun 06, 2021 | RC       | Both     | NA        | <ul><li>[x] </li></ul> |
-| FSULinear            | Seq 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| FSULinear            | Seq 27, 2019 | Both     | Both     | [7]       | <ul><li>[x] </li></ul> |
 | FSUMGUCell           | Jun 06, 2021 | RC       | Both     | NA        | <ul><li>[x] </li></ul> |
-| FSUMul               | Nov 05, 2019 | RC       | Both     | [8]       | <ul><li>[x] </li></ul> |
-| FSUReLU              | Nov 23, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
-| FSUSign              | Mar 31, 2020 | RC       | Bi       | NA        | <ul><li>[x] </li></ul> |
-| FSUSqrt              | Apr 02, 2020 | RC       | Both     | [5]       | <ul><li>[x] </li></ul> |
+| FSUMul               | Nov 05, 2019 | RC       | Both     | [7]       | <ul><li>[x] </li></ul> |
+| FSUReLU              | Nov 23, 2019 | Both     | Both     | [7]       | <ul><li>[x] </li></ul> |
+| FSUSign              | Mar 31, 2020 | RC       | Bi       | [11]      | <ul><li>[x] </li></ul> |
+| FSUSqrt              | Apr 02, 2020 | RC       | Both     | [6]       | <ul><li>[x] </li></ul> |
+<!-- | FSUAvgPool2d         |              |          |          |           | <ul><li>[ ] </li></ul> |
+| FSUCompare           |              |          |          |           | <ul><li>[ ] </li></ul> | -->
 
 2. Hybrid Unary Binary (HUB) components that both consume and produce binary data but compute on bitstreams.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| HUBConv2d            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
-| HUBLinear            | Jun 02, 2021 | Both     | Both     | NA        | <ul><li>[x] </li></ul> |
+| HUBConv2d            | Jun 02, 2021 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
+| HUBLinear            | Jun 02, 2021 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
 
 3. Useful sub-components.
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [5]       | <ul><li>[x] </li></ul> |
+| CORDIV_kernel        | Mar 08, 2020 | RC       | Uni      | [6]       | <ul><li>[x] </li></ul> |
 | GainesAdd            | Mar 02, 2020 | Both     | Both     | [4]       | <ul><li>[x] </li></ul> |
 | GainesDiv            | Mar 08, 2020 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
 | GainesLinear         | Nov 25, 2019 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
@@ -109,10 +110,10 @@ The components currently supported or to be implemented are listed in the table 
 | GainesSqrt           | Mar 24, 2020 | RC       | Both     | [4]       | <ul><li>[x] </li></ul> |
 | JKFF                 | Apr 01, 2020 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
 | ShiftReg             | Dec 06, 2019 | NA       | NA       | NA        | <ul><li>[x] </li></ul> |
-| exponentiation       |              |          |          |           | <ul><li>[ ] </li></ul> |
+<!-- | exponentiation       |              |          |          |           | <ul><li>[ ] </li></ul> |
 | tanh                 |              |          |          |           | <ul><li>[ ] </li></ul> |
 | max                  |              |          |          |           | <ul><li>[ ] </li></ul> |
-| min                  |              |          |          |           | <ul><li>[ ] </li></ul> |
+| min                  |              |          |          |           | <ul><li>[ ] </li></ul> | -->
 
 #### _'metric'_ subdirectory
 This directory contains the components for **Performance Metric**, which take bit streams as input and calculate certain performance metrics.
@@ -120,11 +121,11 @@ The components currently supported or to be implemented are listed in the table 
 
 | Name                 | Date         | Encoding | Polarity | Reference | Status                 |
 | -------------------- | ------------ | -------- | -------- | --------- | ---------------------- |
-| Correlation          | Seq 07, 2019 | Both     | Both     | [9]       | <ul><li>[x] </li></ul> |
-| NormStability        | Dec 18, 2019 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
-| NSBuilder            | Mar 31, 2020 | Both     | Both     | [12]      | <ul><li>[x] </li></ul> |
-| ProgError            | Seq 07, 2019 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
-| Stability            | Dec 27, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| Correlation          | Seq 07, 2019 | Both     | Both     | [8]       | <ul><li>[x] </li></ul> |
+| NormStability        | Dec 18, 2019 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
+| NSBuilder            | Mar 31, 2020 | Both     | Both     | [10]      | <ul><li>[x] </li></ul> |
+| ProgError            | Seq 07, 2019 | Both     | Both     | [9]       | <ul><li>[x] </li></ul> |
+| Stability            | Dec 27, 2019 | Both     | Both     | [7]       | <ul><li>[x] </li></ul> |
 
 #### _'test'_ subdirectory
 This directory contains simple testing examples for above components.
@@ -141,14 +142,13 @@ This directory includes the hardware implementation of components in **Stream Ma
 [3] V. T. Lee, A. Alaghi, R. Pamula, V. S. Sathe, L. Ceze and M. Oskin, "Architecture Considerations for Stochastic Computing Accelerators", in _TCAD_ 2018.  
 [4] B.R. Gaines, "Stochastic computing systems," in _Advances in Information Systems Science_ 1969.  
 [5] S. Liu and J. Han, "Energy efficient stochastic computing with Sobol sequences," in _DATE_ 2017.  
-[6] V. T. Lee, A. Alaghi and L. Ceze, "Correlation manipulating circuits for stochastic computing," in _DATE_ 2018.  
-[7] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.  
-[8] D. Wu, J. Li, R. Yin, H. Hsiao, Y. Kim and J. San Miguel, "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
-[9] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
-[10] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
-[11] P. Li and D. J. Lilja, W. Qian, M. D. Riedel and K. Bazargan, "Logical Computation on Stochastic Bit Streams with Linear Finite-State Machines," in _IEEE Transactions On Computers_ 2014.  
-[12] D. Wu, R. Yin and J. San Miguel, "Normalized Stability: A Cross-Level Design Metric for Early Termination in Stochastic Computing", in _ASP-DAC_ 2021.  
-[13] D. Wu, R. Yin and J. San Miguel, "In-Stream Correlation-Based Division and Bit-Inserting Square Root in Stochastic Computing", in _IEEE Design & Test_ 2021.
+[6] D. Wu and J. S. Miguel, "In-Stream Stochastic Division and Square Root via Correlation," in _DAC_ 2019.  
+[7] D. Wu, J. Li, R. Yin, H. Hsiao, Y. Kim and J. San Miguel, "uGEMM: Unary Computing Architecture for GEMM Applications," in _ISCA_ 2020.  
+[8] A. Alaghi and J. P. Hayes, "Exploiting correlation in stochastic circuit design," in _ICCD_ 2013.  
+[9] A. Alaghi and J. P. Hayes, "Fast and accurate computation using stochastic circuits," in _DATE_ 2014.  
+[10] D. Wu, R. Yin and J. San Miguel, "Normalized Stability: A Cross-Level Design Metric for Early Termination in Stochastic Computing", in _ASP-DAC_ 2021.  
+[11] D. Wu, R. Yin and J. San Miguel, "In-Stream Correlation-Based Division and Bit-Inserting Square Root in Stochastic Computing", in _IEEE Design & Test_ 2021.  
+[12] D. Wu and J. San Miguel, "uSystolic: Byte-Crawling Unary Systolic Array," in _HPCA_ 2022.  
 
 ## Citing
 If you find UnarySim is useful for your research, please use the following bibtex to cite us,
