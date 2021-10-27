@@ -8,6 +8,9 @@ In general, a single unary computing kernel may not outperform the binary counte
 
 ## UnarySim
 This _**UnarySim**_ is a PyTorch-based cycle-accurate simulator for large scale unary computing, compatible to both CPU and GPU with high efficiency.
+
+The paper related to this simulator, ["uGEMM: Unary Computing Architecture for GEMM Applications"](https://ieeexplore.ieee.org/document/9139000), is accepted to International Symposium on Computer Architecture (ISCA) 2020, and further awarded [IEEE Micro Top Pick for 2020 Computer Architecture Conferences](https://ieeexplore.ieee.org/document/9376243).
+
 The components included in UnarySim belong to three categories, including 
 1. **Stream Manipulation**
 2. **Computing Kernel**
