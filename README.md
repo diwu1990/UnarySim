@@ -157,7 +157,7 @@ If you find UnarySim is useful for your research, please use the following bibte
 @inproceedings{diwu2020uGEMM,
   title = {{uGEMM: Unary Computing Architecture for GEMM Applications}},
   author = {Di Wu and Jingjie Li and Ruokai Yin and Hsuan Hsiao and Younghyun Kim and Joshua San Miguel},
-  booktitle = {Proceedings of the 46th International Symposium on Computer Architecture},
+  booktitle = {International Symposium on Computer Architecture (ISCA)},
   year = {2020},
 }
 ```
