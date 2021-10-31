@@ -11,7 +11,9 @@ import numpy as np
 import pandas as pd
 import pickle
 import glob
+import random
 from tqdm import tqdm
+from random import sample
 
 np.random.seed(0)
 
@@ -19,7 +21,7 @@ def get_args():
 	parser = argparse.ArgumentParser()
 
 	hpstr = "set dataset directory"
-	parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
+	parser.add_argument('-d', '--directory', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
 
 	hpstr = "set window size"
 	parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -33,8 +35,15 @@ def get_args():
 	hpstr = "set end person"
 	parser.add_argument('-e', '--end', default=24, nargs='?', type=int, help=hpstr)
 
+	hpstr = "set number of random intervals"
+	parser.add_argument('-ri', '--numitv', default=40, nargs='*', type=int, help=hpstr)
+
+	hpstr = "set size of random interval sample (number of windows)"
+	parser.add_argument('-si', '--itvsize', default=10, nargs='*', type=int, help=hpstr)
+
 	hpstr = "set output directory"
-	parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_20", nargs='*', help=hpstr)
+	parser.add_argument('-o', '--output_dir', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', help=hpstr)
+
 
 	hpstr = "set whether store data"
 	parser.add_argument('--set_store', action='store_true', help=hpstr)
@@ -43,7 +52,7 @@ def get_args():
 	return(args)
 
 
-def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, output_dir, set_store):
+def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_interval, size_interval, output_dir, set_store):
 	print(  "######################## PhysioBank EEG data preprocess ####################### \
 			\n## Author: Jingjie Li, ECE, UW--Madison, WI, USA; Email: jingjie.li@wisc.edu ## \
 			\n# input directory:    %s \
@@ -51,6 +60,9 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 			\n# overlap size:       %d \
 			\n# begin subject:      %d \
 			\n# end subject:        %d \
+			\n# number of intervals:%d \
+			\n# size of intervals:  %d \
+
 			\n# output directory:   %s \
 			\n# set store:          %s \
 			\n###############################################################################"% \
@@ -59,6 +71,9 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 			overlap_size,    \
 			begin_subject,    \
 			end_subject,    \
+			num_interval,   \
+			size_interval, \
+
 			output_dir,        \
 			set_store))
 	return None
@@ -87,7 +102,8 @@ def data_1Dto2D(data, Y=5, X=5):
 	return data_2D
 
 
-def norm_dataset(dataset_1D, num_channel = 18):
+def norm_dataset(dataset_1D, num_channel = 19):
+
 	norm_dataset_1D = np.zeros([dataset_1D.shape[0], num_channel])
 	for i in range(dataset_1D.shape[0]):
 		norm_dataset_1D[i] = feature_normalize(dataset_1D[i])
@@ -137,8 +153,12 @@ def segment_signal_without_transition(data, label, window_size, overlap_size):
 def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 	# initial empty label arrays
 	label_inter     = np.empty([0])
+	# array shape param
+	shape_Y = 5
+	shape_X = 5
 	# initial empty data arrays
-	data_inter      = np.empty([0, window_size, 5, 5])
+	data_inter      = np.empty([0, window_size, shape_Y, shape_X])
+
 	for j in tqdm(range(start, end)):
 		# if (j == 89):
 		#     j = 109
@@ -167,16 +187,38 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 		data        = data_label.to_numpy()
 		data        = norm_dataset(data, 19)
 		# convert 1D data to 2D
-		data        = dataset_1Dto2D(data, Y = 5, X = 5)
+		data        = dataset_1Dto2D(data, Y = shape_Y, X = shape_X)
 		# segment data with sliding window
 		print("complete 2d transform")
 		print("data size: ", data.shape)
-		data, label = segment_signal_without_transition(data, label, window_size, overlap_size)
-		print("complete segment_signal_without_transition")
-		data        = data.reshape(int(data.shape[0]/window_size), window_size, 5, 5)
-		# append new data and label
-		data_inter  = np.vstack([data_inter, data])
-		label_inter = np.append(label_inter, label)
+
+		# sample data to reduce size 
+		random.seed(10)
+		idx_lb  = window_size * size_interval # lower bound of the entire idx list
+		label_samp = [x for i, x in enumerate(label) if i > idx_lb]
+		idx_pos = [i for i, x in enumerate(label_samp) if x == 1]
+		idx_neg = [i for i, x in enumerate(label_samp) if x == 0]
+		idx_all = idx_pos + idx_neg
+		#print(len(idx_all))
+		idx_ran  = sample(idx_all, num_interval)
+		#print(len(idx_pos), len(idx_neg))
+		# get even number of intervals from each class
+	
+		# idx_pos_ran  = sample(idx_pos, int(num_interval/2))
+		# idx_neg_ran  = sample(idx_neg, num_interval - int(num_interval/2))
+		# print(len(idx_pos_ran), len(idx_neg_ran))
+		# idx_ran = idx_pos_ran + idx_neg_ran
+
+		 # generate random index seed
+
+		for idx_curr in idx_ran:
+			data_curr, label_curr = segment_signal_without_transition(data[idx_curr-idx_lb:idx_curr, :, :], label[idx_curr-idx_lb:idx_curr], window_size, overlap_size)
+			#print("complete segment_signal_without_transition")
+			data_curr        = data_curr.reshape(int(data_curr.shape[0]/window_size), window_size, shape_Y, shape_X)
+			# append new data and label
+			data_inter  = np.vstack([data_inter, data_curr])
+			label_inter = np.append(label_inter, label_curr)
+
 		print("complete task: ", j)
 
 	# shuffle data
@@ -193,6 +235,9 @@ if __name__ == '__main__':
 	overlap_size    =    get_args().overlap
 	begin_subject   =    get_args().begin
 	end_subject     =    get_args().end
+	num_interval    =	 get_args().numitv
+	size_interval   =	 get_args().itvsize
+
 	output_dir      =    get_args().output_dir
 	set_store       =    get_args().set_store
 	if type(window_size) is list:
@@ -203,7 +248,11 @@ if __name__ == '__main__':
 		begin_subject = begin_subject[0]
 	if type(end_subject) is list:
 		end_subject = end_subject[0]
-	print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, output_dir, set_store)
+	if type(num_interval) is list:
+		num_interval = num_interval[0]
+	if type(size_interval) is list:
+		size_interval = size_interval[0]
+	print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_interval, size_interval, output_dir, set_store)
 
 	shuffled_data, shuffled_label = apply_mixup(dataset_dir, window_size, overlap_size, begin_subject, end_subject+1)
 	if (set_store == True):
