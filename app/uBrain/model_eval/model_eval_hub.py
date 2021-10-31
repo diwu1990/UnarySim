@@ -29,7 +29,7 @@ from torchinfo import summary
 import matplotlib.pyplot as plt
 import argparse
 
-from UnarySim.app.uBrain.model.model_unary import Cascade_CNN_RNN
+from UnarySim.app.uBrain.model.model_hub import Cascade_CNN_RNN
 from UnarySim.kernel.utils import tensor_unary_outlier
 
 # parse input
@@ -96,7 +96,7 @@ hpstr = "set train batch size"
 parser.add_argument('-bstrain', '--train_batch_sz', default=1024, type=int, help=hpstr)
 
 hpstr = "set test batch size"
-parser.add_argument('-bstest', '--test_batch_sz', default=2048, type=int, help=hpstr)
+parser.add_argument('-bstest', '--test_batch_sz', default=64, type=int, help=hpstr)
 
 hpstr = "set epoch"
 parser.add_argument('-e', '--epoch', default=300, type=int, help=hpstr)
@@ -122,11 +122,17 @@ parser.add_argument('--set_store', action='store_true', help=hpstr)
 hpstr = "set train seed"
 parser.add_argument('-s', '--seed', default=33, type=int, help=hpstr)
 
-hpstr = "set intwidth for all fxp data"
-parser.add_argument('-iw', '--intwidth', default=0, type=int, help=hpstr)
+hpstr = "set bitwidth for all unary data"
+parser.add_argument('-bw', '--bitwidth', default=8, type=int, help=hpstr)
 
-hpstr = "set fracwidth for all fxp data"
-parser.add_argument('-fw', '--fracwidth', default=7, type=int, help=hpstr)
+hpstr = "set rng type"
+parser.add_argument('-rng', '--rng', default="Sobol", type=str, help=hpstr)
+
+hpstr = "set depth for add in mgu"
+parser.add_argument('-depa', '--depth_add', default=10, type=int, help=hpstr)
+
+hpstr = "set depth for mul in mgu"
+parser.add_argument('-depm', '--depth_ismul', default=5, type=int, help=hpstr)
 
 args = parser.parse_args()
 
@@ -173,8 +179,6 @@ weight_decay=args.weight_decay
 t0=args.t0_restart
 win_overlap=args.win_overlap
 set_store=args.set_store
-intwidth=args.intwidth
-fracwidth=args.fracwidth
 
 pin_memory=True
 non_blocking=False
@@ -297,8 +301,19 @@ print("********************* Dataset Configuration End *********************\n")
 # model configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("********************* Model Configuration Start *********************")
-model = Cascade_CNN_RNN(intwidth=0, 
-                                fracwidth=7, 
+filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_tmi_"+str(threshold_mi)+"_tsp_"+str(threshold_sp)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
+if args.task_mi:
+    filename=filename+"_task_mi"
+if args.task_sp:
+    filename=filename+"_task_sp"
+print("Target filename prefix: " + filename)
+path=model_dir+filename+"_acc_*.pth.tar"
+file=glob.glob(path)[0]
+print("Loading model state dict: ", file)
+state_dict_fp = torch.load(file)["state_dict"]
+print("loaded state_dict_fp: ", state_dict_fp.keys())
+
+model = Cascade_CNN_RNN(
                                 input_sz=input_sz, # size of each window
                                 linear_act=linear_act, # activation in CNN
                                 cnn_chn=cnn_chn, # input channle in CNN
@@ -312,7 +327,25 @@ model = Cascade_CNN_RNN(intwidth=0,
                                 bias=bias, # bias of matrix mul
                                 init_std=init_std, # std for initialization of weight
                                 keep_prob=keep_prob, # prob for drop out after each FC
-                                num_class=num_class) # output size
+                                num_class=num_class, # output size
+
+                                bitwidth=args.bitwidth, 
+                                rng=args.rng, 
+                                conv1_weight=state_dict_fp["conv1.weight"], 
+                                conv1_bias=args.bias, 
+                                conv2_weight=state_dict_fp["conv2.weight"], 
+                                conv2_bias=args.bias, 
+                                fc3_weight=state_dict_fp["fc3.weight"], 
+                                fc3_bias=args.bias, 
+                                rnn4_weight_f=state_dict_fp["rnncell4.weight_f"], 
+                                rnn4_bias_f=args.bias, 
+                                rnn4_weight_n=state_dict_fp["rnncell4.weight_n"], 
+                                rnn4_bias_n=args.bias, 
+                                fc5_weight=state_dict_fp["fc5.weight"], 
+                                fc5_bias=args.bias, 
+                                depth=args.depth_add,
+                                depth_ismul=args.depth_ismul
+                                )
 model.to(device)
 print("********************** Model Configuration End **********************\n")
 
@@ -321,22 +354,7 @@ print("********************** Model Configuration End **********************\n")
 # Test
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("**************************** Test Start *****************************")
-filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_tmi_"+str(threshold_mi)+"_tsp_"+str(threshold_sp)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
-if args.task_mi:
-    filename=filename+"_task_mi"
-if args.task_sp:
-    filename=filename+"_task_sp"
-print("Target filename prefix: " + filename)
-path=model_dir+filename+"_acc_*.pth.tar"
-file=glob.glob(path)[0]
-print("Loading model state dict: ", file)
-model.load_state_dict(torch.load(file)["state_dict"])
-model.quantize_weight()
-model.eval()
 
-print("\nWeight profiling: ")
-for weight in model.parameters():
-    tensor_unary_outlier(weight, "weight")
 
 correct = 0
 total = 0
@@ -354,14 +372,14 @@ with torch.no_grad():
     tensor_unary_outlier(model.conv2_act_o, "conv2_act_o")
     tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
     for idx in range(rnn_win_sz):
-        tensor_unary_outlier(model.fg_ug_in[idx], "fg_ug_in_[%2d]"%idx)
-        tensor_unary_outlier(model.fg_in[idx], "fg_in_[%2d]"%idx)
-        tensor_unary_outlier(model.fg[idx], "fg_[%2d]"%idx)
-        tensor_unary_outlier(model.fg_hx[idx], "fg_hx_[%2d]"%idx)
-        tensor_unary_outlier(model.ng_ug_in[idx], "ng_ug_in_[%2d]"%idx)
-        tensor_unary_outlier(model.ng[idx], "ng_[%2d]"%idx)
-        tensor_unary_outlier(model.fg_ng[idx], "fg_ng_[%2d]"%idx)
-        tensor_unary_outlier(model.fg_ng_inv[idx], "fg_ng_inv_[%2d]"%idx)
+        # tensor_unary_outlier(model.fg_ug_in[idx], "fg_ug_in_[%2d]"%idx)
+        # tensor_unary_outlier(model.fg_in[idx], "fg_in_[%2d]"%idx)
+        # tensor_unary_outlier(model.fg[idx], "fg_[%2d]"%idx)
+        # tensor_unary_outlier(model.fg_hx[idx], "fg_hx_[%2d]"%idx)
+        # tensor_unary_outlier(model.ng_ug_in[idx], "ng_ug_in_[%2d]"%idx)
+        # tensor_unary_outlier(model.ng[idx], "ng_[%2d]"%idx)
+        # tensor_unary_outlier(model.fg_ng[idx], "fg_ng_[%2d]"%idx)
+        # tensor_unary_outlier(model.fg_ng_inv[idx], "fg_ng_inv_[%2d]"%idx)
         tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
     tensor_unary_outlier(outputs, "outputs")
 
