@@ -33,6 +33,12 @@ def get_args():
 	hpstr = "set end person"
 	parser.add_argument('-e', '--end', default=24, nargs='?', type=int, help=hpstr)
 
+	hpstr = "set number of random interval sample"
+	parser.add_argument('-ri', '--numitv', default=40, nargs='*', type=int, help=hpstr)
+
+	hpstr = "set size of random interval sample (number of windows)"
+	parser.add_argument('-si', '--itvsize', default=10, nargs='*', type=int, help=hpstr)
+
 	hpstr = "set output directory"
 	parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_20", nargs='*', help=hpstr)
 
@@ -171,6 +177,14 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 		# segment data with sliding window
 		print("complete 2d transform")
 		print("data size: ", data.shape)
+
+		# sample data to reduce size 
+		idx_pos = [i for i, x in enumerate(label) if x == 1]
+		idx_neg = [i for i, x in enumerate(label) if x == 0]
+		print(idx_pos)
+		 # generate random index seed
+
+
 		data, label = segment_signal_without_transition(data, label, window_size, overlap_size)
 		print("complete segment_signal_without_transition")
 		data        = data.reshape(int(data.shape[0]/window_size), window_size, 5, 5)
@@ -193,6 +207,8 @@ if __name__ == '__main__':
 	overlap_size    =    get_args().overlap
 	begin_subject   =    get_args().begin
 	end_subject     =    get_args().end
+	num_interval    =	 get_args().numitv
+	size_interval   =	 get_args().itvsize
 	output_dir      =    get_args().output_dir
 	set_store       =    get_args().set_store
 	if type(window_size) is list:
@@ -203,7 +219,11 @@ if __name__ == '__main__':
 		begin_subject = begin_subject[0]
 	if type(end_subject) is list:
 		end_subject = end_subject[0]
-	print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, output_dir, set_store)
+	if type(num_interval) is list:
+		num_interval = num_interval[0]
+	if type(size_interval) is list:
+		size_interval = size_interval[0]
+	print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_interval, size_interval, output_dir, set_store)
 
 	shuffled_data, shuffled_label = apply_mixup(dataset_dir, window_size, overlap_size, begin_subject, end_subject+1)
 	if (set_store == True):
