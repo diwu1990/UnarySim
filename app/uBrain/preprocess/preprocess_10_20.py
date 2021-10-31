@@ -17,7 +17,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     hpstr = "set dataset directory"
-    parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/raw_data/", nargs='*', type=str, help=hpstr)
+    parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/motor_imagery/raw_data/", nargs='*', type=str, help=hpstr)
 
     hpstr = "set window size"
     parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -32,7 +32,7 @@ def get_args():
     parser.add_argument('-e', '--end', default=108, nargs='?', type=int, help=hpstr)
 
     hpstr = "set output directory"
-    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/preprocessed_data/", nargs='*', help=hpstr)
+    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/motor_imagery/preprocessed_data_10_20/", nargs='*', help=hpstr)
 
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
@@ -62,7 +62,7 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
     return None
 
 
-def data_1Dto2D(data, Y=10, X=11):
+def data_1Dto2D_10_10(data, Y=10, X=11):
     data_2D = np.zeros([Y, X])
     data_2D[0] = (       0,        0,        0,        0, data[21], data[22], data[23],        0,        0,        0,        0)
     data_2D[1] = (       0,        0,        0, data[24], data[25], data[26], data[27], data[28],        0,        0,        0)
@@ -74,6 +74,16 @@ def data_1Dto2D(data, Y=10, X=11):
     data_2D[7] = (       0,        0,        0, data[55], data[56], data[57], data[58], data[59],         0,       0,        0)
     data_2D[8] = (       0,        0,        0,        0, data[60], data[61], data[62],        0,         0,       0,        0)
     data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
+    return data_2D
+
+
+def data_1Dto2D(data, Y=5, X=5):
+    data_2D = np.zeros([Y, X])
+    data_2D[0] = (       0, data[21],        0, data[23],        0)
+    data_2D[1] = (data[29], data[31], data[33], data[35], data[37])
+    data_2D[2] = (data[40],  data[8], data[10], data[12], data[41])
+    data_2D[3] = (data[46], data[48], data[50], data[52], data[54])
+    data_2D[4] = (       0, data[60],        0, data[62],        0)
     return data_2D
 
 
@@ -93,7 +103,7 @@ def feature_normalize(data):
 
 
 def dataset_1Dto2D(dataset_1D):
-    dataset_2D = np.zeros([dataset_1D.shape[0], 10, 11])
+    dataset_2D = np.zeros([dataset_1D.shape[0], 5, 5])
     for i in range(dataset_1D.shape[0]):
         dataset_2D[i] = data_1Dto2D(dataset_1D[i])
     return dataset_2D
@@ -125,7 +135,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=110):
     # initial empty label arrays
     label_inter     = np.empty([0])
     # initial empty data arrays
-    data_inter      = np.empty([0, window_size, 10, 11])
+    data_inter      = np.empty([0, window_size, 5, 5])
     for j in tqdm(range(start, end)):
         if (j == 89):
             j = 109
@@ -154,7 +164,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=110):
                 data        = dataset_1Dto2D(data)
                 # segment data with sliding window
                 data, label = segment_signal_without_transition(data, label, window_size, overlap_size)
-                data        = data.reshape(int(data.shape[0]/window_size), window_size, 10, 11)
+                data        = data.reshape(int(data.shape[0]/window_size), window_size, 5, 5)
                 # append new data and label
                 data_inter  = np.vstack([data_inter, data])
                 label_inter = np.append(label_inter, label)

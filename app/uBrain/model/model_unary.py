@@ -14,7 +14,7 @@ from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
 from UnarySim.kernel.utils import progerror_report
 
 
-class Cascade_CNN_RNN_FSU(torch.nn.Module):
+class Cascade_CNN_RNN(torch.nn.Module):
     """
     This is the unary version of the cascade CNN RNN for BCI
     """
@@ -50,7 +50,7 @@ class Cascade_CNN_RNN_FSU(torch.nn.Module):
                     fc5_weight=None, 
                     fc5_bias=None, 
                     debug=False):
-        super(Cascade_CNN_RNN_FSU, self).__init__()
+        super(Cascade_CNN_RNN, self).__init__()
         self.input_sz = input_sz
         self.cnn_chn = cnn_chn
         self.cnn_kn_sz = cnn_kn_sz

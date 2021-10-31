@@ -14,32 +14,34 @@ from UnarySim.kernel.rnn import HardMGUCell as HardMGUCell
 from UnarySim.kernel.rnn import HardGRUCellNUAPT as HardGRUCell
 
 
-class Cascade_CNN_RNN_Binary(torch.nn.Module):
+class Cascade_CNN_RNN(torch.nn.Module):
     """
-    This is the binary version of the cascade CNN RNN for BCI
+    This is the fp version of the cascade CNN RNN for BCI
     """
     def __init__(self,
                     input_sz=(10, 11),
-                    linear_act="hardtanh",
-                    cnn_chn=32,
+                    linear_act="scalerelu",
+                    cnn_chn=16,
                     cnn_kn_sz=3,
-                    cnn_padding=0,
-                    fc_sz=1024,
-                    rnn="gru",
+                    cnn_padding=1, # default perform same conv
+                    fc_sz=256,
+                    rnn="mgu",
                     rnn_win_sz=10,
-                    rnn_hidden_sz=1024,
+                    rnn_hidden_sz=64,
                     rnn_hard=True,
-                    bias=True,
+                    bias=False,
                     init_std=None,
                     keep_prob=0.5,
-                    num_class=5):
-        super(Cascade_CNN_RNN_Binary, self).__init__()
+                    num_class=[5, 2]): # two heads by default
+        super(Cascade_CNN_RNN, self).__init__()
         self.input_sz = input_sz
         self.fc_sz = fc_sz
         self.rnn_win_sz = rnn_win_sz
         self.rnn_hidden_sz = rnn_hidden_sz
         self.bias = bias
         self.init_std = init_std
+        self.num_class = num_class
+
         # CNN
         self.conv1          = nn.Conv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
         self.conv2          = nn.Conv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
@@ -53,7 +55,7 @@ class Cascade_CNN_RNN_Binary(torch.nn.Module):
             self.rnncell4 = HardMGUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
 
         # MLP
-        self.fc5 = nn.Linear(rnn_hidden_sz, num_class, bias=bias)
+        self.fc5 = nn.Linear(rnn_hidden_sz, sum(num_class), bias=bias)
 
         self.linear_act = linear_act.lower()
 
@@ -128,24 +130,26 @@ class Cascade_CNN_RNN_Binary(torch.nn.Module):
         self.fc3_trans_o    = self.fc3_view_o.transpose(0, 1)
 
         # RNN
-        # self.gate_i = []
-        # self.gate_h = []
-        # self.forgetgate = []
-        # self.newgate_prod = []
-        # self.newgate = []
-        # self.forgetgate_inv_prod = []
-        # self.forgetgate_prod = []
+        self.fg_ug_in = []
+        self.fg_in = []
+        self.fg = []
+        self.fg_hx = []
+        self.ng_ug_in = []
+        self.ng = []
+        self.fg_ng = []
+        self.fg_ng_inv = []
         self.rnn_out = []
         hx = torch.zeros(self.fc3_trans_o[0].size()[0], self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
         for i in range(self.rnn_win_sz):
             hx = self.rnncell4(self.fc3_trans_o[i], hx)
-            # self.gate_i.append(self.rnncell4.gate_i)
-            # self.gate_h.append(self.rnncell4.gate_h)
-            # self.forgetgate.append(self.rnncell4.forgetgate)
-            # self.newgate_prod.append(self.rnncell4.newgate_prod)
-            # self.newgate.append(self.rnncell4.newgate)
-            # self.forgetgate_inv_prod.append(self.rnncell4.forgetgate_inv_prod)
-            # self.forgetgate_prod.append(self.rnncell4.forgetgate_prod)
+            self.fg_ug_in.append(self.rnncell4.fg_ug_in)
+            self.fg_in.append(self.rnncell4.fg_in)
+            self.fg.append(self.rnncell4.fg)
+            self.fg_hx.append(self.rnncell4.fg_hx)
+            self.ng_ug_in.append(self.rnncell4.ng_ug_in)
+            self.ng.append(self.rnncell4.ng)
+            self.fg_ng.append(self.rnncell4.fg_ng)
+            self.fg_ng_inv.append(self.rnncell4.fg_ng_inv)
             self.rnn_out.append(hx)
 
         # MLP

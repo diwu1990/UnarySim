@@ -9,37 +9,44 @@ import torch.nn.functional as F
 from torch import Tensor
 from UnarySim.kernel.sigmoid import ScaleHardsigmoid
 from UnarySim.kernel.relu import ScaleReLU
-from UnarySim.kernel.utils import truncated_normal
-from UnarySim.kernel.rnn import HardMGUCell as HardMGUCell
+from UnarySim.kernel.utils import truncated_normal, Round
+from UnarySim.kernel.rnn import HardMGUCellFxp as HardMGUCell
 from UnarySim.kernel.rnn import HardGRUCellNUAPT as HardGRUCell
 
 
-class Cascade_CNN_RNN_Binary(torch.nn.Module):
+class Cascade_CNN_RNN(torch.nn.Module):
     """
-    This is the binary version of the cascade CNN RNN for BCI
+    This is the fxp version of the cascade CNN RNN for BCI
     """
     def __init__(self,
+                    intwidth=0, fracwidth=7, 
                     input_sz=(10, 11),
-                    linear_act="hardtanh",
-                    cnn_chn=32,
+                    linear_act="scalerelu",
+                    cnn_chn=16,
                     cnn_kn_sz=3,
-                    cnn_padding=0,
-                    fc_sz=1024,
-                    rnn="gru",
+                    cnn_padding=1, # default perform same conv
+                    fc_sz=256,
+                    rnn="mgu",
                     rnn_win_sz=10,
-                    rnn_hidden_sz=1024,
+                    rnn_hidden_sz=64,
                     rnn_hard=True,
-                    bias=True,
+                    bias=False,
                     init_std=None,
                     keep_prob=0.5,
-                    num_class=5):
-        super(Cascade_CNN_RNN_Binary, self).__init__()
+                    num_class=[5, 2]): # two heads by default
+        super(Cascade_CNN_RNN, self).__init__()
+        self.intwidth = intwidth
+        self.fracwidth = fracwidth
+        self.trunc = Round(intwidth=self.intwidth, fracwidth=self.fracwidth)
+
         self.input_sz = input_sz
         self.fc_sz = fc_sz
         self.rnn_win_sz = rnn_win_sz
         self.rnn_hidden_sz = rnn_hidden_sz
         self.bias = bias
         self.init_std = init_std
+        self.num_class = num_class
+
         # CNN
         self.conv1          = nn.Conv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
         self.conv2          = nn.Conv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
@@ -50,10 +57,10 @@ class Cascade_CNN_RNN_Binary(torch.nn.Module):
         if rnn.lower() == "gru":
             self.rnncell4 = HardGRUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
         elif rnn.lower() == "mgu":
-            self.rnncell4 = HardMGUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
+            self.rnncell4 = HardMGUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard, intwidth=self.intwidth, fracwidth=self.fracwidth)
 
         # MLP
-        self.fc5 = nn.Linear(rnn_hidden_sz, num_class, bias=bias)
+        self.fc5 = nn.Linear(rnn_hidden_sz, sum(num_class), bias=bias)
 
         self.linear_act = linear_act.lower()
 
@@ -113,43 +120,70 @@ class Cascade_CNN_RNN_Binary(torch.nn.Module):
             self.fc3.bias.data.fill_(0.1)
             self.fc5.bias.data.fill_(0.1)
 
+    def load_weight(self, conv1_weight, conv1_bias,
+                            conv2_weight, conv2_bias, 
+                            fc3_weight, fc3_bias, 
+                            rnn4_weight_f, rnn4_bias_f, 
+                            rnn4_weight_n, rnn4_bias_n, 
+                            fc5_weight, fc5_bias):
+        self.conv1.weight.data = self.trunc(conv1_weight)
+        self.conv2.weight.data = self.trunc(conv2_weight)
+        self.fc3.weight.data = self.trunc(fc3_weight)
+        self.rnncell4.weight_f.data = self.trunc(rnn4_weight_f)
+        self.rnncell4.weight_n.data = self.trunc(rnn4_weight_n)
+        self.fc5.weight.data = self.trunc(fc5_weight)
+
+        if self.bias == True:
+            self.conv1.bias.data = self.trunc(conv1_bias)
+            self.conv2.bias.data = self.trunc(conv2_bias)
+            self.fc3.bias.data = self.trunc(fc3_bias)
+            self.rnncell4.bias_f.data = self.trunc(rnn4_bias_f)
+            self.rnncell4.bias_n.data = self.trunc(rnn4_bias_n)
+            self.fc5.bias.data = self.trunc(fc5_bias)
+
+    def quantize_weight(self):
+        for weight in self.parameters():
+            weight.data = self.trunc(weight)
+
     def forward(self, input):
         # CNN
         self.conv1_i        = input.view(-1, 1, self.input_sz[0], self.input_sz[1])
-        self.conv1_o        = self.conv1(self.conv1_i)
-        self.conv1_act_o    = self.conv1_act(self.conv1_o)
-        self.conv2_o        = self.conv2(self.conv1_act_o)
-        self.conv2_act_o    = self.conv2_act(self.conv2_o)
+        self.conv1_o        = self.conv1(self.trunc(self.conv1_i))
+        self.conv1_act_o    = self.conv1_act(self.trunc(self.conv1_o))
+        self.conv2_o        = self.conv2(self.trunc(self.conv1_act_o))
+        self.conv2_act_o    = self.conv2_act(self.trunc(self.conv2_o))
         self.fc3_i          = self.conv2_act_o.view(self.conv2_act_o.shape[0], -1)
-        self.fc3_o          = self.fc3(self.fc3_i)
-        self.fc3_act_o      = self.fc3_act(self.fc3_o)
-        self.fc3_drop_o     = self.fc3_drop(self.fc3_act_o)
+        self.fc3_o          = self.fc3(self.trunc(self.fc3_i))
+        self.fc3_act_o      = self.fc3_act(self.trunc(self.fc3_o))
+        self.fc3_drop_o     = self.fc3_drop(self.trunc(self.fc3_act_o))
         self.fc3_view_o     = self.fc3_drop_o.view(-1, self.rnn_win_sz, self.fc_sz)
         self.fc3_trans_o    = self.fc3_view_o.transpose(0, 1)
 
         # RNN
-        # self.gate_i = []
-        # self.gate_h = []
-        # self.forgetgate = []
-        # self.newgate_prod = []
-        # self.newgate = []
-        # self.forgetgate_inv_prod = []
-        # self.forgetgate_prod = []
+        self.fg_ug_in = []
+        self.fg_in = []
+        self.fg = []
+        self.fg_hx = []
+        self.ng_ug_in = []
+        self.ng = []
+        self.fg_ng = []
+        self.fg_ng_inv = []
         self.rnn_out = []
         hx = torch.zeros(self.fc3_trans_o[0].size()[0], self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
         for i in range(self.rnn_win_sz):
-            hx = self.rnncell4(self.fc3_trans_o[i], hx)
-            # self.gate_i.append(self.rnncell4.gate_i)
-            # self.gate_h.append(self.rnncell4.gate_h)
-            # self.forgetgate.append(self.rnncell4.forgetgate)
-            # self.newgate_prod.append(self.rnncell4.newgate_prod)
-            # self.newgate.append(self.rnncell4.newgate)
-            # self.forgetgate_inv_prod.append(self.rnncell4.forgetgate_inv_prod)
-            # self.forgetgate_prod.append(self.rnncell4.forgetgate_prod)
+            hx = self.rnncell4(self.trunc(self.fc3_trans_o[i]), self.trunc(hx))
+            self.fg_ug_in.append(self.rnncell4.fg_ug_in)
+            self.fg_in.append(self.rnncell4.fg_in)
+            self.fg.append(self.rnncell4.fg)
+            self.fg_hx.append(self.rnncell4.fg_hx)
+            self.ng_ug_in.append(self.rnncell4.ng_ug_in)
+            self.ng.append(self.rnncell4.ng)
+            self.fg_ng.append(self.rnncell4.fg_ng)
+            self.fg_ng_inv.append(self.rnncell4.fg_ng_inv)
             self.rnn_out.append(hx)
 
         # MLP
         self.fc5_i          = self.rnn_out[-1]
-        self.fc5_o          = self.fc5(self.fc5_i)
+        self.fc5_o          = self.fc5(self.trunc(self.fc5_i))
         return nn.Hardtanh()(self.fc5_o)
 

@@ -12,7 +12,6 @@ import time
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(device)
 
 bitwidth_list = [7, 8, 9, 10]
 for bitwidth in bitwidth_list:

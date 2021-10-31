@@ -17,7 +17,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     hpstr = "set dataset directory"
-    parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/raw_data/", nargs='*', type=str, help=hpstr)
+    parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/motor_imagery/raw_data/", nargs='*', type=str, help=hpstr)
 
     hpstr = "set window size"
     parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -32,7 +32,7 @@ def get_args():
     parser.add_argument('-e', '--end', default=108, nargs='?', type=int, help=hpstr)
 
     hpstr = "set output directory"
-    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/preprocessed_data/", nargs='*', help=hpstr)
+    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/motor_imagery/preprocessed_data_10_10/", nargs='*', help=hpstr)
 
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
