@@ -3,6 +3,7 @@
 ########################################################
 # EEG data preprocess for 3D
 # This code is adapted from https://github.com/diwu1990/Cascade-Parallel/blob/master/data_preprocess/pre_process.py
+# source dataset: https://www.nature.com/articles/sdata201939
 ########################################################
 import argparse
 import os
@@ -18,7 +19,7 @@ def get_args():
 	parser = argparse.ArgumentParser()
 
 	hpstr = "set dataset directory"
-	parser.add_argument('-d', '--directory', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
+	parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
 
 	hpstr = "set window size"
 	parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -33,7 +34,7 @@ def get_args():
 	parser.add_argument('-e', '--end', default=24, nargs='?', type=int, help=hpstr)
 
 	hpstr = "set output directory"
-	parser.add_argument('-o', '--output_dir', default="E:/ubrain_local/neonatal_eeg_preprocessed/", nargs='*', help=hpstr)
+	parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_20", nargs='*', help=hpstr)
 
 	hpstr = "set whether store data"
 	parser.add_argument('--set_store', action='store_true', help=hpstr)
@@ -44,7 +45,7 @@ def get_args():
 
 def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, output_dir, set_store):
 	print(  "######################## PhysioBank EEG data preprocess ####################### \
-			\n##### Author: Di Wu, ECE, UW--Madison, WI, USA; Email: di.wu@ece.wisc.edu ##### \
+			\n## Author: Jingjie Li, ECE, UW--Madison, WI, USA; Email: jingjie.li@wisc.edu ## \
 			\n# input directory:    %s \
 			\n# window size:        %d \
 			\n# overlap size:       %d \
@@ -63,41 +64,30 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 	return None
 
 
-def data_1Dto2D(data, Y=10, X=11):
+def data_1Dto2D(data, Y=5, X=5):
 	data_2D = np.zeros([Y, X])
-	data_2D[0] = (       0,        0,        0,        0, data[21], data[22], data[23],        0,        0,        0,        0)
-	data_2D[1] = (       0,        0,        0, data[24], data[25], data[26], data[27], data[28],        0,        0,        0)
-	data_2D[2] = (       0, data[29], data[30], data[31], data[32], data[33], data[34], data[35], data[36], data[37],        0)
-	data_2D[3] = (       0, data[38],  data[0],  data[1],  data[2],  data[3],  data[4],  data[5],  data[6], data[39],        0)
-	data_2D[4] = (data[42], data[40],  data[7],  data[8],  data[9], data[10], data[11], data[12], data[13], data[41], data[43])
-	data_2D[5] = (       0, data[44], data[14], data[15], data[16], data[17], data[18], data[19], data[20], data[45],        0)
-	data_2D[6] = (       0, data[46], data[47], data[48], data[49], data[50], data[51], data[52], data[53], data[54],        0)
-	data_2D[7] = (       0,        0,        0, data[55], data[56], data[57], data[58], data[59],         0,       0,        0)
-	data_2D[8] = (       0,        0,        0,        0, data[60], data[61], data[62],        0,         0,       0,        0)
-	data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
+	# data_2D[0] = (       0,        0,        0,        0, data[21], data[22], data[23],        0,        0,        0,        0)
+	# data_2D[1] = (       0,        0,        0, data[24], data[25], data[26], data[27], data[28],        0,        0,        0)
+	# data_2D[2] = (       0, data[29], data[30], data[31], data[32], data[33], data[34], data[35], data[36], data[37],        0)
+	# data_2D[3] = (       0, data[38],  data[0],  data[1],  data[2],  data[3],  data[4],  data[5],  data[6], data[39],        0)
+	# data_2D[4] = (data[42], data[40],  data[7],  data[8],  data[9], data[10], data[11], data[12], data[13], data[41], data[43])
+	# data_2D[5] = (       0, data[44], data[14], data[15], data[16], data[17], data[18], data[19], data[20], data[45],        0)
+	# data_2D[6] = (       0, data[46], data[47], data[48], data[49], data[50], data[51], data[52], data[53], data[54],        0)
+	# data_2D[7] = (       0,        0,        0, data[55], data[56], data[57], data[58], data[59],         0,       0,        0)
+	# data_2D[8] = (       0,        0,        0,        0, data[60], data[61], data[62],        0,         0,       0,        0)
+	# data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
 
-	data_2D[0] = (0.0, 0.0, 0.0, 0.0, data[0], 0.0, data[1], 0.0, 0.0, 0.0, 0.0)
-	data_2D[1] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-	data_2D[2] = (0.0, data[4], 0.0, data[2], 0.0, data[6], 0.0, data[3], 0.0, data[5], 0.0)
-	data_2D[3] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-	data_2D[4] = (0.0, data[10], 0.0, data[7], 0.0, data[9], 0.0, data[8], 0.0, data[12], 0.0)
-	data_2D[5] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-	data_2D[6] = (0.0, data[11], 0.0, data[14], 0.0, data[16], 0.0, data[15], 0.0, data[13], 0.0)
-	data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-	data_2D[8] = (0.0, 0.0, 0.0, 0.0, data[17], 0.0, data[18], 0.0, 0.0, 0.0, 0.0)
-	data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
-	# ### JL: dummy data order test may not be used below
-	# data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
-	# data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
-	# data_2D[2] = (data[10], data[7], data[9], data[8], data[12])
-	# data_2D[3] = (data[11], data[14], data[16], data[15], data[13])
-	# data_2D[4] = (0.0, data[17], 0.0, data[18], 0.0)
+	### JL: dummy data order test may not be used below
+	data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
+	data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
+	data_2D[2] = (data[10], data[7], data[9], data[8], data[12])
+	data_2D[3] = (data[11], data[14], data[16], data[15], data[13])
+	data_2D[4] = (0.0, data[17], 0.0, data[18], 0.0)
 
 	return data_2D
 
 
-def norm_dataset(dataset_1D, num_channel = 19):
+def norm_dataset(dataset_1D, num_channel = 18):
 	norm_dataset_1D = np.zeros([dataset_1D.shape[0], num_channel])
 	for i in range(dataset_1D.shape[0]):
 		norm_dataset_1D[i] = feature_normalize(dataset_1D[i])
@@ -115,7 +105,7 @@ def feature_normalize(data):
 	return data_normalized
 
 
-def dataset_1Dto2D(dataset_1D, Y = 10, X = 11):
+def dataset_1Dto2D(dataset_1D, Y = 5, X = 5):
 	dataset_2D = np.zeros([dataset_1D.shape[0], Y, X])
 	for i in range(dataset_1D.shape[0]):
 		dataset_2D[i] = data_1Dto2D(dataset_1D[i], Y, X)
@@ -148,7 +138,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 	# initial empty label arrays
 	label_inter     = np.empty([0])
 	# initial empty data arrays
-	data_inter      = np.empty([0, window_size, 10, 11])
+	data_inter      = np.empty([0, window_size, 5, 5])
 	for j in tqdm(range(start, end)):
 		# if (j == 89):
 		#     j = 109
@@ -177,11 +167,13 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 		data        = data_label.to_numpy()
 		data        = norm_dataset(data, 19)
 		# convert 1D data to 2D
-		data        = dataset_1Dto2D(data, Y = 10, X = 11)
+		data        = dataset_1Dto2D(data, Y = 5, X = 5)
 		# segment data with sliding window
 		print("complete 2d transform")
+		print("data size: ", data.shape)
 		data, label = segment_signal_without_transition(data, label, window_size, overlap_size)
-		data        = data.reshape(int(data.shape[0]/window_size), window_size, 10, 11)
+		print("complete segment_signal_without_transition")
+		data        = data.reshape(int(data.shape[0]/window_size), window_size, 5, 5)
 		# append new data and label
 		data_inter  = np.vstack([data_inter, data])
 		label_inter = np.append(label_inter, label)
