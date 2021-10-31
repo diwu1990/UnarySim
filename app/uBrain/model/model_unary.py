@@ -6,9 +6,10 @@ from typing import List, Tuple, Optional, overload, Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from UnarySim.kernel.conv import FSUConv2d
-from UnarySim.kernel.linear import FSULinear
-from UnarySim.kernel.relu import FSUReLU
+from UnarySim.kernel.conv import HUBConv2d
+from UnarySim.kernel.linear import HUBLinear
+from UnarySim.kernel.sigmoid import ScaleHardsigmoid
+from UnarySim.kernel.relu import ScaleReLU
 from UnarySim.kernel.rnn import FSUMGUCell
 from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
 from UnarySim.kernel.utils import progerror_report
@@ -16,26 +17,24 @@ from UnarySim.kernel.utils import progerror_report
 
 class Cascade_CNN_RNN(torch.nn.Module):
     """
-    This is the unary version of the cascade CNN RNN for BCI
+    This is the hybrid unary binary version of the cascade CNN RNN for BCI, i.e., uBrain
     """
     def __init__(self, 
-                    input_sz=(10, 11), 
-                    linear_act="hardtanh", 
-                    cnn_chn=32, 
-                    cnn_kn_sz=3, 
-                    cnn_padding=0, 
-                    fc_sz=1024, 
-                    rnn="mgu", 
-                    rnn_win_sz=10, 
-                    rnn_hidden_sz=1024, 
-                    rnn_hard=True, 
-                    bias=True, 
-                    init_std=None, 
-                    keep_prob=0.5, 
-                    num_class=5, 
+                    input_sz=(10, 11),
+                    linear_act="scalerelu",
+                    cnn_chn=16,
+                    cnn_kn_sz=3,
+                    cnn_padding=1, # default perform same conv
+                    fc_sz=256,
+                    rnn="mgu",
+                    rnn_win_sz=10,
+                    rnn_hidden_sz=64,
+                    rnn_hard=True,
+                    bias=False,
+                    init_std=None,
+                    keep_prob=0.5,
+                    num_class=[5, 2],
                     bitwidth=8, 
-                    acc_depth=12, 
-                    relu_sr_depth=5, 
                     rng="Sobol", 
                     conv1_weight=None, 
                     conv1_bias=None, 
@@ -43,10 +42,10 @@ class Cascade_CNN_RNN(torch.nn.Module):
                     conv2_bias=None, 
                     fc3_weight=None, 
                     fc3_bias=None, 
-                    rnncell4_weight_ih=None, 
-                    rnncell4_bias_ih=None, 
-                    rnncell4_weight_hh=None, 
-                    rnncell4_bias_hh=None, 
+                    rnncell4_weight_f=None, 
+                    rnncell4_bias_f=None, 
+                    rnncell4_weight_n=None, 
+                    rnncell4_bias_n=None, 
                     fc5_weight=None, 
                     fc5_bias=None, 
                     debug=False):
@@ -61,8 +60,6 @@ class Cascade_CNN_RNN(torch.nn.Module):
         self.bias = bias
         self.num_class = num_class
         self.bitwidth = bitwidth
-        self.acc_depth = acc_depth
-        self.relu_sr_depth = relu_sr_depth
         self.rng = rng
         self.conv1_weight = conv1_weight
         self.conv1_bias = conv1_bias
@@ -70,17 +67,66 @@ class Cascade_CNN_RNN(torch.nn.Module):
         self.conv2_bias = conv2_bias
         self.fc3_weight = fc3_weight
         self.fc3_bias = fc3_bias
-        self.rnncell4_weight_ih = rnncell4_weight_ih
-        self.rnncell4_bias_ih = rnncell4_bias_ih
-        self.rnncell4_weight_hh = rnncell4_weight_hh
-        self.rnncell4_bias_hh = rnncell4_bias_hh
+        self.rnncell4_weight_f = rnncell4_weight_f
+        self.rnncell4_bias_f = rnncell4_bias_f
+        self.rnncell4_weight_n = rnncell4_weight_n
+        self.rnncell4_bias_n = rnncell4_bias_n
         self.fc5_weight = fc5_weight
         self.fc5_bias = fc5_bias
         self.debug = debug
 
-    def build_model(self, device):
         # CNN
-        self.conv1 = FSUConv2d(1, self.cnn_chn , self.cnn_kn_sz, bias=self.bias, padding=self.cnn_padding, 
+        self.conv1          = HUBConv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
+        self.conv2          = HUBConv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding)
+        self.fc3            = HUBLinear((input_sz[0]+2*2*(cnn_padding-1))*(input_sz[1]+2*2*(cnn_padding-1))*cnn_chn*2, fc_sz, bias=bias)
+        self.fc3_drop       = nn.Dropout(p=1-keep_prob)
+
+        # RNN
+        if rnn.lower() == "gru":
+            self.rnncell4 = HardGRUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
+        elif rnn.lower() == "mgu":
+            self.rnncell4 = FSUMGUCell(fc_sz, rnn_hidden_sz, bias=bias, hard=rnn_hard)
+
+        # MLP
+        self.fc5 = nn.Linear(rnn_hidden_sz, sum(num_class), bias=bias)
+
+        self.linear_act = linear_act.lower()
+
+        if self.linear_act == "scalehardsigmoid":
+            self.conv1_act  = ScaleHardsigmoid()
+            self.conv2_act  = ScaleHardsigmoid()
+            self.fc3_act    = ScaleHardsigmoid()
+        elif self.linear_act == "scalerelu":
+            self.conv1_act  = ScaleReLU()
+            self.conv2_act  = ScaleReLU()
+            self.fc3_act    = ScaleReLU()
+        elif self.linear_act == "sigmoid":
+            self.conv1_act  = nn.Sigmoid()
+            self.conv2_act  = nn.Sigmoid()
+            self.fc3_act    = nn.Sigmoid()
+        elif self.linear_act == "hardtanh":
+            self.conv1_act  = nn.Hardtanh()
+            self.conv2_act  = nn.Hardtanh()
+            self.fc3_act    = nn.Hardtanh()
+        elif self.linear_act == "tanh":
+            self.conv1_act  = nn.Tanh()
+            self.conv2_act  = nn.Tanh()
+            self.fc3_act    = nn.Tanh()
+        elif self.linear_act == "relu":
+            self.conv1_act  = nn.ReLU()
+            self.conv2_act  = nn.ReLU()
+            self.fc3_act    = nn.ReLU()
+        elif self.linear_act == "relu6":
+            self.conv1_act  = nn.ReLU6()
+            self.conv2_act  = nn.ReLU6()
+            self.fc3_act    = nn.ReLU6()
+        elif self.linear_act == "elu":
+            self.conv1_act  = nn.ELU()
+            self.conv2_act  = nn.ELU()
+            self.fc3_act    = nn.ELU()
+
+
+        self.conv1 = HUBConv2d(1, self.cnn_chn , self.cnn_kn_sz, bias=self.bias, padding=self.cnn_padding, 
                                 binary_weight=self.conv1_weight, binary_bias=self.conv1_bias, bitwidth=self.bitwidth, scaled=False, depth=self.acc_depth).to(device)
         self.conv1_act = FSUReLU(depth=self.relu_sr_depth).to(device)
         self.conv2 = FSUConv2d(self.cnn_chn, self.cnn_chn*2, self.cnn_kn_sz, bias=self.bias, padding=self.cnn_padding, 
