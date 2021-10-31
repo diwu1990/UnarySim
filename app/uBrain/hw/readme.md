@@ -1,1 +1,1 @@
-This folder contains the report for hw implementations.
+This folder contains the reports for hw BCI.
