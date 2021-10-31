@@ -76,6 +76,17 @@ def data_1Dto2D(data, Y=10, X=11):
 	data_2D[8] = (       0,        0,        0,        0, data[60], data[61], data[62],        0,         0,       0,        0)
 	data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
 
+	data_2D[0] = (0.0, 0.0, 0.0, 0.0, data[0], 0.0, data[1], 0.0, 0.0, 0.0, 0.0)
+	data_2D[1] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[2] = (0.0, data[4], 0.0, data[2], 0.0, data[6], 0.0, data[3], 0.0, data[5], 0.0)
+	data_2D[3] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[4] = (0.0, data[10], 0.0, data[7], 0.0, data[9], 0.0, data[8], 0.0, data[12], 0.0)
+	data_2D[5] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[6] = (0.0, data[11], 0.0, data[14], 0.0, data[16], 0.0, data[15], 0.0, data[13], 0.0)
+	data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[8] = (0.0, 0.0, 0.0, 0.0, data[17], 0.0, data[18], 0.0, 0.0, 0.0, 0.0)
+	data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
 	# ### JL: dummy data order test may not be used below
 	# data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
 	# data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
@@ -86,7 +97,7 @@ def data_1Dto2D(data, Y=10, X=11):
 	return data_2D
 
 
-def norm_dataset(dataset_1D, num_channel = 18):
+def norm_dataset(dataset_1D, num_channel = 19):
 	norm_dataset_1D = np.zeros([dataset_1D.shape[0], num_channel])
 	for i in range(dataset_1D.shape[0]):
 		norm_dataset_1D[i] = feature_normalize(dataset_1D[i])
@@ -104,7 +115,7 @@ def feature_normalize(data):
 	return data_normalized
 
 
-def dataset_1Dto2D(dataset_1D, Y = 5, X = 5):
+def dataset_1Dto2D(dataset_1D, Y = 10, X = 11):
 	dataset_2D = np.zeros([dataset_1D.shape[0], Y, X])
 	for i in range(dataset_1D.shape[0]):
 		dataset_2D[i] = data_1Dto2D(dataset_1D[i], Y, X)
@@ -137,7 +148,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 	# initial empty label arrays
 	label_inter     = np.empty([0])
 	# initial empty data arrays
-	data_inter      = np.empty([0, window_size, 5, 5])
+	data_inter      = np.empty([0, window_size, 10, 11])
 	for j in tqdm(range(start, end)):
 		# if (j == 89):
 		#     j = 109
@@ -166,11 +177,11 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 		data        = data_label.to_numpy()
 		data        = norm_dataset(data, 19)
 		# convert 1D data to 2D
-		data        = dataset_1Dto2D(data, Y = 5, X = 5)
+		data        = dataset_1Dto2D(data, Y = 10, X = 11)
 		# segment data with sliding window
 		print("complete 2d transform")
 		data, label = segment_signal_without_transition(data, label, window_size, overlap_size)
-		data        = data.reshape(int(data.shape[0]/window_size), window_size, 5, 5)
+		data        = data.reshape(int(data.shape[0]/window_size), window_size, 10, 11)
 		# append new data and label
 		data_inter  = np.vstack([data_inter, data])
 		label_inter = np.append(label_inter, label)
