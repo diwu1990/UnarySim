@@ -133,9 +133,10 @@ def windows(data, size, overlap):
 
 
 def segment_signal_without_transition(data, label, window_size, overlap_size):
+	cnt_win = 0
 	for (start, end) in windows(data, window_size, overlap_size):
 		if((len(data[start:end]) == window_size) and (len(set(label[start:end]))==1)):
-			if(start == 0):
+			if(cnt_win == 0):
 				segments    = data[start:end]
 				# labels = stats.mode(label[start:end])[0][0]
 				labels      = np.array(list(set(label[start:end])))
@@ -143,6 +144,7 @@ def segment_signal_without_transition(data, label, window_size, overlap_size):
 				segments    = np.vstack([segments, data[start:end]])
 				labels      = np.append(labels, np.array(list(set(label[start:end]))))
 				# labels = np.append(labels, stats.mode(label[start:end])[0][0])
+			cnt_win = cnt_win + 1
 	return segments, labels
 
 
