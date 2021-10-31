@@ -3,7 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from UnarySim.kernel.rnn import FSUMGUCell, HardMGUCell, HardMGUCellFxp
+from UnarySim.kernel.rnn import HUBMGUCell, FSUMGUCell, HardMGUCell, HardMGUCellFxp
 from UnarySim.stream.gen import *
 from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
 from UnarySim.kernel.utils import truncated_normal, progerror_report
@@ -37,14 +37,20 @@ for bitwidth in bitwidth_list:
     hx1 = truncated_normal(hx1, mean=0, std=0.1)
     hx2 = hx1.clone().detach().to(device)
     hx3 = hx1.clone().detach().to(device)
+    hx4 = hx1.clone().detach().to(device)
     output1 = []
     output2 = []
     output3 = []
+    output4 = []
 
     rnn1 = HardMGUCell(input_sz, hidden_sz, bias=bias, hard=True).to(device)
     rnn3 = HardMGUCellFxp(input_sz, hidden_sz, bias=bias, hard=True, intwidth=intwidth, fracwidth=fracwidth).to(device)
     rnn3.weight_f.data = rnn1.weight_f.clone().detach().to(device)
     rnn3.weight_n.data = rnn1.weight_n.clone().detach().to(device)
+
+    rnn4 = HUBMGUCell(input_sz, hidden_sz, bias=bias, 
+                    binary_weight_f=rnn1.weight_f, binary_bias_f=rnn1.bias_f, binary_weight_n=rnn1.weight_n, binary_bias_n=rnn1.bias_n, 
+                    rng=rng, bitwidth=bitwidth, mode=mode, depth=depth, depth_ismul=depth_ismul).to(device)
 
     for i in range(win_sz):
         hx1 = rnn1(input[i], hx1)
@@ -52,6 +58,9 @@ for bitwidth in bitwidth_list:
 
         hx3 = rnn3(input[i], hx3)
         output3.append(hx3)
+
+        hx4 = rnn4(input[i], hx4)
+        output4.append(hx4)
 
         iVec, hVec = input[i], hx2
 
@@ -127,7 +136,20 @@ for bitwidth in bitwidth_list:
             progerror_report(fg_ng_PE, "fg_ng")
             progerror_report(fg_ng_inv_PE, "fg_ng_inv")
 
-        progerror_report(oPE, str(i)+"-th win output unary")
+        progerror_report(oPE, str(i)+"-th win output fsu")
+
+
+        hub_err = hx1 - hx4
+        min = hub_err.min().item()
+        max = hub_err.max().item()
+        rmse = torch.sqrt(torch.mean(torch.square(hub_err)))
+        std, mean = torch.std_mean(hub_err)
+        print("{:30s}".format(str(i)+"-th win output hub") + \
+                ", Absolute Error range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+                ", std," + "{:12f}".format(std) + \
+                ", mean," + "{:12f}".format(mean) + \
+                ", rmse," + "{:12f}".format(rmse))
+
 
         fxp_err = hx1 - hx3
         min = fxp_err.min().item()
@@ -139,6 +161,5 @@ for bitwidth in bitwidth_list:
                 ", std," + "{:12f}".format(std) + \
                 ", mean," + "{:12f}".format(mean) + \
                 ", rmse," + "{:12f}".format(rmse))
-
 
     print()

@@ -162,6 +162,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=110):
                 data        = norm_dataset(data)
                 # convert 1D data to 2D
                 data        = dataset_1Dto2D(data)
+                print(data.shape)
                 # segment data with sliding window
                 data, label = segment_signal_without_transition(data, label, window_size, overlap_size)
                 data        = data.reshape(int(data.shape[0]/window_size), window_size, 5, 5)

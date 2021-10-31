@@ -3,7 +3,7 @@
 ########################################################
 # EEG data preprocess for 3D
 # This code is adapted from https://github.com/diwu1990/Cascade-Parallel/blob/master/data_preprocess/pre_process.py
-# source dataset: https://www.nature.com/articles/sdata201939
+# Source dataset: https://www.nature.com/articles/sdata201939
 ########################################################
 import argparse
 import os
@@ -11,9 +11,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import glob
-import random
 from tqdm import tqdm
-from random import sample
 
 np.random.seed(0)
 
@@ -21,7 +19,7 @@ def get_args():
 	parser = argparse.ArgumentParser()
 
 	hpstr = "set dataset directory"
-	parser.add_argument('-d', '--directory', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
+	parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
 
 	hpstr = "set window size"
 	parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -35,15 +33,8 @@ def get_args():
 	hpstr = "set end person"
 	parser.add_argument('-e', '--end', default=24, nargs='?', type=int, help=hpstr)
 
-	hpstr = "set number of random intervals"
-	parser.add_argument('-ri', '--numitv', default=40, nargs='*', type=int, help=hpstr)
-
-	hpstr = "set size of random interval sample (number of windows)"
-	parser.add_argument('-si', '--itvsize', default=10, nargs='*', type=int, help=hpstr)
-
 	hpstr = "set output directory"
-	parser.add_argument('-o', '--output_dir', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', help=hpstr)
-
+	parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_10", nargs='*', help=hpstr)
 
 	hpstr = "set whether store data"
 	parser.add_argument('--set_store', action='store_true', help=hpstr)
@@ -52,7 +43,7 @@ def get_args():
 	return(args)
 
 
-def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_interval, size_interval, output_dir, set_store):
+def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, output_dir, set_store):
 	print(  "######################## PhysioBank EEG data preprocess ####################### \
 			\n## Author: Jingjie Li, ECE, UW--Madison, WI, USA; Email: jingjie.li@wisc.edu ## \
 			\n# input directory:    %s \
@@ -60,9 +51,6 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 			\n# overlap size:       %d \
 			\n# begin subject:      %d \
 			\n# end subject:        %d \
-			\n# number of intervals:%d \
-			\n# size of intervals:  %d \
-
 			\n# output directory:   %s \
 			\n# set store:          %s \
 			\n###############################################################################"% \
@@ -71,39 +59,46 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 			overlap_size,    \
 			begin_subject,    \
 			end_subject,    \
-			num_interval,   \
-			size_interval, \
-
 			output_dir,        \
 			set_store))
 	return None
 
 
-def data_1Dto2D(data, Y=5, X=5):
+def data_1Dto2D(data, Y=10, X=11):
 	data_2D = np.zeros([Y, X])
-	# data_2D[0] = (       0,        0,        0,        0, data[21], data[22], data[23],        0,        0,        0,        0)
-	# data_2D[1] = (       0,        0,        0, data[24], data[25], data[26], data[27], data[28],        0,        0,        0)
-	# data_2D[2] = (       0, data[29], data[30], data[31], data[32], data[33], data[34], data[35], data[36], data[37],        0)
-	# data_2D[3] = (       0, data[38],  data[0],  data[1],  data[2],  data[3],  data[4],  data[5],  data[6], data[39],        0)
-	# data_2D[4] = (data[42], data[40],  data[7],  data[8],  data[9], data[10], data[11], data[12], data[13], data[41], data[43])
-	# data_2D[5] = (       0, data[44], data[14], data[15], data[16], data[17], data[18], data[19], data[20], data[45],        0)
-	# data_2D[6] = (       0, data[46], data[47], data[48], data[49], data[50], data[51], data[52], data[53], data[54],        0)
-	# data_2D[7] = (       0,        0,        0, data[55], data[56], data[57], data[58], data[59],         0,       0,        0)
-	# data_2D[8] = (       0,        0,        0,        0, data[60], data[61], data[62],        0,         0,       0,        0)
-	# data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
+	data_2D[0] = (       0,        0,        0,        0, data[21], data[22], data[23],        0,        0,        0,        0)
+	data_2D[1] = (       0,        0,        0, data[24], data[25], data[26], data[27], data[28],        0,        0,        0)
+	data_2D[2] = (       0, data[29], data[30], data[31], data[32], data[33], data[34], data[35], data[36], data[37],        0)
+	data_2D[3] = (       0, data[38],  data[0],  data[1],  data[2],  data[3],  data[4],  data[5],  data[6], data[39],        0)
+	data_2D[4] = (data[42], data[40],  data[7],  data[8],  data[9], data[10], data[11], data[12], data[13], data[41], data[43])
+	data_2D[5] = (       0, data[44], data[14], data[15], data[16], data[17], data[18], data[19], data[20], data[45],        0)
+	data_2D[6] = (       0, data[46], data[47], data[48], data[49], data[50], data[51], data[52], data[53], data[54],        0)
+	data_2D[7] = (       0,        0,        0, data[55], data[56], data[57], data[58], data[59],         0,       0,        0)
+	data_2D[8] = (       0,        0,        0,        0, data[60], data[61], data[62],        0,         0,       0,        0)
+	data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
 
-	### JL: dummy data order test may not be used below
-	data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
-	data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
-	data_2D[2] = (data[10], data[7], data[9], data[8], data[12])
-	data_2D[3] = (data[11], data[14], data[16], data[15], data[13])
-	data_2D[4] = (0.0, data[17], 0.0, data[18], 0.0)
+	data_2D[0] = (0.0, 0.0, 0.0, 0.0, data[0], 0.0, data[1], 0.0, 0.0, 0.0, 0.0)
+	data_2D[1] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[2] = (0.0, data[4], 0.0, data[2], 0.0, data[6], 0.0, data[3], 0.0, data[5], 0.0)
+	data_2D[3] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[4] = (0.0, data[10], 0.0, data[7], 0.0, data[9], 0.0, data[8], 0.0, data[12], 0.0)
+	data_2D[5] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[6] = (0.0, data[11], 0.0, data[14], 0.0, data[16], 0.0, data[15], 0.0, data[13], 0.0)
+	data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	data_2D[8] = (0.0, 0.0, 0.0, 0.0, data[17], 0.0, data[18], 0.0, 0.0, 0.0, 0.0)
+	data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+	# ### JL: dummy data order test may not be used below
+	# data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
+	# data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
+	# data_2D[2] = (data[10], data[7], data[9], data[8], data[12])
+	# data_2D[3] = (data[11], data[14], data[16], data[15], data[13])
+	# data_2D[4] = (0.0, data[17], 0.0, data[18], 0.0)
 
 	return data_2D
 
 
 def norm_dataset(dataset_1D, num_channel = 19):
-
 	norm_dataset_1D = np.zeros([dataset_1D.shape[0], num_channel])
 	for i in range(dataset_1D.shape[0]):
 		norm_dataset_1D[i] = feature_normalize(dataset_1D[i])
@@ -121,7 +116,7 @@ def feature_normalize(data):
 	return data_normalized
 
 
-def dataset_1Dto2D(dataset_1D, Y = 5, X = 5):
+def dataset_1Dto2D(dataset_1D, Y = 10, X = 11):
 	dataset_2D = np.zeros([dataset_1D.shape[0], Y, X])
 	for i in range(dataset_1D.shape[0]):
 		dataset_2D[i] = data_1Dto2D(dataset_1D[i], Y, X)
@@ -153,12 +148,8 @@ def segment_signal_without_transition(data, label, window_size, overlap_size):
 def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 	# initial empty label arrays
 	label_inter     = np.empty([0])
-	# array shape param
-	shape_Y = 5
-	shape_X = 5
 	# initial empty data arrays
-	data_inter      = np.empty([0, window_size, shape_Y, shape_X])
-
+	data_inter      = np.empty([0, window_size, 10, 11])
 	for j in tqdm(range(start, end)):
 		# if (j == 89):
 		#     j = 109
@@ -187,38 +178,14 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 		data        = data_label.to_numpy()
 		data        = norm_dataset(data, 19)
 		# convert 1D data to 2D
-		data        = dataset_1Dto2D(data, Y = shape_Y, X = shape_X)
+		data        = dataset_1Dto2D(data, Y = 10, X = 11)
 		# segment data with sliding window
 		print("complete 2d transform")
-		print("data size: ", data.shape)
-
-		# sample data to reduce size 
-		random.seed(10)
-		idx_lb  = window_size * size_interval # lower bound of the entire idx list
-		label_samp = [x for i, x in enumerate(label) if i > idx_lb]
-		idx_pos = [i for i, x in enumerate(label_samp) if x == 1]
-		idx_neg = [i for i, x in enumerate(label_samp) if x == 0]
-		idx_all = idx_pos + idx_neg
-		#print(len(idx_all))
-		idx_ran  = sample(idx_all, num_interval)
-		#print(len(idx_pos), len(idx_neg))
-		# get even number of intervals from each class
-	
-		# idx_pos_ran  = sample(idx_pos, int(num_interval/2))
-		# idx_neg_ran  = sample(idx_neg, num_interval - int(num_interval/2))
-		# print(len(idx_pos_ran), len(idx_neg_ran))
-		# idx_ran = idx_pos_ran + idx_neg_ran
-
-		 # generate random index seed
-
-		for idx_curr in idx_ran:
-			data_curr, label_curr = segment_signal_without_transition(data[idx_curr-idx_lb:idx_curr, :, :], label[idx_curr-idx_lb:idx_curr], window_size, overlap_size)
-			#print("complete segment_signal_without_transition")
-			data_curr        = data_curr.reshape(int(data_curr.shape[0]/window_size), window_size, shape_Y, shape_X)
-			# append new data and label
-			data_inter  = np.vstack([data_inter, data_curr])
-			label_inter = np.append(label_inter, label_curr)
-
+		data, label = segment_signal_without_transition(data, label, window_size, overlap_size)
+		data        = data.reshape(int(data.shape[0]/window_size), window_size, 10, 11)
+		# append new data and label
+		data_inter  = np.vstack([data_inter, data])
+		label_inter = np.append(label_inter, label)
 		print("complete task: ", j)
 
 	# shuffle data
@@ -235,9 +202,6 @@ if __name__ == '__main__':
 	overlap_size    =    get_args().overlap
 	begin_subject   =    get_args().begin
 	end_subject     =    get_args().end
-	num_interval    =	 get_args().numitv
-	size_interval   =	 get_args().itvsize
-
 	output_dir      =    get_args().output_dir
 	set_store       =    get_args().set_store
 	if type(window_size) is list:
@@ -248,11 +212,7 @@ if __name__ == '__main__':
 		begin_subject = begin_subject[0]
 	if type(end_subject) is list:
 		end_subject = end_subject[0]
-	if type(num_interval) is list:
-		num_interval = num_interval[0]
-	if type(size_interval) is list:
-		size_interval = size_interval[0]
-	print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_interval, size_interval, output_dir, set_store)
+	print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, output_dir, set_store)
 
 	shuffled_data, shuffled_label = apply_mixup(dataset_dir, window_size, overlap_size, begin_subject, end_subject+1)
 	if (set_store == True):

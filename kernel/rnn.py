@@ -10,6 +10,7 @@ from torch.cuda.amp import autocast
 from typing import List, Tuple, Optional, overload, Union
 from UnarySim.kernel.sigmoid import ScaleHardsigmoid
 from UnarySim.kernel.utils import truncated_normal, Round
+from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
 
 
 class FSUMGUCell(torch.nn.Module):
@@ -74,6 +75,71 @@ class FSUMGUCell(torch.nn.Module):
         self.fg_ng = self.fg_ng_mul(self.fg, self.ng)
         self.fg_ng_inv = 1 - self.fg_ng
         hy = self.hy_add(torch.stack([self.ng, self.fg_ng_inv, self.fg_hx], dim=0))
+        return hy
+
+
+class HUBMGUCell(torch.nn.Module):
+    """
+    This is a minimal gated unit with hybrid unary binary computing, corresponding to HardMGUCell with "hard" asserted.
+    The scalehardsigmoid is scaled addition (x+1)/2, and hardtanh is direct pass.
+    This module follows the uBrain implementation style to maximize hardware reuse.
+    """
+
+    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, 
+                    binary_weight_f=None, binary_bias_f=None, binary_weight_n=None, binary_bias_n=None, 
+                    rng="Sobol", bitwidth=8, mode="bipolar", depth=10, depth_ismul=6) -> None:
+        super(HUBMGUCell, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.bias = bias
+
+        self.rng = rng
+        self.bitwidth = bitwidth
+        self.mode = mode
+        self.depth = depth
+        self.depth_ismul = depth_ismul
+
+        self.weight_f = binary_weight_f
+        self.bias_f = binary_bias_f
+        self.weight_n = binary_weight_n
+        self.bias_n = binary_bias_n
+
+    @autocast()
+    def forward(self, input: Tensor, hx: Tensor) -> Tensor:
+        if hx is None:
+            hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
+
+        rnncell = FSUMGUCell(self.input_size, self.hidden_size, bias=self.bias, 
+                        binary_weight_f=self.weight_f, binary_bias_f=self.bias_f, binary_weight_n=self.weight_n, binary_bias_n=self.bias_n, 
+                        hx_buffer=hx, 
+                        bitwidth=self.bitwidth, mode=self.mode, depth=self.depth, depth_ismul=self.depth_ismul).to(input.device)
+        
+        iSource = SourceGen(input, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
+        iRNG = RNG(self.bitwidth, 1, self.rng)().to(input.device)
+        iBSG = BSGen(iSource, iRNG).to(input.device)
+        # iPE = ProgError(input, scale=1, mode=self.mode).to(input.device)
+
+        hSource = SourceGen(hx, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
+        hRNG = RNG(self.bitwidth, 1, self.rng)().to(input.device)
+        hBSG = BSGen(hSource, hRNG).to(input.device)
+        # hPE = ProgError(hx, scale=1, mode=self.mode).to(input.device)
+
+        oPE = ProgError(torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device), 
+                        scale=1, mode=self.mode).to(input.device)
+
+        for c in range(2**self.bitwidth):
+            idx = torch.zeros(iSource.size(), dtype=torch.long, device=input.device)
+            iBS = iBSG(idx + c)
+            # iPE.Monitor(iBS)
+
+            hdx = torch.zeros(hSource.size(), dtype=torch.long, device=input.device)
+            hBS = hBSG(hdx + c)
+            # hPE.Monitor(hBS)
+
+            oBS = rnncell(iBS, hBS)
+            oPE.Monitor(oBS)
+
+        hy = oPE()[0]
         return hy
 
 
