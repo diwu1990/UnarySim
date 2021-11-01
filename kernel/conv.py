@@ -402,7 +402,7 @@ class HUBConv2d(torch.nn.Conv2d):
                     binary_bias=None, 
                     rng="Sobol", 
                     cycle=128,
-                    rounding="floor"):
+                    rounding="round"):
         super(HUBConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 
@@ -517,7 +517,7 @@ class FxpConv2d(torch.nn.Conv2d):
                     bitwidth=8,
                     keep_res="input", # keep the resolution of input/output
                     more_res="input", # assign more resolution to input/weight
-                    rounding="floor"):
+                    rounding="round"):
         super(FxpConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 

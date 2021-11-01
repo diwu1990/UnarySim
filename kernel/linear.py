@@ -941,7 +941,7 @@ class HUBLinear(torch.nn.Linear):
                  binary_bias=None, 
                  rng="Sobol", 
                  cycle=128,
-                 rounding="floor"):
+                 rounding="round"):
         super(HUBLinear, self).__init__(in_features, out_features, bias)
         
         # weight and bias
@@ -1109,7 +1109,7 @@ class FxpLinear(torch.nn.Linear):
                  bitwidth=8, 
                  keep_res="input", # keep the resolution of input/output
                  more_res="input", # assign more resolution to input/weight
-                 rounding="floor"):
+                 rounding="round"):
         super(FxpLinear, self).__init__(in_features, out_features, bias)
 
         # weight and bias
