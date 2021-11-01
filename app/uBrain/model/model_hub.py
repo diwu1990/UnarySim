@@ -10,7 +10,7 @@ from UnarySim.kernel.conv import HUBConv2d
 from UnarySim.kernel.linear import HUBLinear
 from UnarySim.kernel.sigmoid import ScaleHardsigmoid
 from UnarySim.kernel.relu import ScaleReLU
-from UnarySim.kernel.rnn import HUBMGUCell
+from UnarySim.kernel.rnn import HUBMGUCell, HardMGUCell
 from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
 from UnarySim.kernel.utils import progerror_report
 
@@ -183,6 +183,7 @@ class Cascade_CNN_RNN(torch.nn.Module):
 class Cascade_CNN_RNN_fp_rnn(torch.nn.Module):
     """
     This is the hybrid unary binary version of the cascade CNN RNN for BCI, i.e., uBrain
+    But the rnn is in fp format, so that entire model is trainable.
     """
     def __init__(self, 
                     input_sz=[10, 11],
