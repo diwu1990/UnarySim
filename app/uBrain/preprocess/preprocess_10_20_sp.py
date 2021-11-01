@@ -44,7 +44,6 @@ def get_args():
 	hpstr = "set output directory"
 	parser.add_argument('-o', '--output_dir', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', help=hpstr)
 
-
 	hpstr = "set whether store data"
 	parser.add_argument('--set_store', action='store_true', help=hpstr)
 
@@ -62,7 +61,6 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 			\n# end subject:        %d \
 			\n# number of intervals:%d \
 			\n# size of intervals:  %d \
-
 			\n# output directory:   %s \
 			\n# set store:          %s \
 			\n###############################################################################"% \
@@ -73,7 +71,6 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 			end_subject,    \
 			num_interval,   \
 			size_interval, \
-
 			output_dir,        \
 			set_store))
 	return None
@@ -103,7 +100,6 @@ def data_1Dto2D(data, Y=5, X=5):
 
 
 def norm_dataset(dataset_1D, num_channel = 19):
-
 	norm_dataset_1D = np.zeros([dataset_1D.shape[0], num_channel])
 	for i in range(dataset_1D.shape[0]):
 		norm_dataset_1D[i] = feature_normalize(dataset_1D[i])
@@ -137,9 +133,10 @@ def windows(data, size, overlap):
 
 
 def segment_signal_without_transition(data, label, window_size, overlap_size):
+	cnt_win = 0
 	for (start, end) in windows(data, window_size, overlap_size):
 		if((len(data[start:end]) == window_size) and (len(set(label[start:end]))==1)):
-			if(start == 0):
+			if(cnt_win == 0):
 				segments    = data[start:end]
 				# labels = stats.mode(label[start:end])[0][0]
 				labels      = np.array(list(set(label[start:end])))
@@ -147,6 +144,7 @@ def segment_signal_without_transition(data, label, window_size, overlap_size):
 				segments    = np.vstack([segments, data[start:end]])
 				labels      = np.append(labels, np.array(list(set(label[start:end]))))
 				# labels = np.append(labels, stats.mode(label[start:end])[0][0])
+			cnt_win = cnt_win + 1
 	return segments, labels
 
 
@@ -158,7 +156,6 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 	shape_X = 5
 	# initial empty data arrays
 	data_inter      = np.empty([0, window_size, shape_Y, shape_X])
-
 	for j in tqdm(range(start, end)):
 		# if (j == 89):
 		#     j = 109
@@ -218,7 +215,6 @@ def apply_mixup(dataset_dir, window_size, overlap_size, start=1, end=2):
 			# append new data and label
 			data_inter  = np.vstack([data_inter, data_curr])
 			label_inter = np.append(label_inter, label_curr)
-
 		print("complete task: ", j)
 
 	# shuffle data
@@ -237,7 +233,6 @@ if __name__ == '__main__':
 	end_subject     =    get_args().end
 	num_interval    =	 get_args().numitv
 	size_interval   =	 get_args().itvsize
-
 	output_dir      =    get_args().output_dir
 	set_store       =    get_args().set_store
 	if type(window_size) is list:
