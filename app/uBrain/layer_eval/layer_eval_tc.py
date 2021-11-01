@@ -263,14 +263,14 @@ font = {'family':'Times New Roman', 'size': 6}
 matplotlib.rc('font', **font)
 
 my_dpi = 300
-fig_h = 1
-fig_w = 3.3115
+fig_h = 0.8
+fig_w = 3.5
 alpha = 1
 
 labels = [str(bitwidth) for bitwidth in bitwidth_list]
 x = np.arange(len(labels))  # the label locations
 
-fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+fig, ax = plt.subplots(figsize=(fig_w, fig_h), dpi=my_dpi)
 
 # for idx in range(len(bitwidth_list)):
 #     data_hub = err_array[idx, 0, :]

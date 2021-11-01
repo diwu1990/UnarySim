@@ -1,124 +1,124 @@
-0-th win output hub           , Absolute Error range,   -0.279835,     0.303876, std,    0.073168, mean,    0.032839, rmse,    0.080183
-0-th win output fxp           , Absolute Error range,   -0.039303,     0.033957, std,    0.009066, mean,   -0.000151, rmse,    0.009066
-1-th win output hub           , Absolute Error range,   -0.359375,     0.406664, std,    0.097213, mean,    0.045911, rmse,    0.107487
-1-th win output fxp           , Absolute Error range,   -0.037686,     0.061221, std,    0.011273, mean,    0.000318, rmse,    0.011275
-2-th win output hub           , Absolute Error range,   -0.292962,     0.415961, std,    0.109076, mean,    0.052605, rmse,    0.121075
-2-th win output fxp           , Absolute Error range,   -0.044026,     0.054226, std,    0.013123, mean,   -0.000309, rmse,    0.013123
-3-th win output hub           , Absolute Error range,   -0.415960,     0.382812, std,    0.118762, mean,    0.052068, rmse,    0.129648
-3-th win output fxp           , Absolute Error range,   -0.048119,     0.052560, std,    0.013356, mean,   -0.000293, rmse,    0.013356
-4-th win output hub           , Absolute Error range,   -0.398465,     0.452595, std,    0.119968, mean,    0.053105, rmse,    0.131169
-4-th win output fxp           , Absolute Error range,   -0.048906,     0.054552, std,    0.013976, mean,   -0.000320, rmse,    0.013976
-5-th win output hub           , Absolute Error range,   -0.384259,     0.429688, std,    0.125404, mean,    0.051580, rmse,    0.135569
-5-th win output fxp           , Absolute Error range,   -0.063521,     0.054095, std,    0.014400, mean,   -0.000155, rmse,    0.014398
-6-th win output hub           , Absolute Error range,   -0.416064,     0.521610, std,    0.129518, mean,    0.049694, rmse,    0.138694
-6-th win output fxp           , Absolute Error range,   -0.056787,     0.044841, std,    0.014415, mean,   -0.000412, rmse,    0.014417
-7-th win output hub           , Absolute Error range,   -0.411901,     0.511528, std,    0.128567, mean,    0.045867, rmse,    0.136474
-7-th win output fxp           , Absolute Error range,   -0.055358,     0.042022, std,    0.014181, mean,   -0.000162, rmse,    0.014179
-8-th win output hub           , Absolute Error range,   -0.373898,     0.520072, std,    0.129830, mean,    0.055058, rmse,    0.140993
-8-th win output fxp           , Absolute Error range,   -0.061364,     0.051322, std,    0.014284, mean,   -0.000061, rmse,    0.014281
-9-th win output hub           , Absolute Error range,   -0.387087,     0.590176, std,    0.131648, mean,    0.057786, rmse,    0.143742
-9-th win output fxp           , Absolute Error range,   -0.047201,     0.065513, std,    0.014726, mean,    0.000115, rmse,    0.014723
-0-th win output hub           , Absolute Error range,   -0.156250,     0.172195, std,    0.039630, mean,    0.013619, rmse,    0.041896
-0-th win output fxp           , Absolute Error range,   -0.016577,     0.020518, std,    0.004474, mean,    0.000007, rmse,    0.004472
-1-th win output hub           , Absolute Error range,   -0.197872,     0.218750, std,    0.054367, mean,    0.016975, rmse,    0.056943
-1-th win output fxp           , Absolute Error range,   -0.018982,     0.020495, std,    0.005762, mean,    0.000103, rmse,    0.005762
-2-th win output hub           , Absolute Error range,   -0.209725,     0.265249, std,    0.065192, mean,    0.027350, rmse,    0.070682
-2-th win output fxp           , Absolute Error range,   -0.025814,     0.028246, std,    0.006429, mean,    0.000069, rmse,    0.006428
-3-th win output hub           , Absolute Error range,   -0.222656,     0.373049, std,    0.071310, mean,    0.028296, rmse,    0.076702
-3-th win output fxp           , Absolute Error range,   -0.027720,     0.024561, std,    0.006772, mean,   -0.000135, rmse,    0.006771
-4-th win output hub           , Absolute Error range,   -0.265625,     0.322152, std,    0.074634, mean,    0.029063, rmse,    0.080076
-4-th win output fxp           , Absolute Error range,   -0.029306,     0.028305, std,    0.007243, mean,    0.000115, rmse,    0.007242
-5-th win output hub           , Absolute Error range,   -0.246817,     0.458871, std,    0.075865, mean,    0.031361, rmse,    0.082074
-5-th win output fxp           , Absolute Error range,   -0.025680,     0.026222, std,    0.007291, mean,   -0.000061, rmse,    0.007290
-6-th win output hub           , Absolute Error range,   -0.208877,     0.311323, std,    0.074855, mean,    0.026538, rmse,    0.079403
-6-th win output fxp           , Absolute Error range,   -0.028842,     0.023183, std,    0.007356, mean,    0.000117, rmse,    0.007355
-7-th win output hub           , Absolute Error range,   -0.211222,     0.323167, std,    0.075973, mean,    0.027596, rmse,    0.080812
-7-th win output fxp           , Absolute Error range,   -0.025668,     0.032097, std,    0.007225, mean,    0.000243, rmse,    0.007228
-8-th win output hub           , Absolute Error range,   -0.239639,     0.328196, std,    0.075856, mean,    0.026148, rmse,    0.080219
-8-th win output fxp           , Absolute Error range,   -0.030744,     0.027886, std,    0.007239, mean,    0.000327, rmse,    0.007245
-9-th win output hub           , Absolute Error range,   -0.265279,     0.267898, std,    0.074549, mean,    0.026357, rmse,    0.079053
-9-th win output fxp           , Absolute Error range,   -0.025678,     0.027143, std,    0.007309, mean,    0.000329, rmse,    0.007315
-0-th win output hub           , Absolute Error range,   -0.078613,     0.088836, std,    0.023502, mean,    0.007831, rmse,    0.024767
-0-th win output fxp           , Absolute Error range,   -0.009119,     0.013446, std,    0.002297, mean,   -0.000100, rmse,    0.002298
-1-th win output hub           , Absolute Error range,   -0.102064,     0.186676, std,    0.032894, mean,    0.012707, rmse,    0.035255
-1-th win output fxp           , Absolute Error range,   -0.012490,     0.011906, std,    0.002870, mean,   -0.000101, rmse,    0.002871
-2-th win output hub           , Absolute Error range,   -0.106757,     0.194488, std,    0.035291, mean,    0.010155, rmse,    0.036715
-2-th win output fxp           , Absolute Error range,   -0.018583,     0.012297, std,    0.003223, mean,   -0.000111, rmse,    0.003224
-3-th win output hub           , Absolute Error range,   -0.150519,     0.230697, std,    0.038965, mean,    0.010236, rmse,    0.040278
-3-th win output fxp           , Absolute Error range,   -0.013797,     0.014416, std,    0.003374, mean,   -0.000058, rmse,    0.003373
-4-th win output hub           , Absolute Error range,   -0.189582,     0.219754, std,    0.040622, mean,    0.010506, rmse,    0.041949
-4-th win output fxp           , Absolute Error range,   -0.014371,     0.016062, std,    0.003477, mean,    0.000066, rmse,    0.003477
-5-th win output hub           , Absolute Error range,   -0.164650,     0.180580, std,    0.041120, mean,    0.011953, rmse,    0.042812
-5-th win output fxp           , Absolute Error range,   -0.013598,     0.013077, std,    0.003466, mean,   -0.000114, rmse,    0.003467
-6-th win output hub           , Absolute Error range,   -0.144660,     0.164777, std,    0.040627, mean,    0.011267, rmse,    0.042151
-6-th win output fxp           , Absolute Error range,   -0.016073,     0.012868, std,    0.003526, mean,   -0.000005, rmse,    0.003525
-7-th win output hub           , Absolute Error range,   -0.131712,     0.163559, std,    0.042704, mean,    0.011905, rmse,    0.044323
-7-th win output fxp           , Absolute Error range,   -0.016244,     0.012978, std,    0.003730, mean,   -0.000055, rmse,    0.003729
-8-th win output hub           , Absolute Error range,   -0.141615,     0.169337, std,    0.043607, mean,    0.013968, rmse,    0.045779
-8-th win output fxp           , Absolute Error range,   -0.014605,     0.013338, std,    0.003705, mean,   -0.000051, rmse,    0.003704
-9-th win output hub           , Absolute Error range,   -0.246283,     0.188717, std,    0.043940, mean,    0.010176, rmse,    0.045092
-9-th win output fxp           , Absolute Error range,   -0.013376,     0.011508, std,    0.003647, mean,   -0.000152, rmse,    0.003650
-0-th win output hub           , Absolute Error range,   -0.040954,     0.050781, std,    0.014294, mean,    0.002518, rmse,    0.014510
-0-th win output fxp           , Absolute Error range,   -0.004166,     0.004461, std,    0.001141, mean,    0.000026, rmse,    0.001141
-1-th win output hub           , Absolute Error range,   -0.076136,     0.109394, std,    0.019388, mean,    0.003256, rmse,    0.019655
-1-th win output fxp           , Absolute Error range,   -0.006013,     0.005195, std,    0.001450, mean,    0.000036, rmse,    0.001450
-2-th win output hub           , Absolute Error range,   -0.088032,     0.094551, std,    0.023175, mean,    0.004868, rmse,    0.023675
-2-th win output fxp           , Absolute Error range,   -0.005839,     0.005819, std,    0.001618, mean,   -0.000027, rmse,    0.001618
-3-th win output hub           , Absolute Error range,   -0.113601,     0.099205, std,    0.024042, mean,    0.003488, rmse,    0.024288
-3-th win output fxp           , Absolute Error range,   -0.008164,     0.006259, std,    0.001700, mean,   -0.000038, rmse,    0.001700
-4-th win output hub           , Absolute Error range,   -0.082854,     0.119748, std,    0.024231, mean,    0.004721, rmse,    0.024680
-4-th win output fxp           , Absolute Error range,   -0.007507,     0.007349, std,    0.001669, mean,   -0.000026, rmse,    0.001669
-5-th win output hub           , Absolute Error range,   -0.098844,     0.169150, std,    0.024890, mean,    0.004294, rmse,    0.025252
-5-th win output fxp           , Absolute Error range,   -0.006367,     0.007408, std,    0.001739, mean,   -0.000018, rmse,    0.001739
-6-th win output hub           , Absolute Error range,   -0.094741,     0.143540, std,    0.025203, mean,    0.004721, rmse,    0.025636
-6-th win output fxp           , Absolute Error range,   -0.006709,     0.006602, std,    0.001793, mean,    0.000024, rmse,    0.001793
-7-th win output hub           , Absolute Error range,   -0.112901,     0.107903, std,    0.025338, mean,    0.005020, rmse,    0.025824
-7-th win output fxp           , Absolute Error range,   -0.006615,     0.007125, std,    0.001838, mean,    0.000053, rmse,    0.001838
-8-th win output hub           , Absolute Error range,   -0.121046,     0.111162, std,    0.025470, mean,    0.005882, rmse,    0.026134
-8-th win output fxp           , Absolute Error range,   -0.006162,     0.008977, std,    0.001927, mean,    0.000088, rmse,    0.001929
-9-th win output hub           , Absolute Error range,   -0.106793,     0.126798, std,    0.025499, mean,    0.005936, rmse,    0.026175
-9-th win output fxp           , Absolute Error range,   -0.009314,     0.008694, std,    0.001926, mean,    0.000011, rmse,    0.001926
-0-th win output hub           , Absolute Error range,   -0.033599,     0.039673, std,    0.011717, mean,    0.001560, rmse,    0.011817
-0-th win output fxp           , Absolute Error range,   -0.002550,     0.002656, std,    0.000582, mean,   -0.000019, rmse,    0.000582
-1-th win output hub           , Absolute Error range,   -0.053400,     0.054764, std,    0.013638, mean,    0.001264, rmse,    0.013693
-1-th win output fxp           , Absolute Error range,   -0.003095,     0.003343, std,    0.000722, mean,   -0.000013, rmse,    0.000722
-2-th win output hub           , Absolute Error range,   -0.062504,     0.068254, std,    0.016256, mean,    0.001843, rmse,    0.016356
-2-th win output fxp           , Absolute Error range,   -0.002742,     0.004422, std,    0.000830, mean,    0.000008, rmse,    0.000830
-3-th win output hub           , Absolute Error range,   -0.082281,     0.063288, std,    0.016928, mean,    0.001451, rmse,    0.016986
-3-th win output fxp           , Absolute Error range,   -0.003505,     0.003387, std,    0.000866, mean,    0.000025, rmse,    0.000866
-4-th win output hub           , Absolute Error range,   -0.059852,     0.093019, std,    0.017459, mean,    0.002369, rmse,    0.017615
-4-th win output fxp           , Absolute Error range,   -0.003639,     0.003524, std,    0.000870, mean,    0.000004, rmse,    0.000870
-5-th win output hub           , Absolute Error range,   -0.066098,     0.101662, std,    0.017621, mean,    0.001268, rmse,    0.017663
-5-th win output fxp           , Absolute Error range,   -0.003422,     0.003745, std,    0.000894, mean,    0.000015, rmse,    0.000893
-6-th win output hub           , Absolute Error range,   -0.083316,     0.095185, std,    0.017807, mean,    0.001338, rmse,    0.017853
-6-th win output fxp           , Absolute Error range,   -0.003179,     0.003425, std,    0.000888, mean,   -0.000000, rmse,    0.000887
-7-th win output hub           , Absolute Error range,   -0.079102,     0.119111, std,    0.017671, mean,    0.001008, rmse,    0.017695
-7-th win output fxp           , Absolute Error range,   -0.004116,     0.004199, std,    0.000879, mean,   -0.000009, rmse,    0.000879
-8-th win output hub           , Absolute Error range,   -0.059801,     0.072987, std,    0.018022, mean,    0.001283, rmse,    0.018063
-8-th win output fxp           , Absolute Error range,   -0.004116,     0.003432, std,    0.000905, mean,    0.000013, rmse,    0.000905
-9-th win output hub           , Absolute Error range,   -0.067201,     0.148055, std,    0.018405, mean,    0.002603, rmse,    0.018584
-9-th win output fxp           , Absolute Error range,   -0.004116,     0.002972, std,    0.000931, mean,   -0.000003, rmse,    0.000931
-[[[0.08018328 0.10748742 0.12107454 0.12964822 0.13116911 0.13556913
-   0.13869441 0.1364738  0.14099307 0.14374214]
-  [0.00906551 0.01127523 0.01312348 0.01335575 0.01397582 0.01439769
-   0.01441726 0.01417858 0.01428074 0.01472329]]
+0-th win output hub           , Absolute Error range,   -0.242842,     0.286664, std,    0.069937, mean,    0.029266, rmse,    0.075798
+0-th win output fxp           , Absolute Error range,   -0.033216,     0.045753, std,    0.009213, mean,    0.000312, rmse,    0.009216
+1-th win output hub           , Absolute Error range,   -0.308559,     0.411881, std,    0.095877, mean,    0.038830, rmse,    0.103420
+1-th win output fxp           , Absolute Error range,   -0.061578,     0.052718, std,    0.011769, mean,   -0.000049, rmse,    0.011766
+2-th win output hub           , Absolute Error range,   -0.353388,     0.414084, std,    0.108930, mean,    0.042050, rmse,    0.116740
+2-th win output fxp           , Absolute Error range,   -0.050634,     0.045944, std,    0.012578, mean,    0.000112, rmse,    0.012576
+3-th win output hub           , Absolute Error range,   -0.359375,     0.513816, std,    0.120796, mean,    0.052714, rmse,    0.131770
+3-th win output fxp           , Absolute Error range,   -0.054982,     0.055145, std,    0.013550, mean,    0.000239, rmse,    0.013549
+4-th win output hub           , Absolute Error range,   -0.500000,     0.562500, std,    0.124509, mean,    0.048878, rmse,    0.133731
+4-th win output fxp           , Absolute Error range,   -0.050181,     0.055145, std,    0.013581, mean,    0.000092, rmse,    0.013578
+5-th win output hub           , Absolute Error range,   -0.476562,     0.587661, std,    0.130043, mean,    0.048235, rmse,    0.138671
+5-th win output fxp           , Absolute Error range,   -0.053158,     0.051840, std,    0.014172, mean,    0.000112, rmse,    0.014169
+6-th win output hub           , Absolute Error range,   -0.355697,     0.500966, std,    0.129220, mean,    0.050454, rmse,    0.138691
+6-th win output fxp           , Absolute Error range,   -0.053175,     0.054758, std,    0.014119, mean,    0.000604, rmse,    0.014128
+7-th win output hub           , Absolute Error range,   -0.393715,     0.575197, std,    0.131417, mean,    0.051282, rmse,    0.141039
+7-th win output fxp           , Absolute Error range,   -0.053158,     0.047274, std,    0.014572, mean,    0.000173, rmse,    0.014569
+8-th win output hub           , Absolute Error range,   -0.505037,     0.448706, std,    0.132648, mean,    0.052822, rmse,    0.142748
+8-th win output fxp           , Absolute Error range,   -0.052759,     0.048253, std,    0.014442, mean,    0.000167, rmse,    0.014439
+9-th win output hub           , Absolute Error range,   -0.473708,     0.501213, std,    0.133187, mean,    0.046522, rmse,    0.141048
+9-th win output fxp           , Absolute Error range,   -0.053850,     0.050924, std,    0.014781, mean,    0.000113, rmse,    0.014778
+0-th win output hub           , Absolute Error range,   -0.147399,     0.168044, std,    0.041318, mean,    0.015677, rmse,    0.044183
+0-th win output fxp           , Absolute Error range,   -0.021367,     0.023772, std,    0.004522, mean,   -0.000215, rmse,    0.004526
+1-th win output hub           , Absolute Error range,   -0.189453,     0.226040, std,    0.057248, mean,    0.021132, rmse,    0.061010
+1-th win output fxp           , Absolute Error range,   -0.022563,     0.023329, std,    0.005780, mean,   -0.000165, rmse,    0.005781
+2-th win output hub           , Absolute Error range,   -0.184310,     0.251003, std,    0.061564, mean,    0.025983, rmse,    0.066808
+2-th win output fxp           , Absolute Error range,   -0.029820,     0.022222, std,    0.006547, mean,   -0.000050, rmse,    0.006546
+3-th win output hub           , Absolute Error range,   -0.199342,     0.278346, std,    0.069988, mean,    0.030510, rmse,    0.076333
+3-th win output fxp           , Absolute Error range,   -0.031373,     0.029984, std,    0.006918, mean,   -0.000044, rmse,    0.006917
+4-th win output hub           , Absolute Error range,   -0.224410,     0.350056, std,    0.074633, mean,    0.036138, rmse,    0.082906
+4-th win output fxp           , Absolute Error range,   -0.029381,     0.031884, std,    0.007062, mean,   -0.000000, rmse,    0.007060
+5-th win output hub           , Absolute Error range,   -0.288439,     0.318542, std,    0.074959, mean,    0.026820, rmse,    0.079595
+5-th win output fxp           , Absolute Error range,   -0.024433,     0.038018, std,    0.007360, mean,   -0.000110, rmse,    0.007359
+6-th win output hub           , Absolute Error range,   -0.319934,     0.295703, std,    0.075614, mean,    0.029800, rmse,    0.081257
+6-th win output fxp           , Absolute Error range,   -0.028000,     0.036454, std,    0.007540, mean,    0.000139, rmse,    0.007540
+7-th win output hub           , Absolute Error range,   -0.395573,     0.303568, std,    0.077297, mean,    0.029982, rmse,    0.082891
+7-th win output fxp           , Absolute Error range,   -0.028052,     0.028460, std,    0.007424, mean,   -0.000016, rmse,    0.007422
+8-th win output hub           , Absolute Error range,   -0.297913,     0.330912, std,    0.077817, mean,    0.035472, rmse,    0.085503
+8-th win output fxp           , Absolute Error range,   -0.025531,     0.029227, std,    0.007271, mean,   -0.000000, rmse,    0.007269
+9-th win output hub           , Absolute Error range,   -0.242734,     0.319830, std,    0.075140, mean,    0.029764, rmse,    0.080804
+9-th win output fxp           , Absolute Error range,   -0.024000,     0.029920, std,    0.007350, mean,    0.000212, rmse,    0.007351
+0-th win output hub           , Absolute Error range,   -0.082347,     0.077932, std,    0.022290, mean,    0.004113, rmse,    0.022661
+0-th win output fxp           , Absolute Error range,   -0.010164,     0.011096, std,    0.002206, mean,    0.000012, rmse,    0.002206
+1-th win output hub           , Absolute Error range,   -0.117140,     0.114335, std,    0.029498, mean,    0.007588, rmse,    0.030451
+1-th win output fxp           , Absolute Error range,   -0.009680,     0.011556, std,    0.002791, mean,   -0.000024, rmse,    0.002791
+2-th win output hub           , Absolute Error range,   -0.107316,     0.160328, std,    0.035141, mean,    0.011159, rmse,    0.036862
+2-th win output fxp           , Absolute Error range,   -0.010897,     0.014983, std,    0.003102, mean,    0.000027, rmse,    0.003102
+3-th win output hub           , Absolute Error range,   -0.152238,     0.198822, std,    0.038479, mean,    0.012917, rmse,    0.040581
+3-th win output fxp           , Absolute Error range,   -0.011807,     0.014388, std,    0.003218, mean,    0.000134, rmse,    0.003220
+4-th win output hub           , Absolute Error range,   -0.144265,     0.181448, std,    0.040096, mean,    0.014046, rmse,    0.042476
+4-th win output fxp           , Absolute Error range,   -0.010755,     0.012435, std,    0.003305, mean,    0.000147, rmse,    0.003307
+5-th win output hub           , Absolute Error range,   -0.113928,     0.158874, std,    0.041517, mean,    0.013905, rmse,    0.043774
+5-th win output fxp           , Absolute Error range,   -0.021826,     0.013551, std,    0.003375, mean,    0.000038, rmse,    0.003374
+6-th win output hub           , Absolute Error range,   -0.119141,     0.168779, std,    0.041967, mean,    0.011975, rmse,    0.043632
+6-th win output fxp           , Absolute Error range,   -0.018245,     0.014964, std,    0.003578, mean,    0.000064, rmse,    0.003578
+7-th win output hub           , Absolute Error range,   -0.118865,     0.209192, std,    0.040750, mean,    0.010635, rmse,    0.042105
+7-th win output fxp           , Absolute Error range,   -0.011113,     0.013851, std,    0.003600, mean,    0.000129, rmse,    0.003602
+8-th win output hub           , Absolute Error range,   -0.169625,     0.246350, std,    0.041811, mean,    0.011616, rmse,    0.043385
+8-th win output fxp           , Absolute Error range,   -0.016375,     0.013350, std,    0.003536, mean,    0.000102, rmse,    0.003537
+9-th win output hub           , Absolute Error range,   -0.144110,     0.209052, std,    0.041906, mean,    0.014416, rmse,    0.044307
+9-th win output fxp           , Absolute Error range,   -0.012700,     0.013255, std,    0.003581, mean,    0.000140, rmse,    0.003583
+0-th win output hub           , Absolute Error range,   -0.051021,     0.052585, std,    0.015005, mean,    0.002603, rmse,    0.015225
+0-th win output fxp           , Absolute Error range,   -0.003914,     0.005652, std,    0.001111, mean,    0.000008, rmse,    0.001110
+1-th win output hub           , Absolute Error range,   -0.078315,     0.078436, std,    0.019343, mean,    0.004624, rmse,    0.019883
+1-th win output fxp           , Absolute Error range,   -0.005129,     0.005288, std,    0.001478, mean,    0.000050, rmse,    0.001478
+2-th win output hub           , Absolute Error range,   -0.097426,     0.099573, std,    0.021304, mean,    0.004513, rmse,    0.021771
+2-th win output fxp           , Absolute Error range,   -0.007446,     0.006862, std,    0.001619, mean,    0.000017, rmse,    0.001619
+3-th win output hub           , Absolute Error range,   -0.068189,     0.123405, std,    0.022170, mean,    0.004463, rmse,    0.022609
+3-th win output fxp           , Absolute Error range,   -0.005654,     0.006585, std,    0.001675, mean,    0.000029, rmse,    0.001675
+4-th win output hub           , Absolute Error range,   -0.091221,     0.107350, std,    0.023912, mean,    0.004177, rmse,    0.024268
+4-th win output fxp           , Absolute Error range,   -0.007264,     0.006774, std,    0.001758, mean,   -0.000055, rmse,    0.001759
+5-th win output hub           , Absolute Error range,   -0.079845,     0.102717, std,    0.024593, mean,    0.006163, rmse,    0.025348
+5-th win output fxp           , Absolute Error range,   -0.005879,     0.006011, std,    0.001722, mean,   -0.000062, rmse,    0.001723
+6-th win output hub           , Absolute Error range,   -0.084498,     0.109992, std,    0.024957, mean,    0.006584, rmse,    0.025805
+6-th win output fxp           , Absolute Error range,   -0.007249,     0.006167, std,    0.001748, mean,   -0.000051, rmse,    0.001748
+7-th win output hub           , Absolute Error range,   -0.112481,     0.102721, std,    0.025866, mean,    0.005946, rmse,    0.026534
+7-th win output fxp           , Absolute Error range,   -0.007640,     0.005722, std,    0.001811, mean,   -0.000064, rmse,    0.001811
+8-th win output hub           , Absolute Error range,   -0.102492,     0.129085, std,    0.026417, mean,    0.008219, rmse,    0.027660
+8-th win output fxp           , Absolute Error range,   -0.007022,     0.007347, std,    0.001822, mean,   -0.000064, rmse,    0.001823
+9-th win output hub           , Absolute Error range,   -0.104181,     0.116762, std,    0.026194, mean,    0.006550, rmse,    0.026994
+9-th win output fxp           , Absolute Error range,   -0.008486,     0.006307, std,    0.001839, mean,   -0.000040, rmse,    0.001839
+0-th win output hub           , Absolute Error range,   -0.033342,     0.039865, std,    0.011300, mean,    0.001912, rmse,    0.011458
+0-th win output fxp           , Absolute Error range,   -0.003588,     0.002713, std,    0.000589, mean,    0.000002, rmse,    0.000588
+1-th win output hub           , Absolute Error range,   -0.048241,     0.051264, std,    0.013843, mean,    0.002588, rmse,    0.014080
+1-th win output fxp           , Absolute Error range,   -0.002868,     0.002879, std,    0.000721, mean,   -0.000002, rmse,    0.000721
+2-th win output hub           , Absolute Error range,   -0.058157,     0.064048, std,    0.015446, mean,    0.002197, rmse,    0.015597
+2-th win output fxp           , Absolute Error range,   -0.003200,     0.002800, std,    0.000822, mean,    0.000003, rmse,    0.000822
+3-th win output hub           , Absolute Error range,   -0.066761,     0.078839, std,    0.016523, mean,    0.003090, rmse,    0.016805
+3-th win output fxp           , Absolute Error range,   -0.003620,     0.003954, std,    0.000866, mean,   -0.000023, rmse,    0.000866
+4-th win output hub           , Absolute Error range,   -0.086653,     0.084772, std,    0.017456, mean,    0.002909, rmse,    0.017692
+4-th win output fxp           , Absolute Error range,   -0.003620,     0.003390, std,    0.000912, mean,   -0.000024, rmse,    0.000912
+5-th win output hub           , Absolute Error range,   -0.104231,     0.070980, std,    0.018307, mean,    0.002690, rmse,    0.018499
+5-th win output fxp           , Absolute Error range,   -0.002908,     0.003526, std,    0.000918, mean,   -0.000011, rmse,    0.000918
+6-th win output hub           , Absolute Error range,   -0.093411,     0.100832, std,    0.019119, mean,    0.003249, rmse,    0.019389
+6-th win output fxp           , Absolute Error range,   -0.004353,     0.003527, std,    0.000957, mean,   -0.000007, rmse,    0.000956
+7-th win output hub           , Absolute Error range,   -0.094535,     0.104546, std,    0.018949, mean,    0.002335, rmse,    0.019088
+7-th win output fxp           , Absolute Error range,   -0.004731,     0.003665, std,    0.000946, mean,   -0.000012, rmse,    0.000945
+8-th win output hub           , Absolute Error range,   -0.075571,     0.082146, std,    0.018541, mean,    0.002368, rmse,    0.018687
+8-th win output fxp           , Absolute Error range,   -0.004296,     0.003074, std,    0.000944, mean,   -0.000026, rmse,    0.000944
+9-th win output hub           , Absolute Error range,   -0.073848,     0.078810, std,    0.018308, mean,    0.002804, rmse,    0.018517
+9-th win output fxp           , Absolute Error range,   -0.003635,     0.004041, std,    0.000955, mean,   -0.000001, rmse,    0.000954
+[[[0.07579813 0.10341966 0.1167398  0.13177021 0.13373123 0.13867068
+   0.13869132 0.14103876 0.14274839 0.14104792]
+  [0.00921607 0.01176605 0.01257579 0.01354851 0.01357793 0.014169
+   0.01412842 0.01456907 0.01443933 0.01477804]]
 
- [[0.04189606 0.0569427  0.07068183 0.07670249 0.08007631 0.08207437
-   0.07940313 0.08081184 0.08021854 0.0790535 ]
-  [0.00447243 0.00576173 0.00642774 0.00677147 0.00724232 0.0072897
-   0.00735491 0.0072277  0.00724491 0.00731467]]
+ [[0.04418278 0.06101032 0.06680848 0.07633318 0.08290556 0.07959539
+   0.08125748 0.08289089 0.08550333 0.08080351]
+  [0.00452638 0.00578067 0.00654555 0.00691679 0.00706045 0.00735913
+   0.00753957 0.0074222  0.00726947 0.00735102]]
 
- [[0.02476726 0.03525516 0.0367148  0.04027826 0.04194945 0.04281215
-   0.04215113 0.0443226  0.0457794  0.04509234]
-  [0.0022981  0.00287134 0.00322415 0.00337319 0.00347706 0.00346743
-   0.00352529 0.00372928 0.00370445 0.00364975]]
+ [[0.02266115 0.03045116 0.0368618  0.04058071 0.042476   0.04377358
+   0.04363174 0.04210541 0.04338481 0.04430689]
+  [0.00220597 0.00279061 0.00310174 0.00322042 0.00330734 0.00337424
+   0.00357756 0.00360169 0.00353658 0.00358319]]
 
- [[0.01451043 0.01965474 0.0236753  0.0242883  0.02468044 0.02525165
-   0.02563563 0.02582433 0.02613395 0.02617477]
-  [0.00114091 0.00145004 0.00161823 0.00169962 0.00166912 0.00173858
-   0.00179262 0.0018382  0.0019286  0.0019257 ]]
+ [[0.01522517 0.01988305 0.02177122 0.02260938 0.02426797 0.02534807
+   0.02580516 0.02653422 0.02765977 0.02699391]
+  [0.00111028 0.00147815 0.00161891 0.00167527 0.0017586  0.0017226
+   0.00174815 0.00181126 0.00182253 0.00183852]]
 
- [[0.0118173  0.01369348 0.01635598 0.01698574 0.01761495 0.01766251
-   0.01785297 0.01769523 0.01806297 0.01858367]
-  [0.00058245 0.0007222  0.0008297  0.00086602 0.00086993 0.00089348
-   0.00088746 0.00087933 0.00090485 0.00093087]]]
+ [[0.01145799 0.01407985 0.01559725 0.01680536 0.01769225 0.01849928
+   0.01938876 0.0190877  0.0186869  0.01851729]
+  [0.00058836 0.00072127 0.00082161 0.00086577 0.00091167 0.00091811
+   0.00095637 0.00094538 0.0009438  0.00095442]]]
