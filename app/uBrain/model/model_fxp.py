@@ -20,7 +20,7 @@ class Cascade_CNN_RNN(torch.nn.Module):
     """
     def __init__(self,
                     intwidth=0, fracwidth=7, 
-                    input_sz=(10, 11),
+                    input_sz=[10, 11],
                     linear_act="scalerelu",
                     cnn_chn=16,
                     cnn_kn_sz=3,
