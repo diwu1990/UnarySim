@@ -225,11 +225,10 @@ if args.task_mi is True:
     print("\tResultant outlier ratio: %2.3f %%" % (outlier_ratio*100))
 
 if args.task_sp is True:
-    if args.input_sample == "10-10":
-        dataset_file_sp = dataset_dir_mi+system+\
-            "preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
-        label_file_mi = dataset_dir_mi+system+\
-            "preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    dataset_file_sp = dataset_dir_mi+system+\
+        "preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    label_file_mi = dataset_dir_mi+system+\
+        "preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
     with open(dataset_file_sp, "rb") as fp:
         datasets_sp = pickle.load(fp)
         datasets_sp = datasets_sp.reshape(len(datasets_sp), rnn_win_sz, input_sz[0], input_sz[1])
