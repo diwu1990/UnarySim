@@ -264,7 +264,7 @@ matplotlib.rc('font', **font)
 
 my_dpi = 300
 fig_h = 0.8
-fig_w = 3.5
+fig_w = 3.6
 alpha = 1
 
 labels = [str(bitwidth) for bitwidth in bitwidth_list]
