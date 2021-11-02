@@ -122,8 +122,11 @@ parser.add_argument('--set_store', action='store_true', help=hpstr)
 hpstr = "set train seed"
 parser.add_argument('-s', '--seed', default=33, type=int, help=hpstr)
 
-hpstr = "set bitwidth for all unary data"
-parser.add_argument('-bw', '--bitwidth', default=8, type=int, help=hpstr)
+hpstr = "set bitwidth for all unary data in tc layers"
+parser.add_argument('-bwtc', '--bitwidth_tc', default=8, type=int, help=hpstr)
+
+hpstr = "set bitwidth for all unary data in rc layers"
+parser.add_argument('-bwrc', '--bitwidth_rc', default=8, type=int, help=hpstr)
 
 hpstr = "set rng type"
 parser.add_argument('-rng', '--rng', default="Sobol", type=str, help=hpstr)
@@ -329,7 +332,8 @@ model = Cascade_CNN_RNN(
                                 keep_prob=keep_prob, # prob for drop out after each FC
                                 num_class=num_class, # output size
 
-                                bitwidth=args.bitwidth, 
+                                bitwidth_tc=args.bitwidth_tc, 
+                                bitwidth_rc=args.bitwidth_rc, 
                                 rng=args.rng, 
                                 conv1_weight=state_dict_fp["conv1.weight"], 
                                 conv1_bias=args.bias, 
@@ -358,30 +362,34 @@ model.eval()
 
 correct = 0
 total = 0
+total_cnt = 100
+
 with torch.no_grad():
+    cnt = 0
     for data in test_dataloader:
+        if cnt % 10 == 0:
+            start_time = time.time()
+        if cnt >= total_cnt:
+            break
         inputs, labels = data[0].to(device, non_blocking=non_blocking), data[1].to(device, non_blocking=non_blocking)
         outputs = model(inputs)
         predicted = torch.argmax(outputs, dim=1)
         total += torch.argmax(labels, dim=1).size()[0]
         correct += (predicted == torch.argmax(labels, dim=1)).sum().item()
+        cnt = cnt + 1
+        if cnt % 10 == 0:
+            print("--- %s seconds ---" % (time.time() - start_time))
+            print("Current sample count: ", cnt * bin_test_batch_sz)
+
     
-    print("\nActivation profiling in the last test epoch: ")
-    tensor_unary_outlier(model.conv1_i, "conv1_i")
-    tensor_unary_outlier(model.conv1_act_o, "conv1_act_o")
-    tensor_unary_outlier(model.conv2_act_o, "conv2_act_o")
-    tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
-    for idx in range(rnn_win_sz):
-        # tensor_unary_outlier(model.fg_ug_in[idx], "fg_ug_in_[%2d]"%idx)
-        # tensor_unary_outlier(model.fg_in[idx], "fg_in_[%2d]"%idx)
-        # tensor_unary_outlier(model.fg[idx], "fg_[%2d]"%idx)
-        # tensor_unary_outlier(model.fg_hx[idx], "fg_hx_[%2d]"%idx)
-        # tensor_unary_outlier(model.ng_ug_in[idx], "ng_ug_in_[%2d]"%idx)
-        # tensor_unary_outlier(model.ng[idx], "ng_[%2d]"%idx)
-        # tensor_unary_outlier(model.fg_ng[idx], "fg_ng_[%2d]"%idx)
-        # tensor_unary_outlier(model.fg_ng_inv[idx], "fg_ng_inv_[%2d]"%idx)
-        tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
-    tensor_unary_outlier(outputs, "outputs")
+    # print("\nActivation profiling in the last test epoch: ")
+    # tensor_unary_outlier(model.conv1_i, "conv1_i")
+    # tensor_unary_outlier(model.conv1_act_o, "conv1_act_o")
+    # tensor_unary_outlier(model.conv2_act_o, "conv2_act_o")
+    # tensor_unary_outlier(model.fc3_act_o, "fc3_act_o")
+    # for idx in range(rnn_win_sz):
+    #     tensor_unary_outlier(model.rnn_out[idx], "rnn_out_[%2d]"%idx)
+    # tensor_unary_outlier(outputs, "outputs")
 
     acc = 100 * correct / total
 print("Test Accuracy: %3.3f %%" % (acc))
