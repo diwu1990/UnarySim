@@ -41,7 +41,7 @@ err_array = np.zeros((len(bitwidth_list), 2, 5))
 
 for bitwidth_index in range(len(bitwidth_list)):
     bitwidth = bitwidth_list[bitwidth_index]
-    cycle = 2**bitwidth
+    cycle = 2**(bitwidth-1)
     print("bit width:", bitwidth)
 
     fracwidth = bitwidth - intwidth

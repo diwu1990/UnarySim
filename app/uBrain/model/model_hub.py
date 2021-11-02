@@ -35,7 +35,8 @@ class Cascade_CNN_RNN(torch.nn.Module):
                     keep_prob=0.5,
                     num_class=[5, 2],
 
-                    bitwidth=8, 
+                    bitwidth_tc=8, 
+                    bitwidth_rc=8, 
                     rng="Sobol", 
                     conv1_weight=None, 
                     conv1_bias=None, 
@@ -61,7 +62,8 @@ class Cascade_CNN_RNN(torch.nn.Module):
         self.rnn_hidden_sz = rnn_hidden_sz
         self.bias = bias
         self.num_class = num_class
-        self.bitwidth = bitwidth
+        self.bitwidth_tc = bitwidth_tc
+        self.bitwidth_rc = bitwidth_rc
         self.rng = rng
         self.conv1_weight = conv1_weight
         self.conv1_bias = conv1_bias
@@ -75,29 +77,29 @@ class Cascade_CNN_RNN(torch.nn.Module):
         self.rnn4_bias_n = rnn4_bias_n
         self.fc5_weight = fc5_weight
         self.fc5_bias = fc5_bias
-        self.cycle = 2**bitwidth
+        self.cycle_tc = 2**(bitwidth_tc-1)
         self.mode = "bipolar"
 
         # CNN
         self.conv1          = HUBConv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding, 
-                                        binary_weight=self.conv1_weight, binary_bias=self.conv1_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.conv1_weight, binary_bias=self.conv1_bias, rng=self.rng, cycle=self.cycle_tc)
         self.conv2          = HUBConv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding, 
-                                        binary_weight=self.conv2_weight, binary_bias=self.conv2_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.conv2_weight, binary_bias=self.conv2_bias, rng=self.rng, cycle=self.cycle_tc)
         self.fc3            = HUBLinear((input_sz[0]+2*2*(cnn_padding-1))*(input_sz[1]+2*2*(cnn_padding-1))*cnn_chn*2, fc_sz, bias=bias, 
-                                        binary_weight=self.fc3_weight, binary_bias=self.fc3_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.fc3_weight, binary_bias=self.fc3_bias, rng=self.rng, cycle=self.cycle_tc)
         self.fc3_drop       = nn.Dropout(p=1-keep_prob)
 
         # RNN
         if rnn.lower() == "mgu":
             self.rnncell4 = HUBMGUCell(fc_sz, rnn_hidden_sz, bias=bias, 
                                 binary_weight_f=self.rnn4_weight_f, binary_bias_f=self.rnn4_bias_f, binary_weight_n=self.rnn4_weight_n, binary_bias_n=self.rnn4_bias_n, 
-                                rng=rng, bitwidth=bitwidth, mode=self.mode, depth=depth, depth_ismul=depth_ismul)
+                                rng=rng, bitwidth=bitwidth_rc, mode=self.mode, depth=depth, depth_ismul=depth_ismul)
         else:
             print("rnn type needs to be 'mgu'.")
 
         # MLP
         self.fc5            = HUBLinear(rnn_hidden_sz, sum(num_class), bias=bias, 
-                                        binary_weight=self.fc5_weight, binary_bias=self.fc5_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.fc5_weight, binary_bias=self.fc5_bias, rng=self.rng, cycle=self.cycle_tc)
 
         self.linear_act = linear_act.lower()
 
@@ -151,26 +153,10 @@ class Cascade_CNN_RNN(torch.nn.Module):
         self.fc3_trans_o    = self.fc3_view_o.transpose(0, 1)
 
         # RNN
-        # self.fg_ug_in = []
-        # self.fg_in = []
-        # self.fg = []
-        # self.fg_hx = []
-        # self.ng_ug_in = []
-        # self.ng = []
-        # self.fg_ng = []
-        # self.fg_ng_inv = []
         self.rnn_out = []
         hx = torch.zeros(self.fc3_trans_o[0].size()[0], self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
         for i in range(self.rnn_win_sz):
             hx = self.rnncell4(self.fc3_trans_o[i], hx)
-            # self.fg_ug_in.append(self.rnn4.fg_ug_in)
-            # self.fg_in.append(self.rnn4.fg_in)
-            # self.fg.append(self.rnn4.fg)
-            # self.fg_hx.append(self.rnn4.fg_hx)
-            # self.ng_ug_in.append(self.rnn4.ng_ug_in)
-            # self.ng.append(self.rnn4.ng)
-            # self.fg_ng.append(self.rnn4.fg_ng)
-            # self.fg_ng_inv.append(self.rnn4.fg_ng_inv)
             self.rnn_out.append(hx)
 
         # MLP
@@ -201,7 +187,8 @@ class Cascade_CNN_RNN_fp_rnn(torch.nn.Module):
                     keep_prob=0.5,
                     num_class=[5, 2],
 
-                    bitwidth=8, 
+                    bitwidth_tc=8, 
+                    bitwidth_rc=8, 
                     rng="Sobol", 
                     conv1_weight=None, 
                     conv1_bias=None, 
@@ -227,7 +214,8 @@ class Cascade_CNN_RNN_fp_rnn(torch.nn.Module):
         self.rnn_hidden_sz = rnn_hidden_sz
         self.bias = bias
         self.num_class = num_class
-        self.bitwidth = bitwidth
+        self.bitwidth_tc = bitwidth_tc
+        self.bitwidth_rc = bitwidth_rc
         self.rng = rng
         self.conv1_weight = conv1_weight
         self.conv1_bias = conv1_bias
@@ -241,16 +229,16 @@ class Cascade_CNN_RNN_fp_rnn(torch.nn.Module):
         self.rnn4_bias_n = rnn4_bias_n
         self.fc5_weight = fc5_weight
         self.fc5_bias = fc5_bias
-        self.cycle = 2**bitwidth
+        self.cycle_tc = 2**(bitwidth_tc-1)
         self.mode = "bipolar"
 
         # CNN
         self.conv1          = HUBConv2d(1        , cnn_chn  , (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding, 
-                                        binary_weight=self.conv1_weight, binary_bias=self.conv1_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.conv1_weight, binary_bias=self.conv1_bias, rng=self.rng, cycle=self.cycle_tc)
         self.conv2          = HUBConv2d(cnn_chn  , cnn_chn*2, (cnn_kn_sz, cnn_kn_sz), bias=bias, padding=cnn_padding, 
-                                        binary_weight=self.conv2_weight, binary_bias=self.conv2_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.conv2_weight, binary_bias=self.conv2_bias, rng=self.rng, cycle=self.cycle_tc)
         self.fc3            = HUBLinear((input_sz[0]+2*2*(cnn_padding-1))*(input_sz[1]+2*2*(cnn_padding-1))*cnn_chn*2, fc_sz, bias=bias, 
-                                        binary_weight=self.fc3_weight, binary_bias=self.fc3_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.fc3_weight, binary_bias=self.fc3_bias, rng=self.rng, cycle=self.cycle_tc)
         self.fc3_drop       = nn.Dropout(p=1-keep_prob)
 
         # RNN
@@ -261,7 +249,7 @@ class Cascade_CNN_RNN_fp_rnn(torch.nn.Module):
 
         # MLP
         self.fc5            = HUBLinear(rnn_hidden_sz, sum(num_class), bias=bias, 
-                                        binary_weight=self.fc5_weight, binary_bias=self.fc5_bias, rng=self.rng, cycle=self.cycle)
+                                        binary_weight=self.fc5_weight, binary_bias=self.fc5_bias, rng=self.rng, cycle=self.cycle_tc)
 
         self.linear_act = linear_act.lower()
 
@@ -315,26 +303,10 @@ class Cascade_CNN_RNN_fp_rnn(torch.nn.Module):
         self.fc3_trans_o    = self.fc3_view_o.transpose(0, 1)
 
         # RNN
-        # self.fg_ug_in = []
-        # self.fg_in = []
-        # self.fg = []
-        # self.fg_hx = []
-        # self.ng_ug_in = []
-        # self.ng = []
-        # self.fg_ng = []
-        # self.fg_ng_inv = []
         self.rnn_out = []
         hx = torch.zeros(self.fc3_trans_o[0].size()[0], self.rnn_hidden_sz, dtype=input.dtype, device=input.device)
         for i in range(self.rnn_win_sz):
             hx = self.rnncell4(self.fc3_trans_o[i], hx)
-            # self.fg_ug_in.append(self.rnn4.fg_ug_in)
-            # self.fg_in.append(self.rnn4.fg_in)
-            # self.fg.append(self.rnn4.fg)
-            # self.fg_hx.append(self.rnn4.fg_hx)
-            # self.ng_ug_in.append(self.rnn4.ng_ug_in)
-            # self.ng.append(self.rnn4.ng)
-            # self.fg_ng.append(self.rnn4.fg_ng)
-            # self.fg_ng_inv.append(self.rnn4.fg_ng_inv)
             self.rnn_out.append(hx)
 
         # MLP
