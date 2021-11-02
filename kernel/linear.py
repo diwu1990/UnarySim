@@ -932,6 +932,8 @@ class HUBLinear(torch.nn.Linear):
     2) binary weight
     3) binary bias
     4) mac cycle
+    This cycle is the mac cycle using unipolar umul, i.e., half the bipolar umul. 
+    As such, cycle = 2 ^ (bitwidth - 1).
     """
     def __init__(self, 
                  in_features, 
