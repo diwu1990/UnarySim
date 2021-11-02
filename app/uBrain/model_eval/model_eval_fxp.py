@@ -291,14 +291,13 @@ test_dataloader = DataLoader(
                                 )
 print("********************* Dataset Configuration End *********************\n")
 
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # model configuration
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 print("********************* Model Configuration Start *********************")
 assert rnn_hard == True, "FXP inference should always applies HardMGU!"
-model = Cascade_CNN_RNN(intwidth=0, 
-                                fracwidth=7, 
+model = Cascade_CNN_RNN(intwidth=intwidth, 
+                                fracwidth=fracwidth, 
                                 input_sz=input_sz, # size of each window
                                 linear_act=linear_act, # activation in CNN
                                 cnn_chn=cnn_chn, # input channle in CNN
