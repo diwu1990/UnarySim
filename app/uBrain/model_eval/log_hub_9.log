@@ -16,26 +16,26 @@ loaded state_dict_fp:  odict_keys(['conv1.weight', 'conv2.weight', 'fc3.weight',
 ********************** Model Configuration End **********************
 
 **************************** Test Start *****************************
---- 76.01242589950562 seconds ---
+--- 77.74544620513916 seconds ---
 Current sample count:  640
---- 74.9290509223938 seconds ---
+--- 76.46593809127808 seconds ---
 Current sample count:  1280
---- 75.7965099811554 seconds ---
+--- 76.08233571052551 seconds ---
 Current sample count:  1920
---- 74.63668894767761 seconds ---
+--- 75.72830533981323 seconds ---
 Current sample count:  2560
---- 75.24082088470459 seconds ---
+--- 75.72173070907593 seconds ---
 Current sample count:  3200
---- 75.0881175994873 seconds ---
+--- 75.62884998321533 seconds ---
 Current sample count:  3840
---- 75.92742681503296 seconds ---
+--- 75.59482002258301 seconds ---
 Current sample count:  4480
---- 76.22815108299255 seconds ---
+--- 76.30803203582764 seconds ---
 Current sample count:  5120
---- 75.94472432136536 seconds ---
+--- 75.90556144714355 seconds ---
 Current sample count:  5760
---- 79.06646919250488 seconds ---
+--- 76.18338704109192 seconds ---
 Current sample count:  6400
-Test Accuracy: 91.656 %
+Test Accuracy: 92.219 %
 ***************************** Test End ******************************
 
