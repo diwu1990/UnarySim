@@ -297,7 +297,7 @@ for idx in range(len(bitwidth_list)):
         ax.plot(x_axe, data_hub, "-s", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
         ax.plot(x_axe, data_fxp, "-^", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
 
-locs = [0, 0.01, 0.02]
+locs = [0, 0.02, 0.04]
 ax.set_yticks(locs)
 y_label_list = []
 for y in locs:
