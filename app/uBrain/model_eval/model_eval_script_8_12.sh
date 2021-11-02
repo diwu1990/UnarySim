@@ -2,7 +2,7 @@
 
 start=`date +%s`
 
-bandwidth_list=(8 9 10 11 12)
+bitwidth_list=(8 9 10 11 12)
 system="10-10"
 
 # run fp model result
@@ -10,7 +10,7 @@ echo "python /home/diwu/Project/UnarySim/app/uBrain/model_eval/model_eval_fp.py 
 python /home/diwu/Project/UnarySim/app/uBrain/model_eval/model_eval_fp.py --task_mi -i=$system --rnn_hard -bstest=64 > /home/diwu/Project/UnarySim/app/uBrain/model_eval/log_fp.log
 
 # # run fxp model result
-for i in $bandwidth_list; do
+for i in $bitwidth_list; do
     let iw=0
     let fw=$i-1
     echo "python /home/diwu/Project/UnarySim/app/uBrain/model_eval/model_eval_fxp.py --task_mi -i=$system --rnn_hard -iw=$iw -fw=$fw -bstest=64 > /home/diwu/Project/UnarySim/app/uBrain/model_eval/log_fxp_$i.log"
@@ -18,7 +18,7 @@ for i in $bandwidth_list; do
 done
 
 # run hub model result
-for i in $bandwidth_list; do
+for i in $bitwidth_list; do
     let bitwidth_tc=$i
     let bitwidth_rc=$i
     let depa=$bitwidth_rc+4
