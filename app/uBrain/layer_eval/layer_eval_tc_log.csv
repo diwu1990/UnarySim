@@ -1,64 +1,64 @@
-conv1 hub                     , Absolute Error range,   -0.049322,     0.062020, std,    0.009168, mean,    0.001632, rmse,    0.009313
-conv2 hub                     , Absolute Error range,   -0.248137,     0.204647, std,    0.021545, mean,    0.001024, rmse,    0.021569
-fc3 hub                       , Absolute Error range,   -0.757812,     0.518932, std,    0.046499, mean,   -0.000281, rmse,    0.046497
-fc5 hub                       , Absolute Error range,   -0.091627,     0.069434, std,    0.022776, mean,    0.000445, rmse,    0.022709
-fc6 hub                       , Absolute Error range,   -0.055818,     0.069915, std,    0.023854, mean,    0.003652, rmse,    0.023947
-conv1 fxp                     , Absolute Error range,   -0.020045,     0.020122, std,    0.003057, mean,    0.000156, rmse,    0.003061
-conv2 fxp                     , Absolute Error range,   -0.068166,     0.058903, std,    0.006651, mean,   -0.000012, rmse,    0.006651
-fc3 fxp                       , Absolute Error range,   -0.231857,     0.207681, std,    0.015754, mean,    0.000381, rmse,    0.015758
-fc5 fxp                       , Absolute Error range,   -0.030541,     0.028572, std,    0.008405, mean,    0.000543, rmse,    0.008396
-fc6 fxp                       , Absolute Error range,   -0.020404,     0.022521, std,    0.007077, mean,   -0.000376, rmse,    0.007032
-conv1 hub                     , Absolute Error range,   -0.027085,     0.034988, std,    0.004914, mean,    0.001070, rmse,    0.005029
-conv2 hub                     , Absolute Error range,   -0.103316,     0.109410, std,    0.011360, mean,    0.000450, rmse,    0.011369
-fc3 hub                       , Absolute Error range,   -0.321487,     0.383536, std,    0.024993, mean,    0.000095, rmse,    0.024991
-fc5 hub                       , Absolute Error range,   -0.059584,     0.061874, std,    0.013524, mean,    0.001952, rmse,    0.013623
-fc6 hub                       , Absolute Error range,   -0.040246,     0.026603, std,    0.012726, mean,   -0.004052, rmse,    0.013260
-conv1 fxp                     , Absolute Error range,   -0.008332,     0.008230, std,    0.001506, mean,   -0.000053, rmse,    0.001507
-conv2 fxp                     , Absolute Error range,   -0.031625,     0.034111, std,    0.003337, mean,   -0.000018, rmse,    0.003337
-fc3 fxp                       , Absolute Error range,   -0.112245,     0.126537, std,    0.007267, mean,    0.000015, rmse,    0.007267
-fc5 fxp                       , Absolute Error range,   -0.013726,     0.023344, std,    0.004473, mean,    0.000097, rmse,    0.004460
-fc6 fxp                       , Absolute Error range,   -0.008950,     0.015188, std,    0.004220, mean,    0.000282, rmse,    0.004196
-conv1 hub                     , Absolute Error range,   -0.015046,     0.015950, std,    0.002501, mean,    0.000478, rmse,    0.002546
-conv2 hub                     , Absolute Error range,   -0.059811,     0.054288, std,    0.005975, mean,    0.000228, rmse,    0.005979
-fc3 hub                       , Absolute Error range,   -0.238052,     0.200421, std,    0.014482, mean,   -0.000042, rmse,    0.014481
-fc5 hub                       , Absolute Error range,   -0.027121,     0.028765, std,    0.007096, mean,   -0.000061, rmse,    0.007074
-fc6 hub                       , Absolute Error range,   -0.020053,     0.019209, std,    0.007658, mean,   -0.002238, rmse,    0.007921
-conv1 fxp                     , Absolute Error range,   -0.004403,     0.004526, std,    0.000760, mean,    0.000018, rmse,    0.000760
-conv2 fxp                     , Absolute Error range,   -0.015592,     0.016749, std,    0.001665, mean,   -0.000000, rmse,    0.001665
-fc3 fxp                       , Absolute Error range,   -0.063490,     0.060364, std,    0.003862, mean,   -0.000009, rmse,    0.003862
-fc5 fxp                       , Absolute Error range,   -0.008176,     0.004607, std,    0.001854, mean,   -0.000024, rmse,    0.001848
-fc6 fxp                       , Absolute Error range,   -0.005115,     0.003590, std,    0.001318, mean,    0.000173, rmse,    0.001319
-conv1 hub                     , Absolute Error range,   -0.006330,     0.008617, std,    0.001326, mean,    0.000203, rmse,    0.001342
-conv2 hub                     , Absolute Error range,   -0.027472,     0.029377, std,    0.003191, mean,    0.000138, rmse,    0.003194
-fc3 hub                       , Absolute Error range,   -0.153814,     0.128119, std,    0.008027, mean,    0.000117, rmse,    0.008027
-fc5 hub                       , Absolute Error range,   -0.011727,     0.017186, std,    0.003486, mean,    0.000209, rmse,    0.003482
-fc6 hub                       , Absolute Error range,   -0.012598,     0.012976, std,    0.004585, mean,    0.000061, rmse,    0.004549
-conv1 fxp                     , Absolute Error range,   -0.002117,     0.002269, std,    0.000379, mean,    0.000027, rmse,    0.000380
-conv2 fxp                     , Absolute Error range,   -0.007725,     0.008523, std,    0.000834, mean,    0.000001, rmse,    0.000834
-fc3 fxp                       , Absolute Error range,   -0.038274,     0.041094, std,    0.002323, mean,    0.000020, rmse,    0.002323
-fc5 fxp                       , Absolute Error range,   -0.003154,     0.003687, std,    0.000946, mean,   -0.000022, rmse,    0.000943
-fc6 fxp                       , Absolute Error range,   -0.002832,     0.003016, std,    0.001002, mean,   -0.000122, rmse,    0.001001
-conv1 hub                     , Absolute Error range,   -0.003625,     0.004156, std,    0.000686, mean,    0.000131, rmse,    0.000698
-conv2 hub                     , Absolute Error range,   -0.016657,     0.016608, std,    0.001646, mean,    0.000062, rmse,    0.001647
-fc3 hub                       , Absolute Error range,   -0.060736,     0.072349, std,    0.004357, mean,    0.000042, rmse,    0.004356
-fc5 hub                       , Absolute Error range,   -0.007766,     0.005848, std,    0.002134, mean,   -0.000099, rmse,    0.002130
-fc6 hub                       , Absolute Error range,   -0.008644,     0.006991, std,    0.002647, mean,    0.000220, rmse,    0.002635
-conv1 fxp                     , Absolute Error range,   -0.001188,     0.001129, std,    0.000193, mean,   -0.000001, rmse,    0.000193
-conv2 fxp                     , Absolute Error range,   -0.004153,     0.003811, std,    0.000420, mean,    0.000001, rmse,    0.000420
-fc3 fxp                       , Absolute Error range,   -0.012694,     0.013204, std,    0.000934, mean,    0.000008, rmse,    0.000934
-fc5 fxp                       , Absolute Error range,   -0.001452,     0.001436, std,    0.000482, mean,    0.000002, rmse,    0.000481
-fc6 fxp                       , Absolute Error range,   -0.001488,     0.001590, std,    0.000502, mean,   -0.000063, rmse,    0.000502
-[[[0.00931252 0.02156899 0.04649729 0.02270881 0.02394693]
-  [0.00306079 0.00665092 0.01575805 0.00839646 0.00703183]]
+conv1 hub                     , Absolute Error range,   -0.049737,     0.059477, std,    0.008878, mean,    0.001748, rmse,    0.009049
+conv2 hub                     , Absolute Error range,   -0.199963,     0.209810, std,    0.021521, mean,    0.001069, rmse,    0.021547
+fc3 hub                       , Absolute Error range,   -0.734328,     0.595075, std,    0.045218, mean,    0.000073, rmse,    0.045215
+fc5 hub                       , Absolute Error range,   -0.114345,     0.068763, std,    0.024027, mean,   -0.002505, rmse,    0.024083
+fc6 hub                       , Absolute Error range,   -0.057344,     0.080066, std,    0.024088, mean,   -0.001075, rmse,    0.023924
+conv1 fxp                     , Absolute Error range,   -0.019559,     0.018160, std,    0.003117, mean,    0.000022, rmse,    0.003117
+conv2 fxp                     , Absolute Error range,   -0.064022,     0.063016, std,    0.006675, mean,    0.000004, rmse,    0.006675
+fc3 fxp                       , Absolute Error range,   -0.268270,     0.264470, std,    0.016665, mean,   -0.000242, rmse,    0.016666
+fc5 fxp                       , Absolute Error range,   -0.030601,     0.022560, std,    0.007542, mean,   -0.000308, rmse,    0.007525
+fc6 fxp                       , Absolute Error range,   -0.036360,     0.030112, std,    0.009004, mean,    0.001122, rmse,    0.009003
+conv1 hub                     , Absolute Error range,   -0.025746,     0.032607, std,    0.004757, mean,    0.000923, rmse,    0.004845
+conv2 hub                     , Absolute Error range,   -0.104918,     0.114888, std,    0.011422, mean,    0.000475, rmse,    0.011432
+fc3 hub                       , Absolute Error range,   -0.384431,     0.352484, std,    0.027155, mean,    0.000071, rmse,    0.027154
+fc5 hub                       , Absolute Error range,   -0.038098,     0.039571, std,    0.011329, mean,   -0.000464, rmse,    0.011303
+fc6 hub                       , Absolute Error range,   -0.033307,     0.049817, std,    0.012228, mean,    0.000932, rmse,    0.012168
+conv1 fxp                     , Absolute Error range,   -0.008769,     0.008474, std,    0.001527, mean,    0.000028, rmse,    0.001527
+conv2 fxp                     , Absolute Error range,   -0.034401,     0.033536, std,    0.003352, mean,   -0.000001, rmse,    0.003352
+fc3 fxp                       , Absolute Error range,   -0.123191,     0.122472, std,    0.008077, mean,   -0.000168, rmse,    0.008078
+fc5 fxp                       , Absolute Error range,   -0.015116,     0.013629, std,    0.004334, mean,    0.000391, rmse,    0.004338
+fc6 fxp                       , Absolute Error range,   -0.010303,     0.013489, std,    0.003848, mean,    0.000322, rmse,    0.003832
+conv1 hub                     , Absolute Error range,   -0.013549,     0.016194, std,    0.002566, mean,    0.000468, rmse,    0.002608
+conv2 hub                     , Absolute Error range,   -0.063023,     0.059773, std,    0.006028, mean,    0.000302, rmse,    0.006036
+fc3 hub                       , Absolute Error range,   -0.196691,     0.210412, std,    0.014107, mean,   -0.000123, rmse,    0.014106
+fc5 hub                       , Absolute Error range,   -0.026963,     0.025365, std,    0.007796, mean,   -0.000786, rmse,    0.007811
+fc6 hub                       , Absolute Error range,   -0.023361,     0.022240, std,    0.009490, mean,   -0.001736, rmse,    0.009574
+conv1 fxp                     , Absolute Error range,   -0.003946,     0.005253, std,    0.000759, mean,    0.000027, rmse,    0.000760
+conv2 fxp                     , Absolute Error range,   -0.016642,     0.016799, std,    0.001671, mean,   -0.000004, rmse,    0.001671
+fc3 fxp                       , Absolute Error range,   -0.068093,     0.062849, std,    0.004161, mean,    0.000050, rmse,    0.004161
+fc5 fxp                       , Absolute Error range,   -0.006874,     0.008128, std,    0.001983, mean,    0.000203, rmse,    0.001987
+fc6 fxp                       , Absolute Error range,   -0.007036,     0.006570, std,    0.002629, mean,   -0.000393, rmse,    0.002638
+conv1 hub                     , Absolute Error range,   -0.008535,     0.008734, std,    0.001356, mean,    0.000241, rmse,    0.001377
+conv2 hub                     , Absolute Error range,   -0.032896,     0.032872, std,    0.003154, mean,    0.000129, rmse,    0.003157
+fc3 hub                       , Absolute Error range,   -0.105696,     0.128891, std,    0.007334, mean,    0.000180, rmse,    0.007336
+fc5 hub                       , Absolute Error range,   -0.010763,     0.013131, std,    0.003663, mean,   -0.000059, rmse,    0.003652
+fc6 hub                       , Absolute Error range,   -0.013930,     0.013324, std,    0.004321, mean,    0.000033, rmse,    0.004287
+conv1 fxp                     , Absolute Error range,   -0.002419,     0.002127, std,    0.000377, mean,    0.000007, rmse,    0.000377
+conv2 fxp                     , Absolute Error range,   -0.007331,     0.008295, std,    0.000834, mean,   -0.000007, rmse,    0.000834
+fc3 fxp                       , Absolute Error range,   -0.033287,     0.034759, std,    0.002191, mean,   -0.000049, rmse,    0.002191
+fc5 fxp                       , Absolute Error range,   -0.002912,     0.003595, std,    0.001098, mean,   -0.000040, rmse,    0.001095
+fc6 fxp                       , Absolute Error range,   -0.003361,     0.002133, std,    0.000993, mean,   -0.000333, rmse,    0.001040
+conv1 hub                     , Absolute Error range,   -0.004000,     0.004096, std,    0.000675, mean,    0.000115, rmse,    0.000685
+conv2 hub                     , Absolute Error range,   -0.015043,     0.016909, std,    0.001629, mean,    0.000062, rmse,    0.001630
+fc3 hub                       , Absolute Error range,   -0.060953,     0.056314, std,    0.003743, mean,   -0.000038, rmse,    0.003743
+fc5 hub                       , Absolute Error range,   -0.008090,     0.006074, std,    0.001943, mean,   -0.000187, rmse,    0.001946
+fc6 hub                       , Absolute Error range,   -0.008223,     0.003806, std,    0.001930, mean,   -0.000304, rmse,    0.001939
+conv1 fxp                     , Absolute Error range,   -0.001124,     0.001123, std,    0.000191, mean,   -0.000002, rmse,    0.000191
+conv2 fxp                     , Absolute Error range,   -0.004172,     0.004192, std,    0.000421, mean,   -0.000000, rmse,    0.000421
+fc3 fxp                       , Absolute Error range,   -0.014691,     0.011615, std,    0.000825, mean,   -0.000007, rmse,    0.000825
+fc5 fxp                       , Absolute Error range,   -0.001527,     0.001538, std,    0.000388, mean,    0.000018, rmse,    0.000387
+fc6 fxp                       , Absolute Error range,   -0.001995,     0.001242, std,    0.000526, mean,   -0.000053, rmse,    0.000525
+[[[0.00904873 0.02154737 0.0452152  0.02408259 0.02392372]
+  [0.00311682 0.0066748  0.016666   0.00752496 0.00900326]]
 
- [[0.00502913 0.01136895 0.02499144 0.01362258 0.01326008]
-  [0.0015067  0.00333749 0.00726702 0.00446016 0.00419615]]
+ [[0.00484537 0.01143156 0.0271539  0.01130322 0.01216755]
+  [0.00152685 0.00335197 0.00807777 0.00433783 0.00383174]]
 
- [[0.00254633 0.00597882 0.01448091 0.00707385 0.00792056]
-  [0.00076048 0.00166496 0.00386162 0.00184811 0.00131913]]
+ [[0.00260801 0.00603589 0.01410624 0.00781086 0.00957439]
+  [0.00075966 0.00167106 0.00416142 0.00198708 0.00263792]]
 
- [[0.00134161 0.00319362 0.00802718 0.00348152 0.00454925]
-  [0.00037995 0.00083371 0.00232331 0.00094287 0.00100129]]
+ [[0.00137679 0.0031567  0.00733563 0.00365171 0.00428729]
+  [0.00037692 0.00083382 0.00219095 0.00109494 0.00103998]]
 
- [[0.00069822 0.00164689 0.00435645 0.0021301  0.00263506]
-  [0.00019324 0.00041988 0.00093388 0.00048068 0.0005019 ]]]
+ [[0.00068456 0.00163019 0.00374308 0.00194584 0.00193918]
+  [0.00019144 0.00042062 0.00082524 0.00038692 0.00052477]]]

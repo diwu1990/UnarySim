@@ -121,11 +121,11 @@ for idx in range(len(bitwidth_list)):
     interval = 1/2**(win_sz.bit_length())
     x_axe = [(x[idx] - (win_sz - 1) / 2 * interval + x_tick * interval) for x_tick in range(win_sz)]
     if idx == 0:
-        ax.plot(x_axe, data_hub, "-s", label="RC", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
-        ax.plot(x_axe, data_fxp, "-^", label="FXP", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
+        ax.plot(x_axe, data_hub, "-s", label="RC", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
+        ax.plot(x_axe, data_fxp, "-^", label="FXP", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
     else:
-        ax.plot(x_axe, data_hub, "-s", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
-        ax.plot(x_axe, data_fxp, "-^", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
+        ax.plot(x_axe, data_hub, "-s", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
+        ax.plot(x_axe, data_fxp, "-^", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
 
 
 locs = [0, 0.05, 0.1]
