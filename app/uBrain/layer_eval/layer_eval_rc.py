@@ -11,6 +11,7 @@ import time
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import math
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -36,8 +37,11 @@ for bitwidth_index in range(len(bitwidth_list)):
     print("bit width:", bitwidth)
 
     fracwidth = bitwidth - intwidth
-    depth = bitwidth + 2
-    depth_ismul = bitwidth - 4
+    depth = bitwidth + 4
+    if bitwidth <= 11:
+        depth_ismul = 6
+    else:
+        depth_ismul = 7
 
     input = torch.randn(win_sz, batch, input_sz).to(device)
     input = truncated_normal(input, mean=0, std=0.4)
