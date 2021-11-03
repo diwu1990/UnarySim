@@ -181,7 +181,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
 
 
         # get data file name and label file name
-        print(dataset_dir)
+        #print(dataset_dir)
         data_file   = dataset_dir+"/"+"eeg"+str(j)+".csv"
         label_file  = dataset_dir+"/"+"eeg"+str(j)+".label.csv"
         # read data and label
