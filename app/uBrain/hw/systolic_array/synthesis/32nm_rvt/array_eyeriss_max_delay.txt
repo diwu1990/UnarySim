@@ -1,0 +1,90 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : array_eyeriss
+Version: S-2021.06
+Date   : Tue Nov  2 23:15:27 2021
+****************************************
+
+ # A fanout number of 1000 was used for high fanout net computations.
+
+Operating Conditions: tt0p85v25c   Library: saed32rvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+  Startpoint: genblk3[5].genblk1[4].U_pe_inner/U_wreg/o_data_reg[6]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: genblk3[5].genblk1[4].U_pe_inner/U_acc/o_data_reg[23]
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  array_eyeriss      280000                saed32rvt_tt0p85v25c
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  genblk3[5].genblk1[4].U_pe_inner/U_wreg/o_data_reg[6]/CLK (DFFARX1_RVT)
+                                                          0.00 #     0.00 r
+  genblk3[5].genblk1[4].U_pe_inner/U_wreg/o_data_reg[6]/QN (DFFARX1_RVT)
+                                                          0.11       0.11 r
+  U57191/Y (IBUFFX4_RVT)                                  0.23       0.34 f
+  U116311/Y (NAND2X0_RVT)                                 0.30       0.64 r
+  U73920/Y (XNOR2X1_RVT)                                  0.44       1.09 r
+  U116324/Y (AO22X1_RVT)                                  0.23       1.32 r
+  U60324/Y (INVX0_RVT)                                    0.21       1.53 f
+  U54148/Y (XNOR3X1_RVT)                                  0.42       1.95 r
+  U69736/Y (XOR2X1_RVT)                                   0.37       2.32 f
+  U70295/Y (XOR2X1_RVT)                                   0.37       2.69 r
+  U56843/Y (INVX0_RVT)                                    0.18       2.86 f
+  U116366/Y (NAND2X0_RVT)                                 0.14       3.01 r
+  U116367/Y (AO22X1_RVT)                                  0.20       3.20 r
+  U61239/Y (INVX0_RVT)                                    0.19       3.39 f
+  U116369/Y (NAND2X0_RVT)                                 0.19       3.58 r
+  U116373/Y (OA22X1_RVT)                                  0.21       3.80 r
+  U75646/Y (XOR2X1_RVT)                                   0.36       4.16 f
+  U57047/Y (INVX0_RVT)                                    0.19       4.34 r
+  U116603/Y (NAND2X0_RVT)                                 0.16       4.51 f
+  U116604/Y (NAND2X0_RVT)                                 0.19       4.69 r
+  U117324/Y (NAND2X0_RVT)                                 0.21       4.91 f
+  U62305/Y (INVX0_RVT)                                    0.19       5.09 r
+  U54871/Y (NAND3X2_RVT)                                  0.20       5.30 f
+  U117325/Y (NAND3X0_RVT)                                 0.19       5.49 r
+  U117567/Y (NAND3X0_RVT)                                 0.18       5.66 f
+  U117568/Y (NAND2X0_RVT)                                 0.19       5.86 r
+  U73918/Y (XNOR2X1_RVT)                                  0.35       6.21 r
+  U79265/Y (OR2X1_RVT)                                    0.22       6.43 r
+  U118068/Y (INVX1_RVT)                                   0.23       6.66 f
+  U118069/Y (AO221X1_RVT)                                 0.19       6.84 f
+  U118070/Y (NAND2X0_RVT)                                 0.19       7.04 r
+  U137358/Y (OAI221X1_RVT)                                0.23       7.27 f
+  U137362/Y (NAND3X0_RVT)                                 0.20       7.47 r
+  U137507/Y (NAND3X0_RVT)                                 0.18       7.64 f
+  U137589/Y (AO21X1_RVT)                                  0.23       7.88 f
+  U60764/Y (INVX0_RVT)                                    0.18       8.06 r
+  U137595/Y (NAND3X0_RVT)                                 0.17       8.23 f
+  U137596/Y (NAND3X0_RVT)                                 0.16       8.40 r
+  genblk3[5].genblk1[4].U_pe_inner/U_acc/o_data_reg[23]/D (DFFARX1_RVT)
+                                                          0.12       8.52 r
+  data arrival time                                                  8.52
+
+  clock clk (rise edge)                                   2.50       2.50
+  clock network delay (ideal)                             0.00       2.50
+  clock uncertainty                                      -0.15       2.35
+  genblk3[5].genblk1[4].U_pe_inner/U_acc/o_data_reg[23]/CLK (DFFARX1_RVT)
+                                                          0.00       2.35 r
+  library setup time                                     -0.06       2.29
+  data required time                                                 2.29
+  --------------------------------------------------------------------------
+  data required time                                                 2.29
+  data arrival time                                                 -8.52
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -6.23
+
+
+1
