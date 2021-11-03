@@ -7,9 +7,7 @@ link
 # Define clock and set don't mess with it #
 ###########################################
 # clk with frequency of 400 MHz
-# create_clock -name "clk" -period 2.5 -waveform { 0 1.25 } { clk }
-# clk with frequency of 42.77 MHz
-create_clock -name "clk" -period 23.3 -waveform { 0 11.65 } { clk }
+create_clock -name "clk" -period 2.5 -waveform { 0 1.25 } { clk }
 set_dont_touch_network [find port clk]
 # pointer to all inputs except clk
 set prim_inputs [remove_from_collection [all_inputs] [find port clk]]
