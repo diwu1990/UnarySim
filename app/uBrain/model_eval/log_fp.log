@@ -76,25 +76,25 @@ weight                        : min:   -0.292619; max:    0.336656; outlier:    
 weight                        : min:   -0.716906; max:    0.527457; outlier:    0.000000 %
 weight                        : min:   -1.183434; max:    1.127236; outlier:    0.019531 %
 weight                        : min:   -1.984546; max:    1.390548; outlier:    7.187500 %
---- 0.04408979415893555 seconds ---
+--- 0.03741621971130371 seconds ---
 Current sample count:  640
---- 0.0364229679107666 seconds ---
+--- 0.0409541130065918 seconds ---
 Current sample count:  1280
---- 0.03332829475402832 seconds ---
+--- 0.03170204162597656 seconds ---
 Current sample count:  1920
---- 0.03247213363647461 seconds ---
+--- 0.0364835262298584 seconds ---
 Current sample count:  2560
---- 0.03308367729187012 seconds ---
+--- 0.03682374954223633 seconds ---
 Current sample count:  3200
---- 0.03301835060119629 seconds ---
+--- 0.032823801040649414 seconds ---
 Current sample count:  3840
---- 0.03683590888977051 seconds ---
+--- 0.03339028358459473 seconds ---
 Current sample count:  4480
---- 0.03278851509094238 seconds ---
+--- 0.04179835319519043 seconds ---
 Current sample count:  5120
---- 0.03537321090698242 seconds ---
+--- 0.033722639083862305 seconds ---
 Current sample count:  5760
---- 0.03358721733093262 seconds ---
+--- 0.03170633316040039 seconds ---
 Current sample count:  6400
 Test Accuracy: 95.062 %
 ***************************** Test End ******************************
