@@ -254,10 +254,14 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     shuffled_data   = data_inter[index]
     shuffled_label  = label_inter[index]
 
+    # convert to string
+    shuffled_label_encoded = np.where(shuffled_label > 0, 'onset', 'no_onset')
+    print(shuffled_label_encoded)
+
     ## one hot encoding label
-    shuffled_label = shuffled_label.astype(np.int64)
-    shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
-    shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
+    # shuffled_label = shuffled_label.astype(np.int64)
+    # shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
+    # shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
     #print(shuffled_label_encoded)
     return shuffled_data, shuffled_label_encoded
 
