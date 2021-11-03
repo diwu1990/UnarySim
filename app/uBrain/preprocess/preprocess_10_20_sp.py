@@ -3,7 +3,7 @@
 ########################################################
 # EEG data preprocess for 3D
 # This code is adapted from https://github.com/diwu1990/Cascade-Parallel/blob/master/data_preprocess/pre_process.py
-# source dataset: https://www.nature.com/articles/sdata201939
+# Source dataset: https://www.nature.com/articles/sdata201939
 ########################################################
 import argparse
 import os
@@ -22,7 +22,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     hpstr = "set dataset directory"
-    parser.add_argument('-d', '--directory', default="/Users/jingjie.li/Dropbox/dataset/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
+    parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
 
     hpstr = "set window size"
     parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -40,7 +40,7 @@ def get_args():
     parser.add_argument('-ri', '--ransamp', default=12000, nargs='*', type=int, help=hpstr)
 
     hpstr = "set output directory"
-    parser.add_argument('-o', '--output_dir', default="C:/Users/JIngjie Li/Dropbox/dataset/seizure_prediction/10-20/", nargs='*', help=hpstr)
+    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_20/", nargs='*', help=hpstr)
     
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
