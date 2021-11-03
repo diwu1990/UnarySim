@@ -9,19 +9,21 @@ import math
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # %%
-in_feature = 16
+in_feature = 256
 out_feature = 8
-bias = True
+bias = False
 # rng = "Sobol"
 rng = "Race"
 cycle = 128
 rounding = "round"
 
 total_bit = 16
-input_int_bit = 3
+input_int_bit = 0
 input_fra_bit = total_bit - input_int_bit
 
-input = ((torch.rand(256, in_feature) - 0.5) * 2**(2*input_int_bit)).round().div(2**(input_int_bit)).to(device)
+# input = ((torch.rand(256, in_feature) - 0.5) * 2**(2*input_int_bit)).round().div(2**(input_int_bit)).to(device)
+input = ((torch.rand(256, in_feature) - 0.5) * 2).to(device)
+print(input.min(), input.max())
 
 fc = torch.nn.Linear(in_feature, out_feature, bias=bias).to(device)
 fc_o = fc(input)
@@ -36,6 +38,7 @@ diff = (ufc_o - fc_o)
 print("diff max:", diff.max())
 print("diff min:", diff.min())
 print("diff mean:", diff.mean())
+print("diff rmse:", torch.sqrt(torch.mean(torch.square(diff))))
 
 fig = plt.hist(diff.cpu().detach().numpy().flatten(), bins='auto')  # arguments are passed to np.histogram
 plt.title("Histogram for output error")

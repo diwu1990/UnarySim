@@ -19,7 +19,7 @@ class Cascade_CNN_RNN(torch.nn.Module):
     This is the fp version of the cascade CNN RNN for BCI
     """
     def __init__(self,
-                    input_sz=(10, 11),
+                    input_sz=[10, 11],
                     linear_act="scalerelu",
                     cnn_chn=16,
                     cnn_kn_sz=3,

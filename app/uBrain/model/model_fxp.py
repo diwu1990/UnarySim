@@ -20,7 +20,7 @@ class Cascade_CNN_RNN(torch.nn.Module):
     """
     def __init__(self,
                     intwidth=0, fracwidth=7, 
-                    input_sz=(10, 11),
+                    input_sz=[10, 11],
                     linear_act="scalerelu",
                     cnn_chn=16,
                     cnn_kn_sz=3,
@@ -142,8 +142,12 @@ class Cascade_CNN_RNN(torch.nn.Module):
             self.fc5.bias.data = self.trunc(fc5_bias)
 
     def quantize_weight(self):
-        for weight in self.parameters():
-            weight.data = self.trunc(weight)
+        self.conv1.weight.data = self.trunc(self.conv1.weight)
+        self.conv2.weight.data = self.trunc(self.conv2.weight)
+        self.fc3.weight.data = self.trunc(self.fc3.weight)
+        self.rnncell4.weight_f.data = self.trunc(self.rnncell4.weight_f)
+        self.rnncell4.weight_n.data = self.trunc(self.rnncell4.weight_n)
+        self.fc5.weight.data = self.trunc(self.fc5.weight)
 
     def forward(self, input):
         # CNN
@@ -185,5 +189,5 @@ class Cascade_CNN_RNN(torch.nn.Module):
         # MLP
         self.fc5_i          = self.rnn_out[-1]
         self.fc5_o          = self.fc5(self.trunc(self.fc5_i))
-        return nn.Hardtanh()(self.fc5_o)
+        return nn.Hardtanh()(self.trunc(self.fc5_o))
 

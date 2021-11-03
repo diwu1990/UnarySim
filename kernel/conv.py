@@ -387,6 +387,8 @@ class FSUConv2duGEMM(torch.nn.Conv2d):
 class HUBConv2d(torch.nn.Conv2d):
     """
     This module is the 2d conv layer, with binary input and binary output
+    This cycle is the mac cycle using unipolar umul, i.e., half the bipolar umul. 
+    As such, cycle = 2 ^ (bitwidth - 1).
     """
     def __init__(self, 
                     in_channels, 
@@ -402,7 +404,7 @@ class HUBConv2d(torch.nn.Conv2d):
                     binary_bias=None, 
                     rng="Sobol", 
                     cycle=128,
-                    rounding="floor"):
+                    rounding="round"):
         super(HUBConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 
@@ -517,7 +519,7 @@ class FxpConv2d(torch.nn.Conv2d):
                     bitwidth=8,
                     keep_res="input", # keep the resolution of input/output
                     more_res="input", # assign more resolution to input/weight
-                    rounding="floor"):
+                    rounding="round"):
         super(FxpConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 

@@ -11,3 +11,4 @@ app/mlp/saved_model_state_dict*
 *.pkl
 test/test_random.py
 test/test_training.py
+app/uBrain/hw/uSystolic-Sim-for-uBrain/

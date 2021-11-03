@@ -1,0 +1,32 @@
+ 
+****************************************
+Report : area
+Design : array_eyeriss
+Version: S-2021.06
+Date   : Tue Nov  2 23:15:16 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Warning: Design 'array_eyeriss' contains 2 high-fanout nets. A fanout number of 1000 will be used for delay calculations involving these nets. (TIM-134)
+Library(s) Used:
+
+    saed32rvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_rvt/db_nldm/saed32rvt_tt0p85v25c.db)
+
+Number of ports:                          626
+Number of nets:                        105312
+Number of cells:                        98518
+Number of combinational cells:          90870
+Number of sequential cells:              7648
+Number of macros/black boxes:               0
+Number of buf/inv:                      20098
+Number of references:                      87
+
+Combinational area:             226904.336734
+Buf/Inv area:                    29984.925956
+Noncombinational area:           53956.805383
+Macro/Black Box area:                0.000000
+Net Interconnect area:          109679.230944
+
+Total cell area:                280861.142117
+Total area:                     390540.373061
+1

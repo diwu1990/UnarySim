@@ -23,9 +23,9 @@ class FSUAdd(torch.nn.Module):
         self.scale = scale
         # dimension to do reduced sum
         self.dim = dim
-        # min value in the accumulator
-        self.acc_max = 2**(depth-2)
         # max value in the accumulator
+        self.acc_max = 2**(depth-2)
+        # min value in the accumulator
         self.acc_min = -2**(depth-2)
         # number of entries in dim to do reduced sum
         self.entry = entry

@@ -144,9 +144,9 @@ threshold_mi=args.threshold_mi
 threshold_sp=args.threshold_sp
 model_dir = args.output_directory
 if args.input_sample == "10-10":
-    input_sz=(10, 11)
+    input_sz=[10, 11]
 if args.input_sample == "10-20":
-    input_sz=(5, 5)
+    input_sz=[5, 5]
 linear_act=args.linear_act
 cnn_chn=args.cnn_chn
 cnn_kn_sz=args.cnn_kn_sz
@@ -213,11 +213,10 @@ if args.task_mi is True:
     print("\tResultant outlier ratio: %2.3f %%" % (outlier_ratio*100))
 
 if args.task_sp is True:
-    if args.input_sample == "10-10":
-        dataset_file_sp = dataset_dir_mi+system+\
-            "preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
-        label_file_mi = dataset_dir_mi+system+\
-            "preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    dataset_file_sp = dataset_dir_mi+system+\
+        "preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    label_file_mi = dataset_dir_mi+system+\
+        "preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
     with open(dataset_file_sp, "rb") as fp:
         datasets_sp = pickle.load(fp)
         datasets_sp = datasets_sp.reshape(len(datasets_sp), rnn_win_sz, input_sz[0], input_sz[1])
@@ -318,7 +317,7 @@ scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, t0)
 
 loss=0.0
 best_acc=0.0
-filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_tmi_"+str(threshold_mi)+"_tsp_"+str(threshold_sp)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
+filename=str(rnn)+"_hidden_"+str(rnn_hidden_sz)+"_cnn_chn_"+str(cnn_chn)+"_pad_"+str(cnn_padding)+"_act_"+str(linear_act)+"_rnn_hard_"+str(rnn_hard)+"_fc_"+str(fc_sz)+"_std_"+str(init_std)+"_ol_"+str(win_overlap)+"_tmi_"+str(threshold_mi)+"_tsp_"+str(threshold_sp)+"_e_"+str(training_epochs)+"_t0_"+str(t0)+"_lr_"+str(lr)+"_decay_"+str(weight_decay)
 if args.task_mi:
     filename=filename+"_task_mi"
 if args.task_sp:

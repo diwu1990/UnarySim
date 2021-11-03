@@ -41,7 +41,7 @@ def get_args():
 
     hpstr = "set output directory"
     parser.add_argument('-o', '--output_dir', default="C:/Users/JIngjie Li/Dropbox/dataset/seizure_prediction/10-20/", nargs='*', help=hpstr)
-
+    
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
 
