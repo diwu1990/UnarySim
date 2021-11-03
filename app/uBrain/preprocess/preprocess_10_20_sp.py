@@ -37,11 +37,11 @@ def get_args():
     parser.add_argument('-e', '--end', default=79, nargs='?', type=int, help=hpstr)
 
     hpstr = "set number of random samples each data file"
-    parser.add_argument('-ri', '--ransamp', default=4000, nargs='*', type=int, help=hpstr)
+    parser.add_argument('-ri', '--ransamp', default=12000, nargs='*', type=int, help=hpstr)
 
     hpstr = "set output directory"
-    parser.add_argument('-o', '--output_dir', default="E:/ubrain_local/neonatal_eeg_preprocessed/", nargs='*', help=hpstr)
-
+    parser.add_argument('-o', '--output_dir', default="C:/Users/JIngjie Li/Dropbox/dataset/seizure_prediction/10-20/", nargs='*', help=hpstr)
+    
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
 
