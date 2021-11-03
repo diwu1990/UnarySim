@@ -1,1 +1,0 @@
-Results for systolic array to complete at the 4-th timestamp after the data collection window.

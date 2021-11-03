@@ -1,0 +1,41 @@
+Train for only motor imagery.
+
+Using CUDA...
+******************** Dataset Configuration Start ********************
+Apply international 10-10 system.
+Data scaling threshold (motor imagery): 2.0
+	Resultant outlier ratio: 2.815 %
+# of train samples:	 468024
+# of test samples:	 156235
+********************* Dataset Configuration End *********************
+
+********************* Model Configuration Start *********************
+Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi
+Loading model state dict:  /home/diwu/Project/UnarySim/app/uBrain/saved_model/mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi_acc_95.50.pth.tar
+loaded state_dict_fp:  odict_keys(['conv1.weight', 'conv2.weight', 'fc3.weight', 'rnncell4.weight_f', 'rnncell4.weight_n', 'fc5.weight'])
+********************** Model Configuration End **********************
+
+**************************** Test Start *****************************
+--- 605.2285676002502 seconds ---
+Current sample count:  640
+--- 603.0722997188568 seconds ---
+Current sample count:  1280
+--- 603.9847891330719 seconds ---
+Current sample count:  1920
+--- 606.2856647968292 seconds ---
+Current sample count:  2560
+--- 605.1670110225677 seconds ---
+Current sample count:  3200
+--- 602.855696439743 seconds ---
+Current sample count:  3840
+--- 598.944717168808 seconds ---
+Current sample count:  4480
+--- 600.2491137981415 seconds ---
+Current sample count:  5120
+--- 606.2144742012024 seconds ---
+Current sample count:  5760
+--- 607.692342042923 seconds ---
+Current sample count:  6400
+Test Accuracy: 94.734 %
+***************************** Test End ******************************
+

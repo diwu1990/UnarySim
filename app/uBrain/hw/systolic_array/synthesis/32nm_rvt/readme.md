@@ -1,1 +1,0 @@
-The synthesis results at 400MHz.
