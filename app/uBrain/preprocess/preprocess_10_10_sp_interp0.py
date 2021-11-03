@@ -40,7 +40,7 @@ def get_args():
     parser.add_argument('-ri', '--ransamp', default=12000, nargs='*', type=int, help=hpstr)
 
     hpstr = "set output directory"
-    parser.add_argument('-o', '--output_dir', default="C:/Users/JIngjie Li/Dropbox/dataset/seizure_prediction/10-20/", nargs='*', help=hpstr)
+    parser.add_argument('-o', '--output_dir', default="C:/Users/JIngjie Li/Dropbox/dataset/seizure_prediction/10-10-insert0/", nargs='*', help=hpstr)
 
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
@@ -86,11 +86,22 @@ def data_1Dto2D(data, Y=5, X=5):
     # data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
 
     ### JL: dummy data order test may not be used below
-    data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
-    data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
-    data_2D[2] = (data[10], data[7], data[9], data[8], data[12])
-    data_2D[3] = (data[11], data[14], data[16], data[15], data[13])
-    data_2D[4] = (0.0, data[17], 0.0, data[18], 0.0)
+    # data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
+    # data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
+    # data_2D[2] = (data[10], data[7], data[9], data[8], data[12])
+    # data_2D[3] = (data[11], data[14], data[16], data[15], data[13])
+    # data_2D[4] = (0.0, data[17], 0.0, data[18], 0.0)
+
+    data_2D[0] = (0.0, 0.0, 0.0, 0.0, data[0], 0.0, data[1], 0.0, 0.0, 0.0, 0.0)
+    data_2D[1] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    data_2D[2] = (0.0, data[4], 0.0, data[2], 0.0, data[6], 0.0, data[3], 0.0, data[5], 0.0)
+    data_2D[3] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    data_2D[4] = (0.0, data[10], 0.0, data[7], 0.0, data[9], 0.0, data[8], 0.0, data[12], 0.0)
+    data_2D[5] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    data_2D[6] = (0.0, data[11], 0.0, data[14], 0.0, data[16], 0.0, data[15], 0.0, data[13], 0.0)
+    data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    data_2D[8] = (0.0, 0.0, 0.0, 0.0, data[17], 0.0, data[18], 0.0, 0.0, 0.0, 0.0)
+    data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
     return data_2D
 
@@ -164,7 +175,7 @@ def segment_signal_without_transition(data, label, window_size, overlap_size, nu
     return segments, labels
 
 
-def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, end=2, shape_Y = 5, shape_X = 5, random_seed = 12):
+def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, end=2, shape_Y = 10, shape_X = 11, random_seed = 12):
     # initial empty label arrays
     label_inter     = np.empty([0])
     # array shape param
