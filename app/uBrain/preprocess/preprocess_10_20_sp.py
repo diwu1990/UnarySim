@@ -257,7 +257,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
 
     # convert to string
     shuffled_label_encoded = np.where(shuffled_label > 0, 'onset', 'no_onset')
-    print(shuffled_label_encoded)
+    #print(shuffled_label_encoded)
 
     ## one hot encoding label
     # shuffled_label = shuffled_label.astype(np.int64)
