@@ -15,9 +15,6 @@ def data_extract(technode=""):
     ram_list = ["ddr3_w__spm"]
 
     cycle_list = []
-    area_list = []
-    power_list = []
-    energy_list = []
 
     print("# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
     print("Processing " + arch_list[0] + ":")
