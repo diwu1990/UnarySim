@@ -22,7 +22,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     hpstr = "set dataset directory"
-    parser.add_argument('-d', '--directory', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
+    parser.add_argument('-d', '--directory', default="/Users/jingjie.li/Dropbox/dataset/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
 
     hpstr = "set window size"
     parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -181,6 +181,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
 
 
         # get data file name and label file name
+        print(dataset_dir)
         data_file   = dataset_dir+"/"+"eeg"+str(j)+".csv"
         label_file  = dataset_dir+"/"+"eeg"+str(j)+".label.csv"
         # read data and label
