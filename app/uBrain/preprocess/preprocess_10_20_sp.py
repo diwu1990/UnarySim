@@ -286,6 +286,10 @@ if __name__ == '__main__':
         end_subject = end_subject[0]
     if type(num_ransamp) is list:
         num_ransamp = num_ransamp[0]
+    if type(dataset_dir) is list:
+        dataset_dir = dataset_dir[0]
+    if type(output_dir) is list:
+        output_dir = output_dir[0]
     print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_ransamp, output_dir, set_store)
 
     shuffled_data, shuffled_label = apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, begin_subject, end_subject+1)
