@@ -101,7 +101,7 @@ def data_1Dto2D(data, Y=5, X=5):
     data_2D[6] = (0.0, data[11], 0.0, data[14], 0.0, data[16], 0.0, data[15], 0.0, data[13], 0.0)
     data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     data_2D[8] = (0.0, 0.0, 0.0, 0.0, data[17], 0.0, data[18], 0.0, 0.0, 0.0, 0.0)
-    data_2D[7] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    data_2D[9] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
     return data_2D
 
@@ -265,10 +265,13 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     shuffled_data   = data_inter[index]
     shuffled_label  = label_inter[index]
 
+    # convert to string
+    shuffled_label_encoded = np.where(shuffled_label > 0, 'onset', 'no_onset')
+
     ## one hot encoding label
-    shuffled_label = shuffled_label.astype(np.int64)
-    shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
-    shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
+    # shuffled_label = shuffled_label.astype(np.int64)
+    # shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
+    # shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
     #print(shuffled_label_encoded)
     return shuffled_data, shuffled_label_encoded
 
@@ -292,6 +295,10 @@ if __name__ == '__main__':
         end_subject = end_subject[0]
     if type(num_ransamp) is list:
         num_ransamp = num_ransamp[0]
+    if type(dataset_dir) is list:
+        dataset_dir = dataset_dir[0]
+    if type(output_dir) is list:
+        output_dir = output_dir[0]
     print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_ransamp, output_dir, set_store)
 
     shuffled_data, shuffled_label = apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, begin_subject, end_subject+1)

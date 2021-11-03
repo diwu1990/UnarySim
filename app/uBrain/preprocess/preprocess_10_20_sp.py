@@ -22,7 +22,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     hpstr = "set dataset directory"
-    parser.add_argument('-d', '--directory', default="E:/ubrain_local/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
+    parser.add_argument('-d', '--directory', default="/Users/jingjie.li/Dropbox/dataset/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
 
     hpstr = "set window size"
     parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -181,6 +181,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
 
 
         # get data file name and label file name
+        print(dataset_dir)
         data_file   = dataset_dir+"/"+"eeg"+str(j)+".csv"
         label_file  = dataset_dir+"/"+"eeg"+str(j)+".label.csv"
         # read data and label
@@ -254,10 +255,14 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     shuffled_data   = data_inter[index]
     shuffled_label  = label_inter[index]
 
+    # convert to string
+    shuffled_label_encoded = np.where(shuffled_label > 0, 'onset', 'no_onset')
+    #print(shuffled_label_encoded)
+
     ## one hot encoding label
-    shuffled_label = shuffled_label.astype(np.int64)
-    shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
-    shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
+    # shuffled_label = shuffled_label.astype(np.int64)
+    # shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
+    # shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
     #print(shuffled_label_encoded)
     return shuffled_data, shuffled_label_encoded
 
@@ -281,6 +286,10 @@ if __name__ == '__main__':
         end_subject = end_subject[0]
     if type(num_ransamp) is list:
         num_ransamp = num_ransamp[0]
+    if type(dataset_dir) is list:
+        dataset_dir = dataset_dir[0]
+    if type(output_dir) is list:
+        output_dir = output_dir[0]
     print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject, num_ransamp, output_dir, set_store)
 
     shuffled_data, shuffled_label = apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, begin_subject, end_subject+1)
