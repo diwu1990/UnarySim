@@ -201,7 +201,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
         data        = data_label.to_numpy().astype(np.float64)
 
 
-        data        = norm_dataset(data, 19)
+        #data        = norm_dataset(data, 19)
         # for cnt_chan in range(19):
         #     plt.plot(range(len(data[:, cnt_chan])), data[:, cnt_chan])
         # plt.show()
