@@ -221,7 +221,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     print("\tMin:    ", shuffled_data.min())
     print("\tMax:    ", shuffled_data.max())
     print("\tMean:   ", shuffled_data.mean())
-    print("\tMedian: ", shuffled_data.median())
+    print("\tMedian: ", np.median(shuffled_data))
     print("\t1%:     ", np.percentile(shuffled_data, 1))
     print("\t99%:    ", np.percentile(shuffled_data, 99))
     print("\t2%:     ", np.percentile(shuffled_data, 2))
