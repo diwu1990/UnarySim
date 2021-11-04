@@ -37,6 +37,21 @@ for bitwidth in bitwidth_list:
     fp.close()
 
 
+# extract sc log
+acc_sc = []
+for bitwidth in bitwidth_list:
+    log_file = log_dir + "log_sc_bwrc_"+str(bitwidth+1)+"_bwtc_"+str(bitwidth)+".log"
+    fp = open(log_file, "r")
+    for line in fp:
+        line = line.rstrip()  # remove '\n' at end of line
+        if flag in line:
+            line_list = line.split()
+            acc_sc.append(float(line_list[2]))
+            print(bitwidth, "-bit SC accuracy: ", acc_sc[-1], "%")
+            break
+    fp.close()
+
+
 # extract hub log
 acc_hub = []
 for bitwidth in bitwidth_list:
@@ -68,9 +83,10 @@ x = np.arange(len(labels))  # the label locations
 fig, ax = plt.subplots(figsize=(fig_w, fig_h), dpi=my_dpi)
 
 x_axe = x[0:-1]
-ax.plot(x_axe, acc_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
-ax.plot(x_axe, acc_fxp, "-^", label="FXP", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
 ax.plot(x[-1], acc_fp, "o", label="FP32", alpha=alpha, color="#888888", lw=0.5, ms=1)
+ax.plot(x_axe, acc_fxp, "-^", label="FXP", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
+ax.plot(x_axe, acc_sc, "-+", label="SC", alpha=alpha, color="#D783FF", lw=0.5, ms=1)
+ax.plot(x_axe, acc_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
 
 locs = [80, 90, 100]
 ax.set_yticks(locs)
@@ -78,6 +94,6 @@ ax.set_yticks(locs)
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
 ax.set_ylabel('Accuracy (%)\n')
-ax.legend(ncol=3, frameon=True)
+ax.legend(ncol=4, frameon=True)
 fig.tight_layout()
 fig.savefig(log_dir+"model_eval_acc.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
