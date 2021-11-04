@@ -152,14 +152,11 @@ def segment_signal_without_transition(data, label, window_size, overlap_size, nu
         else:
             if(cnt_win == 0):
               segments    = data[loc_curr[0]:loc_curr[1]]
-              # labels = stats.mode(label[start:end])[0][0]
               labels      = np.array(list(set(label[loc_curr[0]:loc_curr[1]])))
             else:
               segments    = np.vstack([segments, data[loc_curr[0]:loc_curr[1]]])
               labels      = np.append(labels, np.array(list(set(label[loc_curr[0]:loc_curr[1]]))))
-              # labels = np.append(labels, stats.mode(label[start:end])[0][0])
             cnt_win = cnt_win + 1        
-    print("drop these windows: ", cnt_drop)
 
     return segments, labels
 
@@ -172,16 +169,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     data_inter      = np.empty([0, window_size, shape_Y, shape_X])
 
     for j in tqdm(range(start, end)):
-        # if (j == 89):
-        #     j = 109
-        # get directory name for one subject
-        #data_dir = dataset_dir+"S"+format(j, '03d')
-
-        #print(task_list)
-
-
         # get data file name and label file name
-        #print(dataset_dir)
         data_file   = dataset_dir+"/"+"eeg"+str(j)+".csv"
         label_file  = dataset_dir+"/"+"eeg"+str(j)+".label.csv"
         # read data and label
@@ -192,7 +180,6 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
         data_label  = pd.concat([data, label], axis=1)
 
 
-        #data_label  = data_label.loc[data_label['labels']!= 'rest']
         # get new label
         label       = data_label['labels']
         # get new data and normalize
@@ -200,40 +187,24 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
         # be careful of the data type if original was int for normalization
         data        = data_label.to_numpy().astype(np.float64)
 
-
-        #data        = norm_dataset(data, 19)
-        # for cnt_chan in range(19):
-        #     plt.plot(range(len(data[:, cnt_chan])), data[:, cnt_chan])
-        # plt.show()
-        # convert 1D data to 2D
         data        = dataset_1Dto2D(data, Y = shape_Y, X = shape_X)
 
         # segment data with sliding window
-        print("complete 2d transform")
-        print("data size: ", data.shape)
-
-
         data_curr, label_curr = segment_signal_without_transition(data, label, window_size, overlap_size, num_ransamp)
-        #print("complete segment_signal_without_transition")
         data_curr        = data_curr.reshape(int(data_curr.shape[0]/window_size), window_size, shape_Y, shape_X)
         # append new data and label
         data_inter  = np.vstack([data_inter, data_curr])
         label_inter = np.append(label_inter, label_curr)
 
-
-        print("complete task: ", j)
-
-
     ## balance samples
-
     ## get index of class samples
     loc_pos = list(np.where(label_inter == 1.)[0])
     loc_neg = list(np.where(label_inter == 0.)[0])
     print("number of pos and neg classes (unbalanced): ", len(loc_pos), len(loc_neg))
 
     random.seed(random_seed)
-    ## drop label accordinly
 
+    ## drop label accordinly
     if len(loc_pos) < len(loc_neg):
         list_drop = random.sample(loc_neg, len(loc_neg)-len(loc_pos))
         data_inter = np.delete(data_inter, list_drop, 0)
@@ -247,8 +218,6 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     loc_neg = list(np.where(label_inter == 0.)[0])
     print("number of pos and neg classes (balanced): ", len(loc_pos), len(loc_neg))
 
-
-
     # shuffle data
     index = np.array(range(0, len(label_inter)))
     np.random.shuffle(index)
@@ -257,13 +226,7 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
 
     # convert to string
     shuffled_label_encoded = np.where(shuffled_label > 0, 'onset', 'no_onset')
-    #print(shuffled_label_encoded)
 
-    ## one hot encoding label
-    # shuffled_label = shuffled_label.astype(np.int64)
-    # shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
-    # shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
-    #print(shuffled_label_encoded)
     return shuffled_data, shuffled_label_encoded
 
 

@@ -40,7 +40,7 @@ def get_args():
     parser.add_argument('-ri', '--ransamp', default=12000, nargs='*', type=int, help=hpstr)
 
     hpstr = "set output directory"
-    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_10_insert0/", nargs='*', help=hpstr)
+    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_10/", nargs='*', help=hpstr)
 
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
@@ -74,23 +74,6 @@ def print_top(dataset_dir, window_size, overlap_size, begin_subject, end_subject
 
 def data_1Dto2D(data, Y=5, X=5):
     data_2D = np.zeros([Y, X])
-    # data_2D[0] = (       0,        0,        0,        0, data[21], data[22], data[23],        0,        0,        0,        0)
-    # data_2D[1] = (       0,        0,        0, data[24], data[25], data[26], data[27], data[28],        0,        0,        0)
-    # data_2D[2] = (       0, data[29], data[30], data[31], data[32], data[33], data[34], data[35], data[36], data[37],        0)
-    # data_2D[3] = (       0, data[38],  data[0],  data[1],  data[2],  data[3],  data[4],  data[5],  data[6], data[39],        0)
-    # data_2D[4] = (data[42], data[40],  data[7],  data[8],  data[9], data[10], data[11], data[12], data[13], data[41], data[43])
-    # data_2D[5] = (       0, data[44], data[14], data[15], data[16], data[17], data[18], data[19], data[20], data[45],        0)
-    # data_2D[6] = (       0, data[46], data[47], data[48], data[49], data[50], data[51], data[52], data[53], data[54],        0)
-    # data_2D[7] = (       0,        0,        0, data[55], data[56], data[57], data[58], data[59],         0,       0,        0)
-    # data_2D[8] = (       0,        0,        0,        0, data[60], data[61], data[62],        0,         0,       0,        0)
-    # data_2D[9] = (       0,        0,        0,        0,        0, data[63],        0,        0,         0,       0,        0)
-
-    ### JL: dummy data order test may not be used below
-    # data_2D[0] = (0.0, data[0], 0.0, data[1], 0.0)
-    # data_2D[1] = (data[4], data[2], data[6], data[3], data[5])
-    # data_2D[2] = (data[10], data[7], data[9], data[8], data[12])
-    # data_2D[3] = (data[11], data[14], data[16], data[15], data[13])
-    # data_2D[4] = (0.0, data[17], 0.0, data[18], 0.0)
 
     data_2D[0] = (0.0, 0.0, 0.0, 0.0, data[0], 0.0, data[1], 0.0, 0.0, 0.0, 0.0)
     data_2D[1] = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -163,14 +146,11 @@ def segment_signal_without_transition(data, label, window_size, overlap_size, nu
         else:
             if(cnt_win == 0):
               segments    = data[loc_curr[0]:loc_curr[1]]
-              # labels = stats.mode(label[start:end])[0][0]
               labels      = np.array(list(set(label[loc_curr[0]:loc_curr[1]])))
             else:
               segments    = np.vstack([segments, data[loc_curr[0]:loc_curr[1]]])
               labels      = np.append(labels, np.array(list(set(label[loc_curr[0]:loc_curr[1]]))))
-              # labels = np.append(labels, stats.mode(label[start:end])[0][0])
             cnt_win = cnt_win + 1        
-    print("drop these windows: ", cnt_drop)
 
     return segments, labels
 
@@ -183,14 +163,6 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     data_inter      = np.empty([0, window_size, shape_Y, shape_X])
 
     for j in tqdm(range(start, end)):
-        # if (j == 89):
-        #     j = 109
-        # get directory name for one subject
-        #data_dir = dataset_dir+"S"+format(j, '03d')
-
-        #print(task_list)
-
-
         # get data file name and label file name
         data_file   = dataset_dir+"/"+"eeg"+str(j)+".csv"
         label_file  = dataset_dir+"/"+"eeg"+str(j)+".label.csv"
@@ -201,8 +173,6 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
         # remove rest label and data during motor imagery tasks
         data_label  = pd.concat([data, label], axis=1)
 
-
-        #data_label  = data_label.loc[data_label['labels']!= 'rest']
         # get new label
         label       = data_label['labels']
         # get new data and normalize
@@ -210,40 +180,24 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
         # be careful of the data type if original was int for normalization
         data        = data_label.to_numpy().astype(np.float64)
 
-
-        #data        = norm_dataset(data, 19)
-        # for cnt_chan in range(19):
-        #     plt.plot(range(len(data[:, cnt_chan])), data[:, cnt_chan])
-        # plt.show()
-        # convert 1D data to 2D
         data        = dataset_1Dto2D(data, Y = shape_Y, X = shape_X)
 
         # segment data with sliding window
-        print("complete 2d transform")
-        print("data size: ", data.shape)
-
-
         data_curr, label_curr = segment_signal_without_transition(data, label, window_size, overlap_size, num_ransamp)
-        #print("complete segment_signal_without_transition")
         data_curr        = data_curr.reshape(int(data_curr.shape[0]/window_size), window_size, shape_Y, shape_X)
         # append new data and label
         data_inter  = np.vstack([data_inter, data_curr])
         label_inter = np.append(label_inter, label_curr)
 
-
-        print("complete task: ", j)
-
-
     ## balance samples
-
     ## get index of class samples
     loc_pos = list(np.where(label_inter == 1.)[0])
     loc_neg = list(np.where(label_inter == 0.)[0])
     print("number of pos and neg classes (unbalanced): ", len(loc_pos), len(loc_neg))
 
     random.seed(random_seed)
-    ## drop label accordinly
 
+    ## drop label accordinly
     if len(loc_pos) < len(loc_neg):
         list_drop = random.sample(loc_neg, len(loc_neg)-len(loc_pos))
         data_inter = np.delete(data_inter, list_drop, 0)
@@ -257,22 +211,31 @@ def apply_mixup(dataset_dir, window_size, overlap_size, num_ransamp, start=1, en
     loc_neg = list(np.where(label_inter == 0.)[0])
     print("number of pos and neg classes (balanced): ", len(loc_pos), len(loc_neg))
 
-
-
     # shuffle data
     index = np.array(range(0, len(label_inter)))
     np.random.shuffle(index)
     shuffled_data   = data_inter[index]
     shuffled_label  = label_inter[index]
 
+    print("Data distribution report: ")
+    print("\tMin:    ", shuffled_data.min())
+    print("\tMax:    ", shuffled_data.max())
+    print("\tMean:   ", shuffled_data.mean())
+    print("\tMedian: ", shuffled_data.median())
+    print("\t1%:     ", np.percentile(shuffled_data, 1))
+    print("\t99%:    ", np.percentile(shuffled_data, 99))
+    print("\t2%:     ", np.percentile(shuffled_data, 2))
+    print("\t98%:    ", np.percentile(shuffled_data, 98))
+    print("\t3%:     ", np.percentile(shuffled_data, 3))
+    print("\t97%:    ", np.percentile(shuffled_data, 97))
+    print("\t4%:     ", np.percentile(shuffled_data, 4))
+    print("\t96%:    ", np.percentile(shuffled_data, 96))
+    print("\t5%:     ", np.percentile(shuffled_data, 5))
+    print("\t95%:    ", np.percentile(shuffled_data, 95))
+
     # convert to string
     shuffled_label_encoded = np.where(shuffled_label > 0, 'onset', 'no_onset')
 
-    ## one hot encoding label
-    # shuffled_label = shuffled_label.astype(np.int64)
-    # shuffled_label_encoded = np.zeros((shuffled_label.size, shuffled_label.max()+1))
-    # shuffled_label_encoded[np.arange(shuffled_label.size),shuffled_label] = 1
-    #print(shuffled_label_encoded)
     return shuffled_data, shuffled_label_encoded
 
 
