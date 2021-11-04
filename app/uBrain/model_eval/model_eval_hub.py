@@ -217,44 +217,52 @@ if args.task_mi is True:
         "preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
     label_file_mi = dataset_dir_mi+system+\
         "preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    print("dataset: "+dataset_file_mi)
+    print("label: "+label_file_mi)
     with open(dataset_file_mi, "rb") as fp:
         datasets_mi = pickle.load(fp)
         datasets_mi = datasets_mi.reshape(len(datasets_mi), rnn_win_sz, input_sz[0], input_sz[1])
     with open(label_file_mi, "rb") as fp:
         # label_file_mi have labels in one-hot coding
-        labels_mi = np.asarray(pd.get_dummies(pickle.load(fp)), dtype = np.int8)
+        # labels_mi = np.asarray(pd.get_dummies(pickle.load(fp)), dtype = np.int8)
+        labels_mi = pickle.load(fp)
     outlier_ratio=(np.sum(datasets_mi > threshold_mi) + np.sum(datasets_mi < -threshold_mi))/datasets_mi.size
     print("Data scaling threshold (motor imagery): %1.1f" % threshold_mi)
     print("\tResultant outlier ratio: %2.3f %%" % (outlier_ratio*100))
+    fp.close()
 
 if args.task_sp is True:
-    dataset_file_sp = dataset_dir_mi+system+\
-        "preprocessed_1_108_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
-    label_file_mi = dataset_dir_mi+system+\
-        "preprocessed_1_108_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    dataset_file_sp = dataset_dir_sp+system+\
+        "preprocessed_1_79_shuffle_dataset_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    label_file_sp = dataset_dir_sp+system+\
+        "preprocessed_1_79_shuffle_labels_3D_win_"+str(rnn_win_sz)+"_overlap_"+str(win_overlap)+".pkl"
+    print("dataset: "+dataset_file_sp)
+    print("label: "+label_file_sp)
     with open(dataset_file_sp, "rb") as fp:
         datasets_sp = pickle.load(fp)
         datasets_sp = datasets_sp.reshape(len(datasets_sp), rnn_win_sz, input_sz[0], input_sz[1])
-    with open(label_file_mi, "rb") as fp:
-        # label_file_mi have labels in one-hot coding
-        labels_sp = np.asarray(pd.get_dummies(pickle.load(fp)), dtype = np.int8)
+    with open(label_file_sp, "rb") as fp:
+        # label_file_sp have labels in one-hot coding
+        # labels_sp = np.asarray(pd.get_dummies(pickle.load(fp)), dtype = np.int8)
+        labels_sp = pickle.load(fp)
     outlier_ratio=(np.sum(datasets_sp > threshold_sp) + np.sum(datasets_sp < -threshold_sp))/datasets_sp.size
     print("Data scaling threshold (seizure prediction): %1.1f" % threshold_sp)
     print("\tResultant outlier ratio: %2.3f %%" % (outlier_ratio*100))
+    fp.close()
 
 
 if args.task_mi is True and args.task_sp is True:
     datasets_mi = datasets_mi.clip(-threshold_mi, threshold_mi)/threshold_mi
     datasets_sp = datasets_sp.clip(-threshold_sp, threshold_sp)/threshold_sp
-    datasets = np.concatenate(datasets_mi, datasets_sp)
+    datasets = np.concatenate((datasets_mi, datasets_sp))
     # increase the label index of sp
-    labels = np.concatenate(labels_mi, labels_sp + num_class[1])
+    labels = np.asarray(pd.get_dummies(np.concatenate((labels_mi, labels_sp))), dtype = np.int8)
 elif args.task_mi is True and args.task_sp is False:
     datasets = datasets_mi.clip(-threshold_mi, threshold_mi)/threshold_mi
-    labels = labels_mi
+    labels = np.asarray(pd.get_dummies(labels_mi), dtype = np.int8)
 elif args.task_mi is False and args.task_sp is True:
     datasets = datasets_sp.clip(-threshold_sp, threshold_sp)/threshold_sp
-    labels = labels_sp
+    labels = np.asarray(pd.get_dummies(labels_sp), dtype = np.int8)
 
 
 split = np.random.rand(len(datasets)) < 0.75
