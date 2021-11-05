@@ -1,4 +1,4 @@
-Layer,	Type,	Cycle Total (Cycles),	Time Total (Secs),	Throughput (Frames/sec)	
+Layer,	Type,	Cycle Total (Cycles),	Time Total (Secs),	Throughput (Frames/sec),	
 Conv1_0,	GEMM,	358.0,	1.6736792893875645e-05,	59748.6033519553,	
 Conv2_0,	GEMM,	4704.0,	0.00021991584852734924,	4547.19387755102,	
 Conv1_1,	GEMM,	358.0,	1.6736792893875645e-05,	59748.6033519553,	
