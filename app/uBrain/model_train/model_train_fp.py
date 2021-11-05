@@ -311,7 +311,8 @@ model = Cascade_CNN_RNN(input_sz=input_sz, # size of each window
                                 keep_prob=keep_prob, # prob for drop out after each FC
                                 num_class=num_class) # output size
 model.to(device)
-summary(model, (1, rnn_win_sz, input_sz[0], input_sz[1]))
+# however, this model size report is inaccurate for our model
+# summary(model, (1, rnn_win_sz, input_sz[0], input_sz[1]))
 print("********************** Model Configuration End **********************\n")
 
 
