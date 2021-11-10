@@ -35,7 +35,7 @@ module AdderTree #(
                 if ((i + 1) % BDEP == 0) begin : sequential
                     // insert buffers
                     always @(posedge clk or negedge rst_n) begin
-                        if (rst_n == 0) begin
+                        if (~rst_n) begin
                             tData[(2 * (2**IDL2) - 2**(IDL2 - i)) + j] <= 'b0;
                         end
                         else begin

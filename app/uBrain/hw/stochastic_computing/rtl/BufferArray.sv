@@ -24,7 +24,7 @@ module BufferArray #(
             assign iAdd[i] = iAccSel ? reg1[i] : reg0[i];
             assign oAdd[i] = iClear ? 'b0 : (iAdd[i] + iData[i]);
             always @(posedge clk or negedge rst_n) begin
-                if (rst_n == 0) begin
+                if (~rst_n) begin
                     reg0[i] <= 'b0;
                     reg1[i] <= 'b0;
                 end
