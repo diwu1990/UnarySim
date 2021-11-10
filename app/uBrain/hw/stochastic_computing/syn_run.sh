@@ -66,10 +66,10 @@ else
     echo "Synthesize designs listed in ./syn_list.csv:"
     while IFS= read -r dutname
     do
+        echo "Processing design $dutname"
         if [ ! -f "$dutname.sv" ]; then
             echo "Warning: Target design $dutname does not exist in this folder."
         else
-            echo "Processing design $dutname"
             sed -i "s/dut/$dutname/g" $DCSCRIPT
             dc_shell -f $DCSCRIPT >| $dutname.rpt
             sed -i "s/$dutname/dut/g" $DCSCRIPT
