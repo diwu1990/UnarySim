@@ -64,7 +64,7 @@ if [ ! -f "./syn_list.csv" ]; then
 else
     echo ""
     echo "Synthesize designs listed in ./syn_list.csv:"
-    while IFS= read -r line;
+    while IFS= read -r line
     do
         dutname=$line
         echo "Processing design $dutname"
