@@ -8,7 +8,7 @@ module Mul #(
     input logic [IWID - 1 : 0] iWeig,
     input logic [IWID - 1 : 0] iWRng,
     input logic [IWID - 1 : 0] iWR_n,
-    input logic oDbit
+    output logic oDbit
 );
 
     logic wBit;
