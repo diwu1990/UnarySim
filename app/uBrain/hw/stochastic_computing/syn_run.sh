@@ -64,8 +64,9 @@ if [ ! -f "./syn_list.csv" ]; then
 else
     echo ""
     echo "Synthesize designs listed in ./syn_list.csv:"
-    while IFS= read -r dutname
+    while IFS= read -r line
     do
+        dutname=$line
         echo "Processing design $dutname"
         if [ ! -f "$dutname.sv" ]; then
             echo "Warning: Target design $dutname does not exist in this folder."
