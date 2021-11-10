@@ -22,7 +22,7 @@ cp -R rtl/*.sv ./$technode
 cd $technode
 echo "Process dir: $technode"
 rm -rf syn* .syn*
-cp ../../../syn_* .
-cp ../../../synopsys_dc.setup_$technode .synopsys_dc.setup
+cp ../syn_* .
+cp ../synopsys_dc.setup_$technode .synopsys_dc.setup
 source syn_run.sh
 cd ..
