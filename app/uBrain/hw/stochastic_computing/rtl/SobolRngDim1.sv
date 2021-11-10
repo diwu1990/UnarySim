@@ -1,8 +1,8 @@
-`include "SobolRNG.sv"
+`include "SobolRng.sv"
 `include "LSZ.sv"
 `include "CntEn.sv"
 
-module SobolRNGDim1 #(
+module SobolRngDim1 #(
     parameter RWID = 8,
     parameter RWL2 = $clog2(RWID)
 ) (
@@ -107,9 +107,9 @@ module SobolRNGDim1 #(
         endcase
     endgenerate
         
-    SobolRNG #(
+    SobolRng #(
         .RWID(RWID)
-    ) u_SobolRNG(
+    ) u_SobolRng(
         .clk(clk),
         .rst_n(rst_n),
         .enable(enable),

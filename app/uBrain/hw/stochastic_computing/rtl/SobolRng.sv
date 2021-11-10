@@ -1,4 +1,4 @@
-module SobolRNG #(
+module SobolRng #(
     parameter RWID = 8,
     parameter RWL2 = $clog2(RWID)
 ) (

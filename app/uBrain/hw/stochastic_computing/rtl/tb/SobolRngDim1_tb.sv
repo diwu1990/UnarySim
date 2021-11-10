@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
-`include "../SobolRNGDim1.sv"
+`include "../SobolRngDim1.sv"
 
-module SobolRNGDim1_tb ();
+module SobolRngDim1_tb ();
     parameter RWID = 8;
 
     logic   clk;
@@ -9,7 +9,7 @@ module SobolRNGDim1_tb ();
     logic   enable;
     logic   [RWID - 1 : 0]sobolSeq;
 
-    SobolRNGDim1 U_SobolRNGDim1(
+    SobolRngDim1 U_SobolRngDim1(
         .clk(clk),
         .rst_n(rst_n),
         .enable(enable),
@@ -21,7 +21,7 @@ module SobolRNGDim1_tb ();
 
     `ifdef DUMPFSDB
         initial begin
-            $fsdbDumpfile("SobolRNGDim1.fsdb");
+            $fsdbDumpfile("SobolRngDim1.fsdb");
             $fsdbDumpvars(0,"+all");
             // $fsdbDumpvars;
         end
