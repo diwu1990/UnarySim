@@ -2,17 +2,17 @@
 `include "../CntShareArray.sv"
 
 module CntShareArray_tb ();
-    parameter IDIM = 2;
     parameter CWID = 8;
+    parameter BDIM = 2;
     parameter SDIM = 8;
 
     logic   clk;
     logic   rst_n;
-    logic   enable [IDIM - 1 : 0];
-    logic   [CWID - 1 : 0] cntSeq [IDIM * SDIM - 1 : 0];
+    logic   enable;
+    logic   [CWID - 1 : 0] cntSeq [BDIM * SDIM - 1 : 0];
 
     CntShareArray #(
-        .IDIM(IDIM),
+        .BDIM(BDIM),
         .CWID(CWID),
         .SDIM(SDIM)
     ) U_CntShareArray(
@@ -38,13 +38,13 @@ module CntShareArray_tb ();
     begin
         clk = 1;
         rst_n = 0;
-        enable = {1'b1, 1'b1};
+        enable = 1'b1;
         
         #15;
         rst_n = 1;
 
         #400;
-        enable = {1'b1, 1'b0};
+        enable = 1'b0;
 
         #400;
         $finish;
