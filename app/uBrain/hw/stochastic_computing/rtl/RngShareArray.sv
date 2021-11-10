@@ -1,3 +1,5 @@
+`include "SobolRngDim1.sv"
+
 module RngShareArray #(
     parameter IDIM = 16, // rng dimension, i.e., rng count
     parameter RWID = 8, // rng width
