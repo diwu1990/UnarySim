@@ -47,6 +47,29 @@ compile -map_effort medium
 check_design
 
 # Unflatten design now that its compiled
+# ungroup -all -flatten
+# force hold time to be met for all flops
+set_fix_hold clk
+
+# Compile again with higher effort
+compile -map_effort high
+check_design
+
+#############################################
+# Take a look at area, max, and min timings #
+#############################################
+report_area -hierarchy > dut_hier_area.txt
+report_power -hierarchy > dut_hier_power.txt
+report_timing -delay min > dut_hier_min_delay.txt
+report_timing -delay max > dut_hier_max_delay.txt
+
+########################################
+# Now actually synthesize for 2nd time #
+########################################
+compile -map_effort medium
+check_design
+
+# Unflatten design now that its compiled
 ungroup -all -flatten
 # force hold time to be met for all flops
 set_fix_hold clk
@@ -58,10 +81,10 @@ check_design
 #############################################
 # Take a look at area, max, and min timings #
 #############################################
-report_area > dut_area.txt
-report_power > dut_power.txt
-report_timing -delay min > dut_min_delay.txt
-report_timing -delay max > dut_max_delay.txt
+report_area > dut_flat_area.txt
+report_power > dut_flat_power.txt
+report_timing -delay min > dut_flat_min_delay.txt
+report_timing -delay max > dut_flat_max_delay.txt
 
 #### write out final netlist ######
 write -format verilog dut -output dut.vg

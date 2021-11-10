@@ -42,23 +42,42 @@ if ls *.$vsuff; then
     done
 fi
 
-echo ""
-echo "Synthesize designs in *.sv files:"
-if ls *.$svsuff; then
-    for dut in $(ls *.$svsuff)
-    do
-        dutname="${dut%.*}"
-        echo "Processing design $dutname in $dut..."
-        sed -i "s/dut/$dutname/g" $DCSCRIPT
-        dc_shell -f $DCSCRIPT >| $dutname.rpt
-        sed -i "s/$dutname/dut/g" $DCSCRIPT
-        rm -rf work/ *.vg *.svf
-        echo "    Done"
-        sleep 10s
-    done
+if [ ! -f "./syn_list.csv" ]; then
+    echo ""
+    echo "Synthesize designs in *.sv files:"
+    if ls *.$svsuff; then
+        for dut in $(ls *.$svsuff)
+        do
+            dutname="${dut%.*}"
+            echo "Processing design $dutname in $dut..."
+            sed -i "s/dut/$dutname/g" $DCSCRIPT
+            dc_shell -f $DCSCRIPT >| $dutname.rpt
+            sed -i "s/$dutname/dut/g" $DCSCRIPT
+            rm -rf work/ *.vg *.svf
+            echo "    Done"
+            sleep 10s
+        done
+    else
+        echo "No design exists."
+        return 0
+    fi
 else
-    echo "No design exists."
-    return 0
+    echo ""
+    echo "Synthesize designs listed in ./syn_list.csv:"
+    while IFS= read -r dutname
+    do
+        if [ ! -f "$dutname.sv" ]; then
+            echo "Warning: Target design $dutname does not exist in this folder."
+        else
+            echo "Processing design $dutname"
+            sed -i "s/dut/$dutname/g" $DCSCRIPT
+            dc_shell -f $DCSCRIPT >| $dutname.rpt
+            sed -i "s/$dutname/dut/g" $DCSCRIPT
+            rm -rf work/ *.vg *.svf
+            echo "    Done"
+            sleep 10s
+        fi
+    done < "./syn_list.csv"
 fi
 
 echo ""
