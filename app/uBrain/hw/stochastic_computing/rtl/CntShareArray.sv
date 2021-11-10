@@ -2,8 +2,8 @@
 
 module CntShareArray #(
     parameter CWID = 8, // cnt width
-    parameter BDIM = 16, // buffer dimension
-    parameter SDIM = 32 // sharing dimension for each buffer
+    parameter BDIM = 4, // buffer dimension
+    parameter SDIM = 8 // sharing dimension for each buffer
 ) (
     input logic clk,
     input logic rst_n,

@@ -1,8 +1,8 @@
 module BufferArray #(
-    parameter IDIM = 16,
+    parameter IDIM = 4,
     parameter IWID = 1,
     parameter ODIM = IDIM,
-    parameter OWID = 32
+    parameter OWID = 8
 ) (
     input logic clk,
     input logic rst_n,

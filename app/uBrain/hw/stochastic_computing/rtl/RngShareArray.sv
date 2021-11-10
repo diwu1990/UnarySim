@@ -2,8 +2,8 @@
 
 module RngShareArray #(
     parameter RWID = 8, // rng width
-    parameter BDIM = 16, // buffer dimension
-    parameter SDIM = 32 // sharing dimension for each buffer
+    parameter BDIM = 4, // buffer dimension
+    parameter SDIM = 8 // sharing dimension for each buffer
 ) (
     input logic clk,
     input logic rst_n,
