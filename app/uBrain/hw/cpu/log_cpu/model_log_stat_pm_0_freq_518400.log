@@ -1,0 +1,15 @@
+1636412641.543162229
+Trained for only motor imagery.
+
+Using CPU...
+******************** Dataset Configuration Start ********************
+Apply international 10-10 system.
+********************* Model Configuration Start *********************
+********************** Model Configuration End **********************
+
+**************************** Test Start *****************************
+Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi
+Loading model state dict:  /home/jingjie/ubrain/model/mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi_acc_95.50.pth.tar
+---Start at 1636412674.9527142, end at 1636412680.6419048, total 5.689190626144409 sec for 100 random trails, use 0.056891906261444095 sec each trail---
+***************************** Test End ******************************
+
