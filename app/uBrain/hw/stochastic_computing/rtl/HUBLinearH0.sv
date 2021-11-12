@@ -7,13 +7,16 @@
 `include "SobolRngDim1.sv"
 
 module HUBLinearH0 #(
-    parameter IDIM = 64,
+    parameter IDIM = 8,
     parameter IWID = 10,
     parameter ODIM = 2,
     parameter OWID = IWID,
     parameter RWID = IWID,
     parameter RELU = 1,
-    parameter BDEP = 999
+    parameter SDIM = 32,
+    parameter BDEP = 999,
+    parameter BDIM = 2 ** ($clog2(IDIM) - $clog2(SDIM)),
+    parameter TDIM = (BDIM < 1) ? 1 : BDIM
 ) (
     input logic clk,
     input logic rst_n,
@@ -25,20 +28,22 @@ module HUBLinearH0 #(
     output logic [OWID - 1 : 0] oFmap [ODIM - 1 : 0]
 );
 
-    logic [IWID - 1 : 0] iRng [IDIM - 1 : 0];
+    logic [RWID - 1 : 0] iRng [TDIM * SDIM - 1 : 0];
     logic iBit [IDIM - 1 : 0];
     logic iB_n [IDIM - 1 : 0];
     logic [IWID - 1 : 0] oWeig [ODIM * IDIM - 1 : 0];
     // rng are shared by weights with identical inputs
-    logic [IWID - 1 : 0] wRng [IDIM - 1 : 0];
-    logic [IWID - 1 : 0] wR_n [IDIM - 1 : 0];
-    logic [IWID - 1 : 0] oFmbs [ODIM * IDIM - 1 : 0];
-    logic [$clog2(IDIM) + 1 - 1 : 0] oFmbin [ODIM - 1 : 0];
+    logic [RWID - 1 : 0] wRng [IDIM - 1 : 0];
+    logic [RWID - 1 : 0] wR_n [IDIM - 1 : 0];
+    logic oFmbs [ODIM * IDIM - 1 : 0];
+    logic [$clog2(IDIM) + 1 - 1 : 0] oFbin0 [ODIM - 1 : 0];
+    logic [$clog2(IDIM) + 1 + OWID - 1 : 0] oFbin1 [ODIM - 1 : 0];
 
-    BufferLoad #(
+    // load weight
+    BufferLoadArray #(
         .IWID(IWID),
-        .IDIM(IDIM)
-    ) U_BufferLoad (
+        .IDIM(ODIM * IDIM)
+    ) U_BufferLoadArray_iWeig (
         .clk(clk),
         .rst_n(rst_n),
         .load(load),
@@ -46,17 +51,21 @@ module HUBLinearH0 #(
         .oData(oWeig)
     );
 
+    RngShareArray #(
+        .RWID(RWID),
+        .BDIM(BDIM),
+        .SDIM(SDIM)
+    ) U_RngShareArray(
+        .clk(clk),
+        .rst_n(rst_n),
+        .enable(1'b1),
+        .rngSeq(iRng)
+        );
+
     genvar i, j;
     generate
+        // generate input bitstreams
         for (i = 0; i < IDIM; i = i + 1) begin : gen_iFmap_bs
-            SobolRngDim1 #(
-                .RWID(RWID)
-            ) U_SobolRngDim1_iFmap(
-                .clk(clk),
-                .rst_n(rst_n),
-                .enable('b1),
-                .sobolSeq(iRng)
-                );
             Cmp # (
                 .IWID(IWID)
             ) U_Cmp_iFmap(
@@ -67,6 +76,7 @@ module HUBLinearH0 #(
             assign iB_n[i] = ~iBit[i];
         end
 
+        // generate weight rngs
         for (i = 0; i < IDIM; i = i + 1) begin : gen_weight_rng
             SobolRngDim1 #(
                 .RWID(RWID)
@@ -86,6 +96,7 @@ module HUBLinearH0 #(
                 );
         end
 
+        // generate xnor multiplier, one of the inverted input is already generated
         for (i = 0; i < ODIM; i = i + 1) begin : gen_oFmap_bs
             for (j = 0; j < IDIM; j = j + 1) begin
                 Mul # (
@@ -101,6 +112,7 @@ module HUBLinearH0 #(
             end
         end
 
+        // generate parallel counter
         for (i = 0; i < ODIM; i = i + 1) begin : gen_oFmap_bin
             AdderTree #(
                 .IDIM(IDIM),
@@ -110,20 +122,33 @@ module HUBLinearH0 #(
                 .clk(clk),
                 .rst_n(rst_n),
                 .iData(oFmbs[(i + 1) * IDIM - 1 : i * IDIM]),
-                .oData(oFmbin[i])
+                .oData(oFbin0[i])
             );
         end
 
-        HActArray #(
+        BufferDoubleArray #(
             .IDIM(ODIM),
             .IWID($clog2(IDIM) + 1),
+            .OWID($clog2(IDIM) + 1 + OWID)
+        ) U_BufferDoubleArray(
+            .clk(clk),
+            .rst_n(rst_n),
+            .iAccSel(sel),
+            .iClear(clear),
+            .iData(oFbin0),
+            .oData(oFbin1)
+        );
+
+        HActArray #(
+            .IDIM(ODIM),
+            .IWID($clog2(IDIM) + 1 + OWID),
             .ADIM(IDIM),
             .OWID(OWID),
             .RELU(RELU)
         ) U_HActArray(
             .clk(clk),
             .rst_n(rst_n),
-            .iData(oFmbin),
+            .iData(oFbin1),
             .oData(oFmap)
         );
     endgenerate

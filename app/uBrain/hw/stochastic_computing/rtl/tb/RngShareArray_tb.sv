@@ -3,13 +3,14 @@
 
 module RngShareArray_tb ();
     parameter RWID = 8;
-    parameter BDIM = 2;
+    parameter BDIM = 0;
     parameter SDIM = 8;
+    parameter TDIM = (BDIM < 1) ? 1 : BDIM; // true buffer dimension to deal with corner case
 
     logic   clk;
     logic   rst_n;
     logic   enable;
-    logic   [RWID - 1 : 0] rngSeq [BDIM * SDIM - 1 : 0];
+    logic   [RWID - 1 : 0] rngSeq [TDIM * SDIM - 1 : 0];
 
     RngShareArray #(
         .BDIM(BDIM),

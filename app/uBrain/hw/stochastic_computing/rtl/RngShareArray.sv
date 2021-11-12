@@ -3,16 +3,17 @@
 module RngShareArray #(
     parameter RWID = 8, // rng width
     parameter BDIM = 4, // buffer dimension
+    parameter TDIM = (BDIM < 1) ? 1 : BDIM, // true buffer dimension to deal with corner case
     parameter SDIM = 8 // sharing dimension for each buffer
 ) (
     input logic clk,
     input logic rst_n,
     input logic enable,
-    output logic [RWID - 1 : 0] rngSeq [BDIM * SDIM - 1 : 0]
+    output logic [RWID - 1 : 0] rngSeq [TDIM * SDIM - 1 : 0]
 );
 
     logic [RWID - 1 : 0] sobolSeq;
-    logic [RWID - 1 : 0] sobolBuf [BDIM - 1 : 0];
+    logic [RWID - 1 : 0] sobolBuf [TDIM - 1 : 0];
 
     SobolRngDim1 #(
         .RWID(RWID)
@@ -25,7 +26,7 @@ module RngShareArray #(
 
     genvar i, j;
     generate
-        for (i = 0; i < BDIM; i = i + 1) begin
+        for (i = 0; i < TDIM; i = i + 1) begin
             always @(posedge clk or negedge rst_n) begin
                 if (~rst_n) begin
                     sobolBuf[i] <= 'b0;

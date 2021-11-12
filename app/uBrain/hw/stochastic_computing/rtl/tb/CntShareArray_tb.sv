@@ -5,11 +5,12 @@ module CntShareArray_tb ();
     parameter CWID = 8;
     parameter BDIM = 2;
     parameter SDIM = 8;
+    parameter TDIM = (BDIM < 1) ? 1 : BDIM; // true buffer dimension to deal with corner case
 
     logic   clk;
     logic   rst_n;
     logic   enable;
-    logic   [CWID - 1 : 0] cntSeq [BDIM * SDIM - 1 : 0];
+    logic   [CWID - 1 : 0] cntSeq [TDIM * SDIM - 1 : 0];
 
     CntShareArray #(
         .BDIM(BDIM),
