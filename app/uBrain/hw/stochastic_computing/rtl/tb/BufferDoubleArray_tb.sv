@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-`include "../BufferDoubleArrayArray.sv"
+`include "../BufferDoubleArray.sv"
 
 module BufferDoubleArray_tb ();
 

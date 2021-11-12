@@ -1,3 +1,4 @@
+`timescale 1ns/1ns
 `include "../BufferLoadArray.sv"
 
 module BufferLoadArray_tb();
