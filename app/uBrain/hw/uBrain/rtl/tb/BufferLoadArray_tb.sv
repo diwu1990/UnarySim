@@ -1,6 +1,7 @@
-`include "../BufferLoad.sv"
+`timescale 1ns/1ns
+`include "../BufferLoadArray.sv"
 
-module BufferLoad_tb();
+module BufferLoadArray_tb();
     parameter IWID = 8;
     parameter IDIM = 4;
 
@@ -10,7 +11,7 @@ module BufferLoad_tb();
     logic [IWID - 1 : 0] iData [IDIM - 1 : 0];
     logic [IWID - 1 : 0] oData [IDIM - 1 : 0];
 
-    BufferLoad U_BufferLoad(
+    BufferLoadArray U_BufferLoadArray(
         .clk(clk),
         .rst_n(rst_n),
         .load(load),
@@ -23,7 +24,7 @@ module BufferLoad_tb();
 
     `ifdef DUMPFSDB
         initial begin
-            $fsdbDumpfile("BufferLoad.fsdb");
+            $fsdbDumpfile("BufferLoadArray.fsdb");
             $fsdbDumpvars(0,"+all");
             // $fsdbDumpvars;
         end

@@ -1,4 +1,4 @@
-module BufferDouble #(
+module BufferDoubleArray #(
     parameter IDIM = 4,
     parameter IWID = 1,
     parameter ODIM = IDIM,
