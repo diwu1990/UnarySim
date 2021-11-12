@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
-`include "../BufferDouble.sv"
+`include "../BufferDoubleArrayArray.sv"
 
-module BufferDouble_tb ();
+module BufferDoubleArray_tb ();
 
     logic   clk;
     logic   rst_n;
@@ -10,11 +10,11 @@ module BufferDouble_tb ();
     logic   in [3:0];
     logic   [31:0] out [3:0];
 
-    BufferDouble # (
+    BufferDoubleArray # (
         .IDIM(4),
         .IWID(1),
         .OWID(32)
-    ) U_BufferDouble(
+    ) U_BufferDoubleArray(
         .clk(clk),    // Clock
         .rst_n(rst_n),  // Asynchronous reset active low
         .iAccSel(sel),
@@ -28,7 +28,7 @@ module BufferDouble_tb ();
 
     `ifdef DUMPFSDB
         initial begin
-            $fsdbDumpfile("BufferDouble.fsdb");
+            $fsdbDumpfile("BufferDoubleArray.fsdb");
             $fsdbDumpvars(0,"+all");
             // $fsdbDumpvars;
         end

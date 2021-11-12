@@ -1,7 +1,7 @@
 module HActArray #(
     parameter IDIM = 4,
     parameter IWID = 16,
-    parameter ADIM = 32,
+    parameter ADIM = 32, // accumulation depth
     parameter ODIM = IDIM,
     parameter OWID = 8,
     parameter PZER = ADIM * (2**OWID) / 2,

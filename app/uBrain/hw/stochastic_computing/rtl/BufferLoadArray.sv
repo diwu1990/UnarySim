@@ -1,6 +1,6 @@
-module BufferLoad #(
-    parameter IWID = 8,
-    parameter IDIM = 4
+module BufferLoadArray #(
+    parameter IDIM = 4,
+    parameter IWID = 8
 ) (
     input logic clk,
     input logic rst_n,
