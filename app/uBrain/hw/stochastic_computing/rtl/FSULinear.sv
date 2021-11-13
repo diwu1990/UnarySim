@@ -6,9 +6,8 @@
 `include "Mul.sv"
 `include "MuxArray.sv"
 `include "SobolRngDim1.sv"
-`include "RngShareArray.sv"
 
-module HUBLinearFold #(
+module FSULinear #(
     parameter IDIM = 8,
     parameter IWID = 10,
     parameter ODIM = 2,
@@ -27,7 +26,6 @@ module HUBLinearFold #(
     input logic load,
     input logic sel,
     input logic clear,
-    input logic [PWID - 1 : 0] part,
     input logic [IWID - 1 : 0] iFmap [IDIM - 1 : 0],
     input logic [IWID - 1 : 0] iWeig [ODIM * IDIM - 1 : 0],
     output logic [OWID - 1 : 0] oFmap [ODIM - 1 : 0]
@@ -153,7 +151,7 @@ module HUBLinearFold #(
                 .rst_n(rst_n),
                 .iAccSel(sel),
                 .iClear(clear),
-                .iHold(~(part == i)),
+                .iHold('b0)),
                 .iData(oFbin0),
                 .oData(oFbin1[ODIM / FOLD * (i + 1) - 1 : ODIM / FOLD * i])
             );
