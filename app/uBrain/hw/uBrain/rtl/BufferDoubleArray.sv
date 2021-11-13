@@ -8,6 +8,7 @@ module BufferDoubleArray #(
     input logic rst_n,
     input logic iAccSel,
     input logic iClear,
+    input logic iHold,
     input logic [IWID - 1 : 0] iData [IDIM - 1 : 0],
     output logic [OWID - 1 : 0] oData [ODIM - 1 : 0]
 );
@@ -29,8 +30,8 @@ module BufferDoubleArray #(
                     reg1[i] <= 'b0;
                 end
                 else begin
-                    reg0[i] <= iAccSel ? reg0[i] : oAdd[i];
-                    reg1[i] <= iAccSel ? oAdd[i] : reg1[i];
+                    reg0[i] <= (iAccSel |  iHold) ? reg0[i] : oAdd[i];
+                    reg1[i] <= (iAccSel & ~iHold) ? oAdd[i] : reg1[i];
                 end
             end
             assign oData[i] = iAccSel ? reg0[i] : reg1[i];
