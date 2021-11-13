@@ -7,6 +7,7 @@ module BufferDoubleArray_tb ();
     logic   rst_n;
     logic   sel;
     logic   clear;
+    logic   hold;
     logic   in [3:0];
     logic   [31:0] out [3:0];
 
@@ -19,6 +20,7 @@ module BufferDoubleArray_tb ();
         .rst_n(rst_n),  // Asynchronous reset active low
         .iAccSel(sel),
         .iClear(clear),
+        .iHold(hold),
         .iData(in),
         .oData(out)
         );
@@ -40,6 +42,7 @@ module BufferDoubleArray_tb ();
         rst_n = 0;
         sel = 0;
         clear = 0;
+        hold = 0;
         in = {1'b0, 1'b0, 1'b0, 1'b0};
 
         #100;
@@ -61,6 +64,7 @@ module BufferDoubleArray_tb ();
 
         #10;
         clear = 0;
+        hold = 1;
         in = {1'b1, 1'b1, 1'b1, 1'b1};
         $strobe(out[0], out[1], out[2], out[3]);
 

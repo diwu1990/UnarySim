@@ -41,7 +41,7 @@ module HUBLinearFold #(
     logic [RWID - 1 : 0] wRng [IDIM - 1 : 0];
     logic [RWID - 1 : 0] wR_n [IDIM - 1 : 0];
     logic oFmbs [ODIM / FOLD * IDIM - 1 : 0];
-    logic [$clog2(IDIM) + 1 - 1 : 0] oFbin0 [ODIM - 1 : 0];
+    logic [$clog2(IDIM) + 1 - 1 : 0] oFbin0 [ODIM / FOLD - 1 : 0];
     logic [$clog2(IDIM) + 1 + OWID - 1 : 0] oFbin1 [ODIM - 1 : 0];
 
     // load weight
@@ -129,7 +129,7 @@ module HUBLinearFold #(
         end
 
         // generate parallel counter
-        for (i = 0; i < ODIM; i = i + 1) begin : gen_oFmap_bin
+        for (i = 0; i < ODIM / FOLD; i = i + 1) begin : gen_oFmap_bin
             AdderTree #(
                 .IDIM(IDIM),
                 .IWID(1),
@@ -142,16 +142,17 @@ module HUBLinearFold #(
             );
         end
 
-        for (i = 0; i < FOLD; i = i + 1) begin
+        for (i = 0; i < FOLD; i = i + 1) begin : gen_weight_double_buffer
             BufferDoubleArray #(
-                .IDIM(ODIM),
+                .IDIM(ODIM / FOLD),
                 .IWID($clog2(IDIM) + 1),
                 .OWID($clog2(IDIM) + 1 + OWID)
             ) U_BufferDoubleArray(
                 .clk(clk),
                 .rst_n(rst_n),
                 .iAccSel(sel),
-                .iClear(clear | ~(part == i)),
+                .iClear(clear),
+                .iHold(~(part == i)),
                 .iData(oFbin0),
                 .oData(oFbin1[ODIM / FOLD * (i + 1) - 1 : ODIM / FOLD * i])
             );

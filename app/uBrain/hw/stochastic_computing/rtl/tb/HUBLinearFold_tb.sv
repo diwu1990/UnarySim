@@ -1,15 +1,15 @@
 `timescale 1ns/1ns
 `include "../HUBLinearFold.sv"
 
-module HUBLinearF1_tb ();
+module HUBLinearFold_tb ();
     parameter IDIM = 4;
     parameter IWID = 8;
     parameter ODIM = 2;
     parameter RELU = 1;
     parameter SDIM = 32;
-    parameter FOLD = 1;
+    parameter FOLD = 2;
     parameter BDEP = 999;
-    parameter PWID = (FOLD < 2) ? 2 : FOLD;
+    parameter PWID = ($clog2(FOLD) < 2) ? 1 : $clog2(FOLD);
     parameter OWID = IWID;
     parameter RWID = IWID;
 
@@ -31,7 +31,7 @@ module HUBLinearF1_tb ();
         .SDIM(SDIM),
         .FOLD(FOLD),
         .BDEP(BDEP)
-    ) U_HUBLinearFold1(
+    ) U_HUBLinearFold(
         .clk(clk),    // Clock
         .rst_n(rst_n),  // Asynchronous reset active low
         .load(load),
@@ -48,7 +48,7 @@ module HUBLinearF1_tb ();
 
     `ifdef DUMPFSDB
         initial begin
-            $fsdbDumpfile("HUBLinearF1.fsdb");
+            $fsdbDumpfile("HUBLinearFold.fsdb");
             $fsdbDumpvars(0,"+all");
             // $fsdbDumpvars;
         end
@@ -77,8 +77,13 @@ module HUBLinearF1_tb ();
         #10
         load = 0;
         clear = 0;
+        
 
-        #(10*(2**IWID)*FOLD)
+        #(10*(2**IWID))
+        part = 1;
+
+        #(10*(2**IWID))
+        part = 0;
         sel = 1;
         clear = 1;
         // {-0.75, -0.5, -0.25, 0}
@@ -89,8 +94,15 @@ module HUBLinearF1_tb ();
         #10
         load = 1;
         clear = 1;
+
+        #10
+        load = 0;
+        clear = 0;
         
-        #(10*(2**IWID)*FOLD)
+        #(10*(2**IWID))
+        part = 1;
+
+        #(10*(2**IWID))
         sel = 0;
 
         #100;
