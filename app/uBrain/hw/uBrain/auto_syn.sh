@@ -6,8 +6,8 @@ set -o noclobber
 alias cp="cp -i"
 unalias cp
 
-technode="32nm_rvt"
-# technode="32nm_hvt"
+# technode="32nm_rvt"
+technode="32nm_hvt"
 
 echo "Process technode: $technode"
 
