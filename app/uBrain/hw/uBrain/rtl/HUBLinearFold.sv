@@ -81,7 +81,7 @@ module HUBLinearFold #(
         .clk(clk),
         .rst_n(rst_n),
         .enable(1'b1),
-        .rngSeq(wCnt)
+        .cntSeq(wCnt)
         );
 
     genvar i, j;
@@ -95,7 +95,6 @@ module HUBLinearFold #(
                 .iRng(iRng[i]),
                 .oBit(iBit[i])
                 );
-            assign iB_n[i] = ~iBit[i];
         end
 
         // select the correct weight for accumulation
