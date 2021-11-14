@@ -43,7 +43,8 @@ module HActArray #(
                         oData[i] <= {1'b1, iData[i][OWID - 1 : 1]};
                     end
                 end
-            end begin
+            end
+            else begin
                 always_comb begin : hardtanh
                     if (iData[i] >= PPON) begin
                         oData[i] <= {OWID{1'b1}};
