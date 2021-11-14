@@ -33,6 +33,10 @@ module HUBLinearFold #(
     output logic [OWID - 1 : 0] oFmap [ODIM - 1 : 0]
 );
 
+    // input: binary
+    // output: binary
+    // weight: binary
+
     logic [RWID - 1 : 0] iRng [TDIM * SDIM - 1 : 0];
     logic iBit [IDIM - 1 : 0];
     logic iB_n [IDIM - 1 : 0];

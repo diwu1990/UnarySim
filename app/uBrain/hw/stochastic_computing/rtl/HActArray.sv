@@ -31,7 +31,19 @@ module HActArray #(
                     end
                 end
             end
-            else begin
+            else if (RELU == 2) begin
+                always_comb begin : sigmoid
+                    if (iData[i] >= PPON) begin
+                        oData[i] <= {OWID{1'b1}};
+                    end
+                    else if (iData[i] <= PNON) begin
+                        oData[i] <= {OWID{1'b0}};
+                    end
+                    else begin
+                        oData[i] <= {1'b1, iData[i][OWID - 1 : 1]};
+                    end
+                end
+            end begin
                 always_comb begin : hardtanh
                     if (iData[i] >= PPON) begin
                         oData[i] <= {OWID{1'b1}};

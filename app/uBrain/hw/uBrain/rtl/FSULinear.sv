@@ -8,9 +8,11 @@ module FSULinear #(
     parameter IWID = 10,
     parameter ODIM = 2,
     parameter OWID = IWID,
-    parameter RWID = IWID,
+    parameter CWID = IWID,
     parameter SDIM = 32,
-    parameter BDEP = 999
+    parameter BDEP = 999,
+    parameter BDIO = 2 ** ($clog2(ODIM) - $clog2(SDIM)),
+    parameter TDIO = (BDIO < 1) ? 1 : BDIO
 ) (
     input logic clk,
     input logic rst_n,
@@ -18,7 +20,6 @@ module FSULinear #(
     input logic sel,
     input logic clear,
     input logic iFbit [IDIM - 1 : 0],
-    input logic iFb_n [IDIM - 1 : 0],
     input logic [IWID - 1 : 0] iWeig [ODIM * IDIM - 1 : 0],
     output logic oFbit [ODIM - 1 : 0]
 );
@@ -27,11 +28,9 @@ module FSULinear #(
     // output: unary
     // weight: binary
 
+    logic [CWID - 1 : 0] wCnt [TDIO * SDIM - 1 : 0];
     logic [IWID - 1 : 0] oWeig [ODIM * IDIM - 1 : 0];
     logic [IWID - 1 : 0] tWeig [ODIM * IDIM - 1 : 0];
-    // rng are shared by weights with identical inputs
-    logic [RWID - 1 : 0] wRng [IDIM - 1 : 0];
-    logic [RWID - 1 : 0] wR_n [IDIM - 1 : 0];
     logic oFmbs [ODIM * IDIM - 1 : 0];
 
     // load weight
@@ -46,9 +45,20 @@ module FSULinear #(
         .oData(oWeig)
     );
 
+    CntShareArray #(
+        .CWID(CWID),
+        .BDIM(BDIO),
+        .SDIM(SDIM)
+    ) U_CntShareArray_weigh_rng(
+        .clk(clk),
+        .rst_n(rst_n),
+        .enable(1'b1),
+        .rngSeq(wCnt)
+        );
+
     genvar i, j;
     generate
-        // generate weight rngs
+        // generate weight cnt
         for (i = 0; i < IDIM; i = i + 1) begin : gen_weight_rng
             SobolRngDim1 #(
                 .RWID(RWID)

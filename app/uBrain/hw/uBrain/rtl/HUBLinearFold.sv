@@ -6,6 +6,7 @@
 `include "Mul.sv"
 `include "MuxArray.sv"
 `include "SobolRngDim1.sv"
+`include "RngShareArray.sv"
 
 module HUBLinearFold #(
     parameter IDIM = 8,
@@ -35,6 +36,10 @@ module HUBLinearFold #(
     output logic [OWID - 1 : 0] oFmap [ODIM - 1 : 0]
 );
 
+    // input: binary
+    // output: binary
+    // weight: binary
+    
     logic [RWID - 1 : 0] iRng [TDII * SDIM - 1 : 0];
     logic [CWID - 1 : 0] wCnt [TDIO * SDIM - 1 : 0];
     logic iBit [IDIM - 1 : 0];
