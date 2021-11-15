@@ -1,0 +1,48 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : SobolRngDim1
+Version: S-2021.06
+Date   : Mon Nov 15 01:50:29 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+SobolRngDim1           8000              saed32hvt_tt0p85v25c
+CntEn_CWID8            ForQA             saed32hvt_tt0p85v25c
+LSZ_IWID8              ForQA             saed32hvt_tt0p85v25c
+SobolRng_RWID8         8000              saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+SobolRngDim1                           1.98e-02    0.407 3.69e+05    0.795 100.0
+  u_SobolRng (SobolRng_RWID8)          1.02e-02    0.208 2.15e+05    0.434  54.5
+  u_LSZ (LSZ_IWID8)                    3.18e-03 4.31e-03 2.50e+04 3.25e-02   4.1
+  u_CntEn (CntEn_CWID8)                6.41e-03    0.194 1.29e+05    0.329  41.4
+1

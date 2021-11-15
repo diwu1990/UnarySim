@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : AdderTree144_1
+Version: S-2021.06
+Date   : Mon Nov 15 01:37:07 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                          155
+Number of nets:                          1336
+Number of cells:                         1085
+Number of combinational cells:            904
+Number of sequential cells:               181
+Number of macros/black boxes:               0
+Number of buf/inv:                        117
+Number of references:                      21
+
+Combinational area:               2498.997954
+Buf/Inv area:                      211.956100
+Noncombinational area:            1288.001814
+Macro/Black Box area:                0.000000
+Net Interconnect area:             650.294043
+
+Total cell area:                  3786.999768
+Total area:                       4437.293811
+1

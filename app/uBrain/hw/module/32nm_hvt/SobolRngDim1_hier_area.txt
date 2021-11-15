@@ -1,0 +1,47 @@
+ 
+****************************************
+Report : area
+Design : SobolRngDim1
+Version: S-2021.06
+Date   : Mon Nov 15 01:50:28 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                          111
+Number of nets:                           225
+Number of cells:                          125
+Number of combinational cells:            104
+Number of sequential cells:                16
+Number of macros/black boxes:               0
+Number of buf/inv:                         25
+Number of references:                       3
+
+Combinational area:                278.033535
+Buf/Inv area:                       34.055296
+Noncombinational area:             113.856514
+Macro/Black Box area:                0.000000
+Net Interconnect area:             100.466136
+
+Total cell area:                   391.890049
+Total area:                        492.356185
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  --------------
+SobolRngDim1                       391.8900    100.0    0.0000     0.0000  0.0000  SobolRngDim1
+u_CntEn                            117.4145     30.0   60.4863    56.9283  0.0000  CntEn_CWID8
+u_LSZ                               34.8177      8.9   34.8177     0.0000  0.0000  LSZ_IWID8
+u_SobolRng                         239.6578     61.2  182.7295    56.9283  0.0000  SobolRng_RWID8
+--------------------------------  ---------  -------  --------  ---------  ------  --------------
+Total                                                 278.0335   113.8565  0.0000
+
+1

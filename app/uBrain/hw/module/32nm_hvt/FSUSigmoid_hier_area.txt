@@ -1,0 +1,45 @@
+ 
+****************************************
+Report : area
+Design : FSUSigmoid
+Version: S-2021.06
+Date   : Mon Nov 15 01:45:05 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           11
+Number of nets:                            15
+Number of cells:                            8
+Number of combinational cells:              6
+Number of sequential cells:                 1
+Number of macros/black boxes:               0
+Number of buf/inv:                          2
+Number of references:                       5
+
+Combinational area:                 16.011072
+Buf/Inv area:                        2.541440
+Noncombinational area:               7.116032
+Macro/Black Box area:                0.000000
+Net Interconnect area:               1.421077
+
+Total cell area:                    23.127104
+Total area:                         24.548181
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  ---------------------------
+FSUSigmoid                          23.1271    100.0    9.4033     7.1160  0.0000  FSUSigmoid
+U_AdderTree_parallel_counter         6.6077     28.6    6.6077     0.0000  0.0000  AdderTree_IDIM2_IWID1_BDEP2
+--------------------------------  ---------  -------  --------  ---------  ------  ---------------------------
+Total                                                  16.0111     7.1160  0.0000
+
+1

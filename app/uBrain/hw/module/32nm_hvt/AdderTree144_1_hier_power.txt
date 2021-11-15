@@ -1,0 +1,54 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : AdderTree144_1
+Version: S-2021.06
+Date   : Mon Nov 15 01:37:00 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+AdderTree144_1         8000              saed32hvt_tt0p85v25c
+AdderTree144_1_DW01_add_23_DW01_add_95
+                       ForQA             saed32hvt_tt0p85v25c
+AdderTree144_1_DW01_add_22_DW01_add_94
+                       ForQA             saed32hvt_tt0p85v25c
+AdderTree144_1_DW01_add_21_DW01_add_93
+                       ForQA             saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+AdderTree144_1                            0.337    5.300 3.82e+06    9.456 100.0
+  add_0_root_add_0_root_add_42_G8 (AdderTree144_1_DW01_add_21_DW01_add_93)
+                                       4.70e-03 3.10e-02 9.04e+04    0.126   1.3
+  add_1_root_add_0_root_add_42_G8 (AdderTree144_1_DW01_add_22_DW01_add_94)
+                                       6.15e-03 2.90e-02 8.17e+04    0.117   1.2
+  add_2_root_add_0_root_add_42_G8 (AdderTree144_1_DW01_add_23_DW01_add_95)
+                                       3.22e-03 1.04e-02 3.37e+04 4.73e-02   0.5
+1

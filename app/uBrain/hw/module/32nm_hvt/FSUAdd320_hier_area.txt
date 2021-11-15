@@ -1,0 +1,57 @@
+ 
+****************************************
+Report : area
+Design : FSUAdd320
+Version: S-2021.06
+Date   : Mon Nov 15 01:44:35 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                          847
+Number of nets:                          2728
+Number of cells:                         1742
+Number of combinational cells:           1304
+Number of sequential cells:               396
+Number of macros/black boxes:               0
+Number of buf/inv:                        192
+Number of references:                       9
+
+Combinational area:               4559.343333
+Buf/Inv area:                      453.647053
+Noncombinational area:            2817.948721
+Macro/Black Box area:                0.000000
+Net Interconnect area:            1219.553526
+
+Total cell area:                  7377.292053
+Total area:                       8596.845579
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  ---------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-     Noncombi-  Black-
+                                  Total      Total    national   national   boxes   Design
+--------------------------------  ---------  -------  ---------  ---------  ------  -----------------------------------------
+FSUAdd320                         7377.2921    100.0    29.4807     7.1160  0.0000  FSUAdd320
+U_AdderTree_parallel_counter      7340.6953     99.5  4165.4201  2810.8327  0.0000  AdderTree_IDIM320_IWID1_BDEP2
+U_AdderTree_parallel_counter/add_0_root_add_0_root_add_42_G2_G8
+                                    33.2929      0.5    33.2929     0.0000  0.0000  AdderTree_IDIM320_IWID1_BDEP2_DW01_add_37
+U_AdderTree_parallel_counter/add_0_root_add_0_root_add_42_G8
+                                    75.7349      1.0    75.7349     0.0000  0.0000  AdderTree_IDIM320_IWID1_BDEP2_DW01_add_40
+U_AdderTree_parallel_counter/add_1_root_add_0_root_add_42_G2_G8
+                                    33.2929      0.5    33.2929     0.0000  0.0000  AdderTree_IDIM320_IWID1_BDEP2_DW01_add_38
+U_AdderTree_parallel_counter/add_1_root_add_0_root_add_42_G8
+                                    65.8233      0.9    65.8233     0.0000  0.0000  AdderTree_IDIM320_IWID1_BDEP2_DW01_add_41
+U_AdderTree_parallel_counter/add_2_root_add_0_root_add_42_G8
+                                    65.8233      0.9    65.8233     0.0000  0.0000  AdderTree_IDIM320_IWID1_BDEP2_DW01_add_42
+U_AdderTree_parallel_counter/add_50_G9
+                                    90.4753      1.2    90.4753     0.0000  0.0000  AdderTree_IDIM320_IWID1_BDEP2_DW01_add_0
+--------------------------------  ---------  -------  ---------  ---------  ------  -----------------------------------------
+Total                                                 4559.3433  2817.9487  0.0000
+
+1

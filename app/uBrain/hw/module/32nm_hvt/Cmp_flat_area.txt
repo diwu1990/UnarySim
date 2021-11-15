@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : Cmp
+Version: S-2021.06
+Date   : Mon Nov 15 01:43:40 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           23
+Number of nets:                            46
+Number of cells:                           24
+Number of combinational cells:             23
+Number of sequential cells:                 1
+Number of macros/black boxes:               0
+Number of buf/inv:                         11
+Number of references:                      10
+
+Combinational area:                 47.270784
+Buf/Inv area:                       13.977920
+Noncombinational area:               7.116032
+Macro/Black Box area:                0.000000
+Net Interconnect area:               5.645478
+
+Total cell area:                    54.386816
+Total area:                         60.032294
+1

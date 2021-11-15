@@ -1,0 +1,45 @@
+ 
+****************************************
+Report : area
+Design : CntShareArray128
+Version: S-2021.06
+Date   : Mon Nov 15 01:40:17 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                         1296
+Number of nets:                          1416
+Number of cells:                         1401
+Number of combinational cells:           1350
+Number of sequential cells:                50
+Number of macros/black boxes:               0
+Number of buf/inv:                       1331
+Number of references:                       3
+
+Combinational area:               2762.799560
+Buf/Inv area:                     2697.738697
+Noncombinational area:             358.088902
+Macro/Black Box area:                0.000000
+Net Interconnect area:             638.158741
+
+Total cell area:                  3120.888463
+Total area:                       3759.047203
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  ---------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-     Noncombi-  Black-
+                                  Total      Total    national   national   boxes   Design
+--------------------------------  ---------  -------  ---------  ---------  ------  ------------
+CntShareArray128                  3120.8885    100.0  2683.7608   284.6413  0.0000  CntShareArray128
+U_CntEn                            152.4864      4.9    79.0388    73.4476  0.0000  CntEn_CWID10
+--------------------------------  ---------  -------  ---------  ---------  ------  ------------
+Total                                                 2762.7996   358.0889  0.0000
+
+1
