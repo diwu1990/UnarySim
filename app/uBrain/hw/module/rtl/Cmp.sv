@@ -3,6 +3,8 @@
 module Cmp #(
     parameter IWID = 10
 ) (
+    input logic clk,
+    input logic rst_n,
     input logic [IWID - 1 : 0] iData,
     input logic [IWID - 1 : 0] iRng,
     output logic oBit
@@ -12,9 +14,7 @@ module Cmp #(
 
     assign tBit = iData >= iRng;
 
-    Dff # (
-        .IWID(IWID)
-    ) U_Dff(
+    Dff U_Dff(
         .clk(clk),
         .rst_n(rst_n),
         .in(tBit),

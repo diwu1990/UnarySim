@@ -1,4 +1,4 @@
-module HActArray #(
+module HAct #(
     parameter IWID = 16,
     parameter ADIM = 32, // accumulation depth
     parameter OWID = 8,

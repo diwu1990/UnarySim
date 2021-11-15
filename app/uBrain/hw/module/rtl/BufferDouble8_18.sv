@@ -1,4 +1,4 @@
-module BufferDouble4_14 #(
+module BufferDouble8_18 #(
     parameter IWID = 8,
     parameter OWID = 18
 ) (
