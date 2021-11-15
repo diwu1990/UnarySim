@@ -33,6 +33,7 @@ RngShareArray32
 RngShareArray64
 RngShareArray128
 RngShareArray256
+RngShareArray512
 RngShareArray1024
 ShiftReg128
 SobolRngDim1
