@@ -16,7 +16,7 @@ module RELU14_10 #(
 
     HAct #(
         .IWID(IWID),
-        .ADEP(ADIM),
+        .ADIM(ADIM),
         .OWID(OWID)
     ) U_HAct(
         .iData(iData),
