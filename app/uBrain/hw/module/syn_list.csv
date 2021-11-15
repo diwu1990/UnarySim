@@ -1,9 +1,11 @@
 AdderTree9_1
+AdderTree64_1
 AdderTree128_1
 AdderTree144_1
 BufferDoubleNoAcc
 BufferDouble1_10
 BufferDouble4_14
+BufferDouble7_17
 BufferDouble8_18
 BufferLoad
 CntShareArray16
@@ -21,7 +23,13 @@ Inverter
 MulDecomp
 MulXNOR
 RELU14_10
+TANH17_10
 RELU18_10
+RngShareArray2
+RngShareArray4
+RngShareArray8
+RngShareArray16
+RngShareArray32
 RngShareArray64
 RngShareArray128
 RngShareArray256
