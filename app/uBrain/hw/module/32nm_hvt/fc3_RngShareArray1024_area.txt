@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : fc3_RngShareArray1024
+Version: S-2021.06
+Date   : Sun Nov 14 22:58:18 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                        10243
+Number of nets:                         11026
+Number of cells:                        11019
+Number of combinational cells:          10679
+Number of sequential cells:               340
+Number of macros/black boxes:               0
+Number of buf/inv:                      10619
+Number of references:                      15
+
+Combinational area:              21751.677767
+Buf/Inv area:                    21575.555976
+Noncombinational area:            2419.450922
+Macro/Black Box area:                0.000000
+Net Interconnect area:            5123.181284
+
+Total cell area:                 24171.128689
+Total area:                      29294.309973
+1

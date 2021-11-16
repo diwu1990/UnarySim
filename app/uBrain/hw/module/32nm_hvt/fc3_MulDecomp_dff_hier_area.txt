@@ -1,0 +1,47 @@
+ 
+****************************************
+Report : area
+Design : fc3_MulDecomp_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:58 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           18
+Number of nets:                            20
+Number of cells:                            7
+Number of combinational cells:              2
+Number of sequential cells:                 2
+Number of macros/black boxes:               0
+Number of buf/inv:                          1
+Number of references:                       3
+
+Combinational area:                  5.591168
+Buf/Inv area:                        1.270720
+Noncombinational area:              14.232064
+Macro/Black Box area:                0.000000
+Net Interconnect area:               0.968496
+
+Total cell area:                    19.823232
+Total area:                         20.791729
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  -------------------------------
+fc3_MulDecomp_dff                   19.8232    100.0    0.0000     0.0000  0.0000  fc3_MulDecomp_dff
+U_Mul                                5.5912     28.2    5.5912     0.0000  0.0000  fc3_MulDecomp_IDIM1_FOLD1_ODIM1
+U_dff_en                             7.1160     35.9    0.0000     7.1160  0.0000  dff_BW1_WIDTH1_HEIGHT1_1
+U_dff_out                            7.1160     35.9    0.0000     7.1160  0.0000  dff_BW1_WIDTH1_HEIGHT1_0
+--------------------------------  ---------  -------  --------  ---------  ------  -------------------------------
+Total                                                   5.5912    14.2321  0.0000
+
+1

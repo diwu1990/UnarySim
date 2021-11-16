@@ -1,0 +1,46 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : fc3_Cmp_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:00 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+fc3_Cmp_dff            ForQA             saed32hvt_tt0p85v25c
+fc3_Cmp_IWID10         ForQA             saed32hvt_tt0p85v25c
+dff_BW1_WIDTH1_HEIGHT1 ForQA             saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+fc3_Cmp_dff                            3.83e-02    0.247 5.38e+04    0.339 100.0
+  U_dff (dff_BW1_WIDTH1_HEIGHT1)       5.03e-04    0.161 1.01e+04    0.171  50.5
+  U_Cmp (fc3_Cmp_IWID10)               3.78e-02 8.65e-02 4.37e+04    0.168  49.5
+1

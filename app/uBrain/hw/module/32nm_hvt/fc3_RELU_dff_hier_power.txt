@@ -1,0 +1,49 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : fc3_RELU_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:40 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+fc3_RELU_dff           ForQA             saed32hvt_tt0p85v25c
+fc3_RELU_IDIM1_IWID23_ADIM3520_ODIM1_OWID10_PZER1802240_PPON1802752_PNON1801728
+                       ForQA             saed32hvt_tt0p85v25c
+dff_BW10_WIDTH1_HEIGHT1
+                       ForQA             saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+fc3_RELU_dff                           2.61e-02    1.681 1.35e+05    1.842 100.0
+  U_dff (dff_BW10_WIDTH1_HEIGHT1)         0.000    1.619 9.34e+04    1.713  93.0
+  U_relu (fc3_RELU_IDIM1_IWID23_ADIM3520_ODIM1_OWID10_PZER1802240_PPON1802752_PNON1801728)
+                                       2.61e-02 6.19e-02 4.17e+04    0.130   7.0
+1

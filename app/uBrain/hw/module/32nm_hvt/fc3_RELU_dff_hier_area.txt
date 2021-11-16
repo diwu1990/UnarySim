@@ -1,0 +1,46 @@
+ 
+****************************************
+Report : area
+Design : fc3_RELU_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:39 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           90
+Number of nets:                           109
+Number of cells:                           33
+Number of combinational cells:             18
+Number of sequential cells:                10
+Number of macros/black boxes:               0
+Number of buf/inv:                          1
+Number of references:                       2
+
+Combinational area:                 47.524929
+Buf/Inv area:                        2.033152
+Noncombinational area:              71.160321
+Macro/Black Box area:                0.000000
+Net Interconnect area:               9.059862
+
+Total cell area:                   118.685250
+Total area:                        127.745112
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  -------------------------------------------------------------------------------
+fc3_RELU_dff                       118.6853    100.0    0.0000     0.0000  0.0000  fc3_RELU_dff
+U_dff                               71.1603     60.0    0.0000    71.1603  0.0000  dff_BW10_WIDTH1_HEIGHT1
+U_relu                              47.5249     40.0   47.5249     0.0000  0.0000  fc3_RELU_IDIM1_IWID23_ADIM3520_ODIM1_OWID10_PZER1802240_PPON1802752_PNON1801728
+--------------------------------  ---------  -------  --------  ---------  ------  -------------------------------------------------------------------------------
+Total                                                  47.5249    71.1603  0.0000
+
+1

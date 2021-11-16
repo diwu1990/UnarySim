@@ -1,0 +1,46 @@
+ 
+****************************************
+Report : area
+Design : fc3_MulXNOR_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:19 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           12
+Number of nets:                            13
+Number of cells:                            4
+Number of combinational cells:              1
+Number of sequential cells:                 1
+Number of macros/black boxes:               0
+Number of buf/inv:                          0
+Number of references:                       2
+
+Combinational area:                  4.320448
+Buf/Inv area:                        0.000000
+Noncombinational area:               7.116032
+Macro/Black Box area:                0.000000
+Net Interconnect area:               0.496502
+
+Total cell area:                    11.436480
+Total area:                         11.932982
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  -----------------------------
+fc3_MulXNOR_dff                     11.4365    100.0    0.0000     0.0000  0.0000  fc3_MulXNOR_dff
+U_Mul                                4.3204     37.8    4.3204     0.0000  0.0000  fc3_MulXNOR_IDIM1_FOLD1_ODIM1
+U_dff                                7.1160     62.2    0.0000     7.1160  0.0000  dff_BW1_WIDTH1_HEIGHT1
+--------------------------------  ---------  -------  --------  ---------  ------  -----------------------------
+Total                                                   4.3204     7.1160  0.0000
+
+1
