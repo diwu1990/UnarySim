@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : fc3_BufferDoubleNoAcc
+Version: S-2021.06
+Date   : Sun Nov 14 22:56:13 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           23
+Number of nets:                            69
+Number of cells:                           56
+Number of combinational cells:             36
+Number of sequential cells:                20
+Number of macros/black boxes:               0
+Number of buf/inv:                          6
+Number of references:                       4
+
+Combinational area:                 84.121664
+Buf/Inv area:                        7.878464
+Noncombinational area:             142.320642
+Macro/Black Box area:                0.000000
+Net Interconnect area:              50.251022
+
+Total cell area:                   226.442307
+Total area:                        276.693329
+1

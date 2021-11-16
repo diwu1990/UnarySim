@@ -1,0 +1,31 @@
+ 
+****************************************
+Report : area
+Design : fc3_RELU_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:42 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    No libraries used.
+
+Number of ports:                           35
+Number of nets:                            10
+Number of cells:                           10
+Number of combinational cells:              0
+Number of sequential cells:                 0
+Number of macros/black boxes:               0
+Number of buf/inv:                          0
+Number of references:                       0
+
+Combinational area:                  0.000000
+Buf/Inv area:                        0.000000
+Noncombinational area:               0.000000
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                     0.000000
+Total area:                 undefined
+1

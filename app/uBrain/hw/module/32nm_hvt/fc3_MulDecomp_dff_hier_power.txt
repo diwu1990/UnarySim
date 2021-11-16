@@ -1,0 +1,52 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : fc3_MulDecomp_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:59 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+fc3_MulDecomp_dff      ForQA             saed32hvt_tt0p85v25c
+fc3_MulDecomp_IDIM1_FOLD1_ODIM1
+                       ForQA             saed32hvt_tt0p85v25c
+dff_BW1_WIDTH1_HEIGHT1_0
+                       ForQA             saed32hvt_tt0p85v25c
+dff_BW1_WIDTH1_HEIGHT1_1
+                       ForQA             saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+fc3_MulDecomp_dff                      3.83e-03    0.331 2.52e+04    0.360 100.0
+  U_dff_en (dff_BW1_WIDTH1_HEIGHT1_1)  3.97e-04    0.159 1.01e+04    0.170  47.1
+  U_dff_out (dff_BW1_WIDTH1_HEIGHT1_0) 5.46e-04    0.161 1.01e+04    0.171  47.5
+  U_Mul (fc3_MulDecomp_IDIM1_FOLD1_ODIM1)
+                                       2.88e-03 1.15e-02 5.06e+03 1.95e-02   5.4
+1

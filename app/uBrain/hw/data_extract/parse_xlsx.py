@@ -168,7 +168,7 @@ def main():
     else: print(bcolors.OKGREEN + f'Processing {path+filename}...' + bcolors.ENDC)
     
     power_area_fold_stacked_bar(1, 'ubrain', path, filename)
-    #power_area_fold_stacked_bar(2, 'ubrain', path, filename)
+    power_area_fold_stacked_bar(2, 'ubrain', path, filename)
 
     # example query
     # print(query('conv1-F1', 'ubrain', path, filename))

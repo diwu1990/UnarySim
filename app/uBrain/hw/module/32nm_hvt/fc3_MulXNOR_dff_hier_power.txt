@@ -1,0 +1,48 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : fc3_MulXNOR_dff
+Version: S-2021.06
+Date   : Sun Nov 14 23:02:19 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+fc3_MulXNOR_dff        ForQA             saed32hvt_tt0p85v25c
+fc3_MulXNOR_IDIM1_FOLD1_ODIM1
+                       ForQA             saed32hvt_tt0p85v25c
+dff_BW1_WIDTH1_HEIGHT1 ForQA             saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+fc3_MulXNOR_dff                        2.44e-03    0.171 1.33e+04    0.186 100.0
+  U_dff (dff_BW1_WIDTH1_HEIGHT1)       5.46e-04    0.161 1.01e+04    0.171  91.8
+  U_Mul (fc3_MulXNOR_IDIM1_FOLD1_ODIM1)
+                                       1.89e-03 1.03e-02 3.21e+03 1.53e-02   8.2
+1
