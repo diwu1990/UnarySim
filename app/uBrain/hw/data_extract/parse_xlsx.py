@@ -55,55 +55,58 @@ def get_cell_vals(tab, str_range):
         cell = tab[str_range]
         return cell.value
 
-def query(str_tab=None, cfg='ubrain'):
-    wb = load_workbook(filename="uBrain_resource.xlsx", data_only=True)
+def query(str_tab=None, cfg='ubrain', absolute_path=None, filename=None):
+    wb = load_workbook(filename=absolute_path+filename, data_only=True)
     sheets = wb.sheetnames
     ind = sheets.index(str_tab)
     return get_lists(tab=wb[sheets[ind]], cfg=cfg)
 
 def main():
-    file_name = "uBrain_resource.xlsx"
-    file_exists = os.path.exists(file_name)
+    # NOTE: Update absolute path and filename
+    path = '/home/zhewen/Repo/UnarySim/app/uBrain/hw/data_extract/'
+    filename = "uBrain_resource.xlsx"
+    file_exists = os.path.exists(path+filename)
     if file_exists == False:
-        print(bcolors.FAIL + f'{file_name} does not exist. Did you forget to put it in?' + bcolors.ENDC)
+        print(bcolors.FAIL + f'{filename} does not exist at path {path}. Did you forget to put it in?' + bcolors.ENDC)
         exit()
+    else: print(bcolors.OKGREEN + f'Processing {path+filename}...' + bcolors.ENDC)
     
     # example query
-    print(query('conv1-F1', 'ubrain'))
-    print(query('conv1-F1', 'sc'))
-    print(query('conv1-F2', 'ubrain'))
-    print(query('conv1-F2', 'sc'))
-    print(query('conv1-F4', 'ubrain'))
-    print(query('conv1-F4', 'sc'))
-    print(query('conv1-F8', 'ubrain'))
-    print(query('conv1-F8', 'sc'))
-    print(query('conv1-F16', 'ubrain'))
-    print(query('conv1-F16', 'sc'))
+    # print(query('conv1-F1', 'ubrain', path, filename))
+    # print(query('conv1-F1', 'sc', path, filename))
+    # print(query('conv1-F2', 'ubrain', path, filename))
+    # print(query('conv1-F2', 'sc', path, filename))
+    # print(query('conv1-F4', 'ubrain', path, filename))
+    # print(query('conv1-F4', 'sc', path, filename))
+    # print(query('conv1-F8', 'ubrain', path, filename))
+    # print(query('conv1-F8', 'sc', path, filename))
+    # print(query('conv1-F16', 'ubrain', path, filename))
+    # print(query('conv1-F16', 'sc', path, filename))
 
-    print(query('conv2-F1', 'ubrain'))
-    print(query('conv2-F1', 'sc'))
-    print(query('conv2-F2', 'ubrain'))
-    print(query('conv2-F2', 'sc'))
-    print(query('conv2-F4', 'ubrain'))
-    print(query('conv2-F4', 'sc'))
-    print(query('conv2-F8', 'ubrain'))
-    print(query('conv2-F8', 'sc'))
-    print(query('conv2-F16', 'ubrain'))
-    print(query('conv2-F16', 'sc'))
-    print(query('conv2-F32', 'ubrain'))
-    print(query('conv2-F32', 'sc'))
+    # print(query('conv2-F1', 'ubrain', path, filename))
+    # print(query('conv2-F1', 'sc', path, filename))
+    # print(query('conv2-F2', 'ubrain', path, filename))
+    # print(query('conv2-F2', 'sc', path, filename))
+    # print(query('conv2-F4', 'ubrain', path, filename))
+    # print(query('conv2-F4', 'sc', path, filename))
+    # print(query('conv2-F8', 'ubrain', path, filename))
+    # print(query('conv2-F8', 'sc', path, filename))
+    # print(query('conv2-F16', 'ubrain', path, filename))
+    # print(query('conv2-F16', 'sc', path, filename))
+    # print(query('conv2-F32', 'ubrain', path, filename))
+    # print(query('conv2-F32', 'sc', path, filename))
 
-    print(query('fc3-F256', 'ubrain'))
-    print(query('fc3-F256', 'sc'))
+    # print(query('fc3-F256', 'ubrain', path, filename))
+    # print(query('fc3-F256', 'sc', path, filename))
 
-    print(query('rnn4-F1', 'ubrain'))
-    print(query('rnn4-F1', 'sc'))
+    # print(query('rnn4-F1', 'ubrain', path, filename))
+    # print(query('rnn4-F1', 'sc', path, filename))
 
-    print(query('fc5-F1', 'ubrain'))
-    print(query('fc5-F1', 'sc'))
+    # print(query('fc5-F1', 'ubrain', path, filename))
+    # print(query('fc5-F1', 'sc', path, filename))
     
-    print(query('fc6-F1', 'ubrain'))
-    print(query('fc6-F1', 'sc'))
+    # print(query('fc6-F1', 'ubrain', path, filename))
+    # print(query('fc6-F1', 'sc', path, filename))
 
 
 if __name__ == "__main__":
