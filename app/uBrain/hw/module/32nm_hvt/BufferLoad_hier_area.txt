@@ -1,0 +1,44 @@
+ 
+****************************************
+Report : area
+Design : BufferLoad
+Version: S-2021.06
+Date   : Mon Nov 15 01:38:50 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           23
+Number of nets:                            34
+Number of cells:                           21
+Number of combinational cells:             11
+Number of sequential cells:                10
+Number of macros/black boxes:               0
+Number of buf/inv:                          1
+Number of references:                       3
+
+Combinational area:                 26.939264
+Buf/Inv area:                        1.524864
+Noncombinational area:              71.160321
+Macro/Black Box area:                0.000000
+Net Interconnect area:               8.807962
+
+Total cell area:                    98.099585
+Total area:                        106.907547
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  ---------
+BufferLoad                          98.0996    100.0   26.9393    71.1603  0.0000  BufferLoad
+--------------------------------  ---------  -------  --------  ---------  ------  ---------
+Total                                                  26.9393    71.1603  0.0000
+
+1

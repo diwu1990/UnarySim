@@ -1,0 +1,46 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : FSUAdd3
+Version: S-2021.06
+Date   : Mon Nov 15 01:43:57 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+FSUAdd3                ForQA             saed32hvt_tt0p85v25c
+AdderTree_IDIM3_IWID1_BDEP2
+                       ForQA             saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+FSUAdd3                                1.90e-03 5.26e-02 3.34e+04 8.78e-02 100.0
+  U_AdderTree_parallel_counter (AdderTree_IDIM3_IWID1_BDEP2)
+                                       1.70e-03 5.22e-02 3.13e+04 8.52e-02  97.0
+1

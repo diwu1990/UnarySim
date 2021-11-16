@@ -1,4 +1,4 @@
-Cache size                    : 134217728
+Cache size                    : 16777216
 Block size                    : 64
 Associativity                 : 1
 Read only ports               : 0
@@ -46,7 +46,7 @@ IO Termination and Bias Power (mW) = 3785.43
 ---------- CACTI (version 7.0.3DD Prerelease of Aug, 2012), UniformCache Access Commodity DRAM Model ----------
 
 Cache Parameters:
-    Total cache size (bytes): 134217728
+    Total cache size (bytes): 16777216
     Number of banks: 8
     Associativity: direct mapped
     Block size (bytes): 64
@@ -55,22 +55,22 @@ Cache Parameters:
     Write ports: 0
     Technology size (nm): 22
 
-    Access time (ns): 9.35241
-    Cycle time (ns):  15.3086
-    Precharge Delay (ns): 5.9562
-    Activate Energy (nJ): 0.0386537
-    Read Energy (nJ): 4.68645
-    Write Energy (nJ): 4.58164
-    Precharge Energy (nJ): 0.252305
-    Leakage Power Closed Page (mW): 2.55967
-    Leakage Power Open Page (mW): 2.56079
-    Leakage Power I/O (mW): 91.2458
-    Refresh power (mW): 0.0610983
-    Cache height x width (mm): 4.46514 x 4.18821
+    Access time (ns): 6.3223
+    Cycle time (ns):  10.1328
+    Precharge Delay (ns): 3.81047
+    Activate Energy (nJ): 0.0318736
+    Read Energy (nJ): 2.61424
+    Write Energy (nJ): 2.5058
+    Precharge Energy (nJ): 0.136598
+    Leakage Power Closed Page (mW): 1.30912
+    Leakage Power Open Page (mW): 1.31024
+    Leakage Power I/O (mW): 41.9156
+    Refresh power (mW): 0.0042319
+    Cache height x width (mm): 2.14558 x 2.5344
 
-    Best Ndwl : 32
-    Best Ndbl : 32
-    Best Nspd : 16
+    Best Ndwl : 16
+    Best Ndbl : 16
+    Best Nspd : 8
     Best Ndcm : 1
     Best Ndsam L1 : 2
     Best Ndsam L2 : 1

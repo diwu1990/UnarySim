@@ -1,0 +1,47 @@
+ 
+****************************************
+Report : area
+Design : AdderTree144_1
+Version: S-2021.06
+Date   : Mon Nov 15 01:36:59 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                          242
+Number of nets:                          1442
+Number of cells:                         1130
+Number of combinational cells:            923
+Number of sequential cells:               181
+Number of macros/black boxes:               0
+Number of buf/inv:                        111
+Number of references:                      18
+
+Combinational area:               2565.329535
+Buf/Inv area:                      236.353926
+Noncombinational area:            1288.001814
+Macro/Black Box area:                0.000000
+Net Interconnect area:             646.627726
+
+Total cell area:                  3853.331350
+Total area:                       4499.959076
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  ---------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-     Noncombi-  Black-
+                                  Total      Total    national   national   boxes   Design
+--------------------------------  ---------  -------  ---------  ---------  ------  --------------------------------------
+AdderTree144_1                    3853.3313    100.0  2385.1414  1288.0018  0.0000  AdderTree144_1
+add_0_root_add_0_root_add_42_G8     77.5139      2.0    77.5139     0.0000  0.0000  AdderTree144_1_DW01_add_21_DW01_add_93
+add_1_root_add_0_root_add_42_G8     69.3813      1.8    69.3813     0.0000  0.0000  AdderTree144_1_DW01_add_22_DW01_add_94
+add_2_root_add_0_root_add_42_G8     33.2929      0.9    33.2929     0.0000  0.0000  AdderTree144_1_DW01_add_23_DW01_add_95
+--------------------------------  ---------  -------  ---------  ---------  ------  --------------------------------------
+Total                                                 2565.3295  1288.0018  0.0000
+
+1

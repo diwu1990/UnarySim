@@ -1,0 +1,44 @@
+ 
+****************************************
+Report : area
+Design : BufferDouble4_14
+Version: S-2021.06
+Date   : Mon Nov 15 01:38:06 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                           23
+Number of nets:                           135
+Number of cells:                          123
+Number of combinational cells:             95
+Number of sequential cells:                28
+Number of macros/black boxes:               0
+Number of buf/inv:                         10
+Number of references:                      12
+
+Combinational area:                258.210304
+Buf/Inv area:                       14.994496
+Noncombinational area:             199.248899
+Macro/Black Box area:                0.000000
+Net Interconnect area:             105.044498
+
+Total cell area:                   457.459203
+Total area:                        562.503701
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  ---------
+BufferDouble4_14                   457.4592    100.0  258.2103   199.2489  0.0000  BufferDouble4_14
+--------------------------------  ---------  -------  --------  ---------  ------  ---------
+Total                                                 258.2103   199.2489  0.0000
+
+1

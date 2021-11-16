@@ -1,0 +1,48 @@
+ 
+****************************************
+Report : area
+Design : RngShareArray512
+Version: S-2021.06
+Date   : Mon Nov 15 14:49:00 2021
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+Number of ports:                         5280
+Number of nets:                          5806
+Number of cells:                         5650
+Number of combinational cells:           5464
+Number of sequential cells:               180
+Number of macros/black boxes:               0
+Number of buf/inv:                       5336
+Number of references:                       3
+
+Combinational area:              11186.402851
+Buf/Inv area:                    10815.352612
+Noncombinational area:            1280.885782
+Macro/Black Box area:                0.000000
+Net Interconnect area:            2727.405618
+
+Total cell area:                 12467.288633
+Total area:                      15194.694251
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area            Local cell area
+                                  -------------------  ----------------------------- 
+Hierarchical cell                 Absolute    Percent  Combi-      Noncombi-  Black-
+                                  Total       Total    national    national   boxes   Design
+--------------------------------  ----------  -------  ----------  ---------  ------  -------------------
+RngShareArray512                  12467.2886    100.0  10735.0431  1138.5651  0.0000  RngShareArray512
+U_SobolRngDim1                      593.6804      4.8      0.0000     0.0000  0.0000  SobolRngDim1_RWID10
+U_SobolRngDim1/u_CntEn              146.3869      1.2     75.2266    71.1603  0.0000  CntEn_CWID10
+U_SobolRngDim1/u_LSZ                 44.2211      0.4     44.2211     0.0000  0.0000  LSZ_IWID10
+U_SobolRngDim1/u_SobolRng           403.0724      3.2    331.9121    71.1603  0.0000  SobolRng_RWID10
+--------------------------------  ----------  -------  ----------  ---------  ------  -------------------
+Total                                                  11186.4029  1280.8858  0.0000
+
+1

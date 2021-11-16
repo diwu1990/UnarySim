@@ -1,0 +1,70 @@
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+Warning: Design has unannotated primary inputs. (PWR-414)
+Warning: Design has unannotated sequential cell outputs. (PWR-415)
+ 
+****************************************
+Report : power
+        -hier
+        -analysis_effort low
+Design : FSUAdd320
+Version: S-2021.06
+Date   : Mon Nov 15 01:44:36 2021
+****************************************
+
+
+Library(s) Used:
+
+    saed32hvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_hvt/db_nldm/saed32hvt_tt0p85v25c.db)
+
+
+Operating Conditions: tt0p85v25c   Library: saed32hvt_tt0p85v25c
+Wire Load Model Mode: enclosed
+
+Design        Wire Load Model            Library
+------------------------------------------------
+FSUAdd320              8000              saed32hvt_tt0p85v25c
+AdderTree_IDIM320_IWID1_BDEP2
+                       8000              saed32hvt_tt0p85v25c
+AdderTree_IDIM320_IWID1_BDEP2_DW01_add_0
+                       ForQA             saed32hvt_tt0p85v25c
+AdderTree_IDIM320_IWID1_BDEP2_DW01_add_38
+                       ForQA             saed32hvt_tt0p85v25c
+AdderTree_IDIM320_IWID1_BDEP2_DW01_add_37
+                       ForQA             saed32hvt_tt0p85v25c
+AdderTree_IDIM320_IWID1_BDEP2_DW01_add_42
+                       ForQA             saed32hvt_tt0p85v25c
+AdderTree_IDIM320_IWID1_BDEP2_DW01_add_41
+                       ForQA             saed32hvt_tt0p85v25c
+AdderTree_IDIM320_IWID1_BDEP2_DW01_add_40
+                       ForQA             saed32hvt_tt0p85v25c
+
+
+Global Operating Voltage = 0.85 
+Power-specific unit information :
+    Voltage Units = 1V
+    Capacitance Units = 1.000000ff
+    Time Units = 1ns
+    Dynamic Power Units = 1uW    (derived from V,C,T units)
+    Leakage Power Units = 1pW
+
+
+--------------------------------------------------------------------------------
+                                       Switch   Int      Leak     Total
+Hierarchy                              Power    Power    Power    Power    %
+--------------------------------------------------------------------------------
+FSUAdd320                                 0.676   11.551 7.92e+06   20.143 100.0
+  U_AdderTree_parallel_counter (AdderTree_IDIM320_IWID1_BDEP2)
+                                          0.674   11.522 7.88e+06   20.074  99.7
+    add_0_root_add_0_root_add_42_G8 (AdderTree_IDIM320_IWID1_BDEP2_DW01_add_40)
+                                       6.11e-03 3.98e-02 8.76e+04    0.133   0.7
+    add_1_root_add_0_root_add_42_G8 (AdderTree_IDIM320_IWID1_BDEP2_DW01_add_41)
+                                       7.90e-03 3.70e-02 7.59e+04    0.121   0.6
+    add_2_root_add_0_root_add_42_G8 (AdderTree_IDIM320_IWID1_BDEP2_DW01_add_42)
+                                       7.78e-03 3.66e-02 7.59e+04    0.120   0.6
+    add_0_root_add_0_root_add_42_G2_G8 (AdderTree_IDIM320_IWID1_BDEP2_DW01_add_37)
+                                       9.84e-04 7.18e-03 3.38e+04 4.20e-02   0.2
+    add_1_root_add_0_root_add_42_G2_G8 (AdderTree_IDIM320_IWID1_BDEP2_DW01_add_38)
+                                       3.09e-03 1.06e-02 3.37e+04 4.73e-02   0.2
+    add_50_G9 (AdderTree_IDIM320_IWID1_BDEP2_DW01_add_0)
+                                       6.12e-03 3.58e-02 1.05e+05    0.147   0.7
+1
