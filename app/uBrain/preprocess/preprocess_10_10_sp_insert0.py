@@ -22,7 +22,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     hpstr = "set dataset directory"
-    parser.add_argument('-d', '--directory', default="E:/ubrain_local/neonatal_eeg_32HZ/", nargs='*', type=str, help=hpstr)
+    parser.add_argument('-d', '--directory', default="/mnt/ssd1/data/bci/seizure_prediction/neonatal_eeg_out/", nargs='*', type=str, help=hpstr)
 
     hpstr = "set window size"
     parser.add_argument('-w', '--window', default=10, nargs='*', type=int, help=hpstr)
@@ -40,7 +40,7 @@ def get_args():
     parser.add_argument('-ri', '--ransamp', default=12000, nargs='*', type=int, help=hpstr)
 
     hpstr = "set output directory"
-    parser.add_argument('-o', '--output_dir', default="E:/ubrain_local/neonatal_eeg_preprocessed_32HZ/", nargs='*', help=hpstr)
+    parser.add_argument('-o', '--output_dir', default="/mnt/ssd1/data/bci/seizure_prediction/preprocessed_data_10_10/", nargs='*', help=hpstr)
 
     hpstr = "set whether store data"
     parser.add_argument('--set_store', action='store_true', help=hpstr)
@@ -271,7 +271,6 @@ if __name__ == '__main__':
 
         print("Dumping data and label:\n")
         with open(output_data, "wb") as fp:
-            print(output_data)
             pickle.dump(shuffled_data, fp, protocol=4)
             print("\tData dump complete!!!")
         with open(output_label, "wb") as fp:
