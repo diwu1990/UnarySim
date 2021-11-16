@@ -1,6 +1,9 @@
 from openpyxl import load_workbook
 import numpy as np
 import os.path
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.font_manager
 
 class bcolors:
     """
@@ -61,6 +64,99 @@ def query(str_tab=None, cfg='ubrain', absolute_path=None, filename=None):
     ind = sheets.index(str_tab)
     return get_lists(tab=wb[sheets[ind]], cfg=cfg)
 
+def get_sheetname(absolute_path = None, filename = None):
+    wb = load_workbook(filename=absolute_path+filename, data_only=True)
+    return wb.sheetnames
+
+def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None, filename=None):
+    font = {'family':'Times New Roman', 'size': 6}
+    matplotlib.rc('font', **font)
+
+    lkg = []; dym = []; area = [];
+
+    cfg = 'conv'+str(conv_num)
+    for i in get_sheetname(absolute_path, filename):
+        if cfg in i:
+            area_conv, dynamic_conv, leakage_conv, _, _, _ = query(i, design, absolute_path, filename)
+            dym.append(dynamic_conv[len(dynamic_conv)-1])
+            lkg.append(leakage_conv[len(leakage_conv)-1])
+            area.append(area_conv[len(area_conv)-1])
+        else: pass
+
+    # Sanity check
+    if conv_num == 1: 
+        assert len(lkg) == 5
+        x_axis = ['H0', 'H1', 'H2', 'H3', 'H4']
+    elif conv_num == 2: 
+        assert len(lkg) == 6
+        x_axis = ['H0', 'H1', 'H2', 'H3', 'H4', 'H5']
+    else:
+        print(bcolors.FAIL + f'Unrecognized conv layer number {conv_num}.' + bcolors.FAIL)
+        exit()
+    
+    # plot double axis
+    # plot eff
+    my_dpi = 300
+    if conv_num == 1:
+        fig_h = 1.2
+    else:
+        fig_h = 1
+    fig_w = 3.3115
+
+    # TODO: Change color
+    bp_color = "#7A81FF"
+    bs_color = "#FF7F7F"
+    u6_color = "#AAAAAA"
+    u7_color = "#FF7F7F"
+    u8_color = "#7A81FF"
+    ug_color = "#CCCCCC"
+    bg_color = "#D783FF"
+
+    x_idx = np.arange(len(x_axis))
+
+    width = 0.3
+
+    eff_fig, eff_ax = plt.subplots(figsize=(fig_w, fig_h))
+    eff_ax.bar(x_idx - 0.5 * width, area, width, hatch = None, alpha=0.99, color=u6_color, label='Area')
+    eff_ax.set_ylabel('Area ($mm^2$)')
+    eff_ax.minorticks_off()
+
+    eff_ax2 = eff_ax.twinx()
+    eff_ax2.bar(x_idx + 0.5 * width, dym, width, hatch = None, alpha=0.99, color=u7_color, label='Dynamic')
+    eff_ax2.bar(x_idx + 0.5 * width, lkg, width, bottom=dym, hatch = None, alpha=0.99, color=u8_color, label='Leakage')
+        
+    eff_ax2.set_ylabel('Power (mW)')
+    eff_ax2.minorticks_off()
+
+    eff_ax.set_xticks(x_idx)
+    eff_ax.set_xticklabels(x_axis)
+    plt.xlim(x_idx[0]-0.5, x_idx[-1]+0.5)
+    plt.yscale("linear")
+    
+    print(eff_ax.get_ylim())
+    print(eff_ax2.get_ylim())
+    if conv_num == 2:
+        eff_ax.set_ylim((0, 24))
+        eff_ax.set_yticks((0, 10, 20))
+        eff_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
+        eff_ax2.set_ylim((0, 22))
+        eff_ax2.set_yticks((0, 10, 20))
+        eff_ax2.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
+    else:
+        eff_ax.set_ylim((0, 2.3))
+        eff_ax.set_yticks((0, 0.5, 1.0, 1.5))
+        eff_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
+        eff_ax2.set_ylim((0, 2.3))
+        eff_ax2.set_yticks((0, 0.5, 1.0, 1.5))
+        eff_ax2.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
+    
+    if conv_num == 1:
+        eff_fig.legend(loc="upper center", ncol=3, frameon=True)
+
+    eff_fig.tight_layout()
+    plt.savefig(absolute_path + f'conv{conv_num}_{design}.pdf', bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
+
+
 def main():
     # NOTE: Update absolute path and filename
     path = '/home/zhewen/Repo/UnarySim/app/uBrain/hw/data_extract/'
@@ -71,6 +167,9 @@ def main():
         exit()
     else: print(bcolors.OKGREEN + f'Processing {path+filename}...' + bcolors.ENDC)
     
+    power_area_fold_stacked_bar(1, 'ubrain', path, filename)
+    #power_area_fold_stacked_bar(2, 'ubrain', path, filename)
+
     # example query
     # print(query('conv1-F1', 'ubrain', path, filename))
     # print(query('conv1-F1', 'sc', path, filename))
