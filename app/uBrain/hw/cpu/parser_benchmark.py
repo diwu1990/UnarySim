@@ -9,7 +9,7 @@ from numpy import mean, median
 
 def data_parse(dir_root = "E:/ubrain_local/benchmark_parser/log_cpu/", power_mode = 1, area_fix = 3.0, win_len = 10, freq_sample = 128):
     ## Power mode: 0 - max power mode, 1 - 5W low power mode
-    ## Use fix CPU area reported by 
+    ## Use fix CPU area reported by
     # 1. 3mm2 -- 20nm, 1.66 mm2 -- 16nm A57 from https://en.wikichip.org/wiki/arm_holdings/microarchitectures/cortex-a57
     # 2. Tegra X1 and X1+ https://en.wikipedia.org/wiki/Tegra#Tegra_X1
 
@@ -55,23 +55,25 @@ def data_parse(dir_root = "E:/ubrain_local/benchmark_parser/log_cpu/", power_mod
                                             'ram_power': ram_power_curr, 'total_power': total_power_curr   }, ignore_index=True)
         df_power_idle = df_power.loc[df_power['timestamp'] < ts_py_start]
         df_power_active = df_power.loc[(df_power['timestamp'] > ts_model_start) & (df_power['timestamp'] < ts_model_end)]
-        cpu_power_idle = df_power_idle['cpu_power'].mean() 
-        ram_power_idle = df_power_idle['ram_power'].mean() 
-        cpu_power_active = df_power_active['cpu_power'].mean() 
-        ram_power_active = df_power_active['ram_power'].mean() 
-        power_list.append([cpu_power_active, cpu_power_idle, ram_power_active, ram_power_idle])
+        cpu_power_idle = df_power_idle['cpu_power'].mean()
+        ram_power_idle = df_power_idle['ram_power'].mean()
+        cpu_power_active = df_power_active['cpu_power'].mean()
+        ram_power_active = df_power_active['ram_power'].mean()
+        power_list.append([cpu_power_active, ram_power_active, cpu_power_idle, ram_power_idle])
 
+    area_list = area_list # mm^2
+    runtime_list = [freq * 1000. for freq in runtime_list] # ms
+    freq_list = [freq / 1000. for freq in freq_list] # MHz
+    power_list = power_list # mW
 
-    energy_list = []
-    energy_delay_prod_list = []
-    energy_eff_list = []
-    power_eff_list = []
-
-
-    return area_list, runtime_list, energy_list, energy_delay_prod_list, energy_eff_list, power_list, power_eff_list, freq_list
-    # return area_list, runtime_list, energy_list, energy_delay_prod_list, energy_eff_list, power_list, power_eff_list, runtime_list, frequency_list
-
+    return area_list, runtime_list, freq_list, power_list
 
 
 if __name__ == '__main__':
-    data_parse()
+    area_list, runtime_list, freq_list, power_list = data_parse(dir_root="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain/result/mi/log_cpu/",
+                power_mode=0)
+    print(area_list)
+    print(runtime_list)
+    print(power_list)
+    print(freq_list)
+
