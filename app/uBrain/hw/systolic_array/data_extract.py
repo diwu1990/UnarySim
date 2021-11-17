@@ -23,7 +23,7 @@ def data_extract(dir_root = "/home/diwu/Project/UnarySim/app/uBrain/hw/systolic_
     for t in range(total_timestamp):
         run_name = run_prefix+str(t)+run_postfix
         run_dir = dir_root + run_name + "/"
-        print("Processing dir: " + dir_root + run_name)
+        # print("Processing dir: " + dir_root + run_name)
 
         area_file = run_dir + "simEffOut/" + run_name + "_area.csv"
         throughput_file = run_dir + "simHwOut/" + run_name + "_throughput_real.csv"
@@ -65,7 +65,7 @@ def data_extract(dir_root = "/home/diwu/Project/UnarySim/app/uBrain/hw/systolic_
     power_list = power_list # mW
     energy_list = energy_list # nJ
 
-    return area_list, runtime_list, freq_list, power_list, energy_list
+    return area_list, runtime_list, freq_list, power_list
 
 
 def prune(input_list):
@@ -101,7 +101,7 @@ def return_indexed_elems(input_csv=None, index=None):
 
 
 if __name__ == '__main__':
-    area_list, runtime_list, freq_list, power_list, energy_list = data_extract(dir_root = "/home/diwu/Project/UnarySim/app/uBrain/hw/systolic_array/result/",
+    area_list, runtime_list, freq_list, power_list = data_extract(dir_root = "/home/diwu/Project/UnarySim/app/uBrain/hw/systolic_array/result/",
     run_prefix = "eyeriss_08b_bp_001c_uBrain_t",
     run_postfix = "_ddr3_w__spm",
     total_timestamp = 10)
@@ -110,5 +110,4 @@ if __name__ == '__main__':
     print(runtime_list)
     print(freq_list)
     print(power_list)
-    print(energy_list)
 

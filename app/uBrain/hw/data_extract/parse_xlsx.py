@@ -64,20 +64,29 @@ def query(str_tab=None, cfg='ubrain', absolute_path=None, filename=None):
     ind = sheets.index(str_tab)
     return get_lists(tab=wb[sheets[ind]], cfg=cfg)
 
+def query_workbook(workbook=None, str_tab=None, cfg='ubrain'):
+    sheets = workbook.sheetnames
+    ind = sheets.index(str_tab)
+    return get_lists(tab=workbook[sheets[ind]], cfg=cfg)
+
 def get_sheetname(absolute_path = None, filename = None):
     wb = load_workbook(filename=absolute_path+filename, data_only=True)
     return wb.sheetnames
+
+def get_sheetname_workbook(workbook = None):
+    return workbook.sheetnames
 
 def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None, filename=None):
     font = {'family':'Times New Roman', 'size': 6}
     matplotlib.rc('font', **font)
 
-    lkg = []; dym = []; area = [];
+    lkg = []; dym = []; area = []
 
     cfg = 'conv'+str(conv_num)
-    for i in get_sheetname(absolute_path, filename):
+    workbook = load_workbook(filename=absolute_path+filename, data_only=True)
+    for i in get_sheetname_workbook(workbook):
         if cfg in i:
-            area_conv, dynamic_conv, leakage_conv, _, _, _ = query(i, design, absolute_path, filename)
+            area_conv, dynamic_conv, leakage_conv, _, _, _ = query_workbook(workbook, i, design)
             dym.append(dynamic_conv[len(dynamic_conv)-1])
             lkg.append(leakage_conv[len(leakage_conv)-1])
             area.append(area_conv[len(area_conv)-1])
@@ -168,42 +177,43 @@ def main():
     power_area_fold_stacked_bar(1, 'ubrain', path, filename)
     power_area_fold_stacked_bar(2, 'ubrain', path, filename)
 
-    # example query
-    # print(query('conv1-F1', 'ubrain', path, filename))
-    # print(query('conv1-F1', 'sc', path, filename))
-    # print(query('conv1-F2', 'ubrain', path, filename))
-    # print(query('conv1-F2', 'sc', path, filename))
-    # print(query('conv1-F4', 'ubrain', path, filename))
-    # print(query('conv1-F4', 'sc', path, filename))
-    # print(query('conv1-F8', 'ubrain', path, filename))
-    # print(query('conv1-F8', 'sc', path, filename))
-    # print(query('conv1-F16', 'ubrain', path, filename))
-    # print(query('conv1-F16', 'sc', path, filename))
+    # example query_workbook
+    # workbook = load_workbook(filename=path+filename, data_only=True)
+    # print(query_workbook(workbook, 'conv1-F1', 'ubrain'))
+    # print(query_workbook(workbook, 'conv1-F1', 'sc'))
+    # print(query_workbook(workbook, 'conv1-F2', 'ubrain'))
+    # print(query_workbook(workbook, 'conv1-F2', 'sc'))
+    # print(query_workbook(workbook, 'conv1-F4', 'ubrain'))
+    # print(query_workbook(workbook, 'conv1-F4', 'sc'))
+    # print(query_workbook(workbook, 'conv1-F8', 'ubrain'))
+    # print(query_workbook(workbook, 'conv1-F8', 'sc'))
+    # print(query_workbook(workbook, 'conv1-F16', 'ubrain'))
+    # print(query_workbook(workbook, 'conv1-F16', 'sc'))
 
-    # print(query('conv2-F1', 'ubrain', path, filename))
-    # print(query('conv2-F1', 'sc', path, filename))
-    # print(query('conv2-F2', 'ubrain', path, filename))
-    # print(query('conv2-F2', 'sc', path, filename))
-    # print(query('conv2-F4', 'ubrain', path, filename))
-    # print(query('conv2-F4', 'sc', path, filename))
-    # print(query('conv2-F8', 'ubrain', path, filename))
-    # print(query('conv2-F8', 'sc', path, filename))
-    # print(query('conv2-F16', 'ubrain', path, filename))
-    # print(query('conv2-F16', 'sc', path, filename))
-    # print(query('conv2-F32', 'ubrain', path, filename))
-    # print(query('conv2-F32', 'sc', path, filename))
+    # print(query_workbook(workbook, 'conv2-F1', 'ubrain'))
+    # print(query_workbook(workbook, 'conv2-F1', 'sc'))
+    # print(query_workbook(workbook, 'conv2-F2', 'ubrain'))
+    # print(query_workbook(workbook, 'conv2-F2', 'sc'))
+    # print(query_workbook(workbook, 'conv2-F4', 'ubrain'))
+    # print(query_workbook(workbook, 'conv2-F4', 'sc'))
+    # print(query_workbook(workbook, 'conv2-F8', 'ubrain'))
+    # print(query_workbook(workbook, 'conv2-F8', 'sc'))
+    # print(query_workbook(workbook, 'conv2-F16', 'ubrain'))
+    # print(query_workbook(workbook, 'conv2-F16', 'sc'))
+    # print(query_workbook(workbook, 'conv2-F32', 'ubrain'))
+    # print(query_workbook(workbook, 'conv2-F32', 'sc'))
 
-    # print(query('fc3-F256', 'ubrain', path, filename))
-    # print(query('fc3-F256', 'sc', path, filename))
+    # print(query_workbook(workbook, 'fc3-F256', 'ubrain'))
+    # print(query_workbook(workbook, 'fc3-F256', 'sc'))
 
-    # print(query('rnn4-F1', 'ubrain', path, filename))
-    # print(query('rnn4-F1', 'sc', path, filename))
+    # print(query_workbook(workbook, 'rnn4-F1', 'ubrain'))
+    # print(query_workbook(workbook, 'rnn4-F1', 'sc'))
 
-    # print(query('fc5-F1', 'ubrain', path, filename))
-    # print(query('fc5-F1', 'sc', path, filename))
+    # print(query_workbook(workbook, 'fc5-F1', 'ubrain'))
+    # print(query_workbook(workbook, 'fc5-F1', 'sc'))
     
-    # print(query('fc6-F1', 'ubrain', path, filename))
-    # print(query('fc6-F1', 'sc', path, filename))
+    # print(query_workbook(workbook, 'fc6-F1', 'ubrain'))
+    # print(query_workbook(workbook, 'fc6-F1', 'sc'))
 
 
 if __name__ == "__main__":
