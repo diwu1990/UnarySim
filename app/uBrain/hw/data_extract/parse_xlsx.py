@@ -95,71 +95,69 @@ def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None,
         exit()
     
     # plot double axis
-    # plot eff
+    # plot area and power
     my_dpi = 300
     if conv_num == 1:
-        fig_h = 1.2
+        fig_h = 1.1
     else:
         fig_h = 1
     fig_w = 3.3115
 
     # TODO: Change color
-    bp_color = "#7A81FF"
-    bs_color = "#FF7F7F"
-    u6_color = "#AAAAAA"
-    u7_color = "#FF7F7F"
-    u8_color = "#7A81FF"
-    ug_color = "#CCCCCC"
-    bg_color = "#D783FF"
+    area_color = "#AAAAAA"
+    dyn_color = "#FF7F7F"
+    lkg_color = "#7A81FF"
 
     x_idx = np.arange(len(x_axis))
 
     width = 0.3
 
-    eff_fig, eff_ax = plt.subplots(figsize=(fig_w, fig_h))
-    eff_ax.bar(x_idx - 0.5 * width, area, width, hatch = None, alpha=0.99, color=u6_color, label='Area')
-    eff_ax.set_ylabel('Area ($mm^2$)')
-    eff_ax.minorticks_off()
+    fig, area_ax = plt.subplots(figsize=(fig_w, fig_h))
+    area_ax.bar(x_idx - 0.5 * width, area, width, hatch = None, alpha=0.99, color=area_color, label='Area')
+    area_ax.set_ylabel('Area ($mm^2$)')
+    area_ax.minorticks_off()
 
-    eff_ax2 = eff_ax.twinx()
-    eff_ax2.bar(x_idx + 0.5 * width, dym, width, hatch = None, alpha=0.99, color=u7_color, label='Dynamic')
-    eff_ax2.bar(x_idx + 0.5 * width, lkg, width, bottom=dym, hatch = None, alpha=0.99, color=u8_color, label='Leakage')
-        
-    eff_ax2.set_ylabel('Power (mW)')
-    eff_ax2.minorticks_off()
+    power_ax = area_ax.twinx()
+    power_ax.bar(x_idx + 0.5 * width, dym, width, hatch = None, alpha=0.99, color=dyn_color, label='Dynamic')
+    power_ax.bar(x_idx + 0.5 * width, lkg, width, bottom=dym, hatch = None, alpha=0.99, color=lkg_color, label='Leakage')
 
-    eff_ax.set_xticks(x_idx)
-    eff_ax.set_xticklabels(x_axis)
+    if conv_num == 1:
+        bars, labels = area_ax.get_legend_handles_labels()
+        bars2, labels2 = power_ax.get_legend_handles_labels()
+        area_ax.legend(bars + bars2, labels + labels2, loc="upper center", ncol=3, frameon=True)
+
+    power_ax.set_ylabel('Power ($mW$)')
+    power_ax.minorticks_off()
+
+    area_ax.set_xticks(x_idx)
+    area_ax.set_xticklabels(x_axis)
     plt.xlim(x_idx[0]-0.5, x_idx[-1]+0.5)
     plt.yscale("linear")
     
-    print(eff_ax.get_ylim())
-    print(eff_ax2.get_ylim())
+    print("area_ax ylim: ", area_ax.get_ylim())
+    print("power_ax ylim: ", power_ax.get_ylim())
     if conv_num == 2:
-        eff_ax.set_ylim((0, 24))
-        eff_ax.set_yticks((0, 10, 20))
-        eff_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
-        eff_ax2.set_ylim((0, 22))
-        eff_ax2.set_yticks((0, 10, 20))
-        eff_ax2.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
+        area_ax.set_ylim((0, 24))
+        area_ax.set_yticks((0, 10, 20))
+        area_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
+        power_ax.set_ylim((0, 24))
+        power_ax.set_yticks((0, 10, 20))
+        power_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
     else:
-        eff_ax.set_ylim((0, 2.3))
-        eff_ax.set_yticks((0, 0.5, 1.0, 1.5))
-        eff_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
-        eff_ax2.set_ylim((0, 2.3))
-        eff_ax2.set_yticks((0, 0.5, 1.0, 1.5))
-        eff_ax2.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
-    
-    if conv_num == 1:
-        eff_fig.legend(loc="upper center", ncol=3, frameon=True)
+        area_ax.set_ylim((0, 2.3))
+        area_ax.set_yticks((0, 0.5, 1.0, 1.5))
+        area_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
+        power_ax.set_ylim((0, 2.3))
+        power_ax.set_yticks((0, 0.5, 1.0, 1.5))
+        power_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
 
-    eff_fig.tight_layout()
+    fig.tight_layout()
     plt.savefig(absolute_path + f'conv{conv_num}_{design}.pdf', bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
 
 
 def main():
     # NOTE: Update absolute path and filename
-    path = '/home/zhewen/Repo/UnarySim/app/uBrain/hw/data_extract/'
+    path = '/home/diwu/Project/UnarySim/app/uBrain/hw/data_extract/'
     filename = "uBrain_resource.xlsx"
     file_exists = os.path.exists(path+filename)
     if file_exists == False:
