@@ -28,13 +28,14 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     area_cpu, runtime_cpu, freq_cpu, power_cpu = cpu_report(dir_root=cpu_dir, power_mode=0)
     # 4GB lpddr4 area is scaled from 25nm to 22nm, from https://ieeexplore.ieee.org/document/6901299?arnumber=6901299
     # cpu area is scaled from 20nm to 32nm, from https://en.wikichip.org/wiki/arm_holdings/microarchitectures/cortex-a57
+    # format [sense, dram, cpu]
     area_cpu = [area_sense_bl, 88.1 * 4 * (22 / 25)**2, 15.85 * ((32 / 20)**2)]
-    # format [dram, cpu]
     power_cpu = [[power_sense_bl, entry[1], entry[0]] for entry in power_cpu]
 
     # extract cpu and systolic result
     # format [dram, sram, systolic, total]
     area_sys, runtime_sys, freq_sys, power_sys = systolic_report(dir_root=systolic_dir)
+    # format [sense, dram, cpu]
     area_sys = [area_sense_bl, area_sys[0], area_sys[1] + area_sys[2]]
     power_sys = [[power_sense_bl, entry[0], entry[1] + entry[2]] for entry in power_sys]
 
@@ -608,7 +609,25 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     plt.savefig(output_path+"/Power_layerwise.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
     print("Layerwise power fig saved!\n")
 
-
+    
+    print("Onchip power improvement:\n")
+    best_cpu_onchip_power = best_onchip_power_list[0]
+    best_sys_onchip_power = best_onchip_power_list[1]
+    best_sto_onchip_power = best_onchip_power_list[4]
+    best_ubr_onchip_power = best_onchip_power_list[7]
+    print("\tOver CPU           : {:3.2f}".format(best_cpu_onchip_power / best_ubr_onchip_power))
+    print("\tOver Systolic array: {:3.2f}".format(best_sys_onchip_power / best_ubr_onchip_power))
+    print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_power / best_ubr_onchip_power))
+    print()
+    
+    print("Onchip area improvement:\n")
+    best_cpu_onchip_area = area_cpu[-1]
+    best_sys_onchip_area = area_sys[-1]
+    best_sto_onchip_area = area_sto_ba_onchip
+    best_ubr_onchip_area = area_ubr_ba_onchip
+    print("\tOver CPU           : {:3.2f}".format(best_cpu_onchip_area / best_ubr_onchip_area))
+    print("\tOver Systolic array: {:3.2f}".format(best_sys_onchip_area / best_ubr_onchip_area))
+    print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_area / best_ubr_onchip_area))
     
 
 def layer_area_power_extract(layers=[], design="sc", item="", workbook=None):
