@@ -4,7 +4,7 @@ import numpy as np
 
 # extract accuracy from logs
 
-log_dir = "/home/diwu/Project/UnarySim/app/uBrain/model_eval/"
+log_dir = "/home/diwu/Project/UnarySim/app/uBrain/model_eval/sp/"
 bitwidth_list = [8, 9, 10, 11, 12]
 flag = "Test Accuracy:"
 
@@ -88,12 +88,12 @@ ax.plot(x_axe, acc_fxp, "-^", label="FXP", alpha=alpha, color="#7A81FF", lw=0.5,
 ax.plot(x_axe, acc_sc, "-+", label="SC", alpha=alpha, color="#D783FF", lw=0.5, ms=1)
 ax.plot(x_axe, acc_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
 
-locs = [80, 90, 100]
+locs = [75, 85, 95]
 ax.set_yticks(locs)
 
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
 ax.set_ylabel('Accuracy (%)\n')
-ax.legend(ncol=4, frameon=True)
+# ax.legend(ncol=4, frameon=True)
 fig.tight_layout()
-fig.savefig(log_dir+"model_eval_acc.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
+fig.savefig(log_dir+"model_eval_acc_sp.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)

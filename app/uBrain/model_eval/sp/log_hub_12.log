@@ -1,0 +1,43 @@
+Train for only seizure prediction.
+
+Using CUDA...
+******************** Dataset Configuration Start ********************
+Apply international 10-10 system.
+dataset: E:/ubrain_local/neonatal_eeg_preprocessed_8HZ//preprocessed_data_10_10/preprocessed_1_79_shuffle_dataset_3D_win_10_overlap_5.pkl
+label: E:/ubrain_local/neonatal_eeg_preprocessed_8HZ//preprocessed_data_10_10/preprocessed_1_79_shuffle_labels_3D_win_10_overlap_5.pkl
+Data scaling threshold (seizure prediction): 256.0
+	Resultant outlier ratio: 2.659 %
+# of train samples:	 117265
+# of test samples:	 39263
+********************* Dataset Configuration End *********************
+
+********************* Model Configuration Start *********************
+Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp
+Loading model state dict:  E:/Github/UnarySim/app/uBrain/saved_model_sp\mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp_acc_91.35.pth.tar
+loaded state_dict_fp:  odict_keys(['conv1.weight', 'conv2.weight', 'fc3.weight', 'rnncell4.weight_f', 'rnncell4.weight_n', 'fc5.weight'])
+********************** Model Configuration End **********************
+
+**************************** Test Start *****************************
+--- 949.434237241745 seconds ---
+Current sample count:  640
+--- 948.8420882225037 seconds ---
+Current sample count:  1280
+--- 954.283483505249 seconds ---
+Current sample count:  1920
+--- 958.4889273643494 seconds ---
+Current sample count:  2560
+--- 963.8040971755981 seconds ---
+Current sample count:  3200
+--- 982.6134095191956 seconds ---
+Current sample count:  3840
+--- 985.4251072406769 seconds ---
+Current sample count:  4480
+--- 982.6356103420258 seconds ---
+Current sample count:  5120
+--- 979.5881416797638 seconds ---
+Current sample count:  5760
+--- 970.863363981247 seconds ---
+Current sample count:  6400
+Test Accuracy: 90.672 %
+***************************** Test End ******************************
+
