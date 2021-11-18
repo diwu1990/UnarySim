@@ -117,7 +117,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
 
     # total area plot
     my_dpi = 300
-    fig_h = 1.1
+    fig_h = 1
     fig_w = 3.3115
     x_axis = ["CPU", "Systolic", "SC", "SC-A", "SC-P", "uBrain", "uBrain-A", "uBrain-P"]
     fig, ax = plt.subplots(figsize=(fig_w, fig_h))
@@ -145,7 +145,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
 
     # total power plot
     my_dpi = 300
-    fig_h = 1.3
+    fig_h = 1.2
     fig_w = 3.3115
     fig, ax = plt.subplots(figsize=(fig_w, fig_h))
     x_idx = np.arange(80, 170, 10)
@@ -154,9 +154,9 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     runtime_unary = 14 / 128 * 1000
     runtime_window = 10 / 128 * 1000
     line_width = 0.5
-    marker_size = 1
+    marker_size = 1.5
     ax.plot(np.array(runtime_cpu[0:10]) + runtime_window, np.sum(power_cpu[0:10], axis=1), "-^", alpha=0.99, color=gry, label='CPU', lw=line_width, ms=marker_size)
-    ax.plot(np.array(runtime_sys) + runtime_window, np.sum(power_sys, axis=1), "-+", alpha=0.99, color=lav, label='Systolic', lw=line_width, ms=marker_size)
+    ax.plot(np.array(runtime_sys) + runtime_window, np.sum(power_sys, axis=1), "-P", alpha=0.99, color=lav, label='Systolic', lw=line_width, ms=marker_size)
     ax.plot(runtime_unary, np.sum(power_sto_h0), "o", alpha=0.99, color=orc, label='SC', lw=line_width, ms=marker_size)
     ax.plot(runtime_unary, np.sum(power_sto_ba), "*", alpha=0.99, color=orc, label='SC-A', lw=line_width, ms=marker_size)
     ax.plot(runtime_unary, np.sum(power_sto_bp), ">", alpha=0.99, color=orc, label='SC-P', lw=line_width, ms=marker_size)
@@ -179,7 +179,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
 
     # on-chip best power plot
     my_dpi = 300
-    fig_h = 1.3
+    fig_h = 1
     fig_w = 3.3115
     fig, ax = plt.subplots(figsize=(fig_w, fig_h))
     x_axis = ["CPU", "Systolic", "SC", "SC-A", "SC-P", "uBrain", "uBrain-A", "uBrain-P"]
@@ -266,7 +266,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
 
     # area of layers in SC and uBrain
     my_dpi = 300
-    fig_h = 3.5
+    fig_h = 3
     fig_w = 3.5
     fig = plt.figure(figsize=(fig_w, fig_h))
     plt.ylabel("Area ($mm^2$)")
@@ -429,7 +429,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     
     fig.tight_layout()
     fig.text(0.05, 0.5, 'Area ($mm^2$)', ha='center', va='center', rotation='vertical')
-    fig.subplots_adjust(top=0.88, left=0.15)
+    fig.subplots_adjust(top=0.85, left=0.15)
     line_labels = ["BUF", "RNG", "CNT", "CMP", "PC", "REST"]
     fig.legend([l1, l2, l3, l4, l5, l6], line_labels, loc="upper center", ncol=6, frameon=True)
     plt.savefig(output_path+"/Area_layerwise.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
@@ -439,7 +439,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
 
     # power of layers in SC and uBrain
     my_dpi = 300
-    fig_h = 3.5
+    fig_h = 3
     fig_w = 3.5
     fig = plt.figure(figsize=(fig_w, fig_h))
     plt.ylabel("Area ($mm^2$)")
@@ -602,7 +602,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     
     fig.tight_layout()
     fig.text(0.05, 0.5, 'Power ($mW$)', ha='center', va='center', rotation='vertical')
-    fig.subplots_adjust(top=0.88, left=0.15)
+    fig.subplots_adjust(top=0.85, left=0.15)
     line_labels = ["BUF", "RNG", "CNT", "CMP", "PC", "REST"]
     fig.legend([l1, l2, l3, l4, l5, l6], line_labels, loc="upper center", ncol=6, frameon=True)
     plt.savefig(output_path+"/Power_layerwise.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)

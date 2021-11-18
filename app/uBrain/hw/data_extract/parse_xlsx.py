@@ -107,9 +107,9 @@ def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None,
     # plot area and power
     my_dpi = 300
     if conv_num == 1:
-        fig_h = 1.1
-    else:
         fig_h = 1
+    else:
+        fig_h = 0.8
     fig_w = 3.3115
 
     # TODO: Change color
@@ -185,7 +185,7 @@ def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None,
 
 def main():
     # NOTE: Update absolute path and filename
-    path = '/home/zhewen/Repo/UnarySim/app/uBrain/hw/data_extract/'
+    path = '/home/diwu/Project/UnarySim/app/uBrain/hw/data_extract/'
     filename = "uBrain_resource.xlsx"
     file_exists = os.path.exists(path+filename)
     if file_exists == False:
