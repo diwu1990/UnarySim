@@ -83,8 +83,8 @@ x = np.arange(len(labels))  # the label locations
 fig, ax = plt.subplots(figsize=(fig_w, fig_h), dpi=my_dpi)
 
 x_axe = x[0:-1]
-ax.plot(x[-1], acc_fp, "o", label="FP32", alpha=alpha, color="#888888", lw=0.5, ms=1)
-ax.plot(x_axe, acc_fxp, "-^", label="FXP", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
+ax.plot(x[-1], acc_fp, "o", label="CPU", alpha=alpha, color="#888888", lw=0.5, ms=1)
+ax.plot(x_axe, acc_fxp, "-^", label="Systolic", alpha=alpha, color="#7A81FF", lw=0.5, ms=1)
 ax.plot(x_axe, acc_sc, "-+", label="SC", alpha=alpha, color="#D783FF", lw=0.5, ms=1)
 ax.plot(x_axe, acc_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1)
 
