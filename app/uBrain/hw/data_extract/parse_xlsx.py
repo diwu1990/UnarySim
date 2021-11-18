@@ -133,7 +133,8 @@ def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None,
     if conv_num == 1:
         bars, labels = area_ax.get_legend_handles_labels()
         bars2, labels2 = power_ax.get_legend_handles_labels()
-        area_ax.legend(bars + bars2, labels + labels2, loc="upper center", ncol=3, frameon=True)
+        if design == 'ubrain':
+            area_ax.legend(bars + bars2, labels + labels2, loc="upper center", ncol=3, frameon=True)
 
     power_ax.set_ylabel('Power ($mW$)')
     power_ax.minorticks_off()
@@ -145,28 +146,46 @@ def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None,
     
     print("area_ax ylim: ", area_ax.get_ylim())
     print("power_ax ylim: ", power_ax.get_ylim())
-    if conv_num == 2:
-        area_ax.set_ylim((0, 24))
-        area_ax.set_yticks((0, 10, 20))
-        area_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
-        power_ax.set_ylim((0, 24))
-        power_ax.set_yticks((0, 10, 20))
-        power_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
-    else:
-        area_ax.set_ylim((0, 2.3))
-        area_ax.set_yticks((0, 0.5, 1.0, 1.5))
-        area_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
-        power_ax.set_ylim((0, 2.3))
-        power_ax.set_yticks((0, 0.5, 1.0, 1.5))
-        power_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
+
+    # Manually adjust axis limit & ticks
+    if design == 'ubrain':
+        if conv_num == 2:
+            area_ax.set_ylim((0, 24))
+            area_ax.set_yticks((0, 10, 20))
+            area_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
+            power_ax.set_ylim((0, 24))
+            power_ax.set_yticks((0, 10, 20))
+            power_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(10), "{:2d}".format(20)))
+        else:
+            area_ax.set_ylim((0, 2.3))
+            area_ax.set_yticks((0, 0.5, 1.0, 1.5))
+            area_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
+            power_ax.set_ylim((0, 2.3))
+            power_ax.set_yticks((0, 0.5, 1.0, 1.5))
+            power_ax.set_yticklabels(("{:2d}".format(0), "{:.1f}".format(0.5), "{:.1f}".format(1.0), "{:.1f}".format(1.5)))
+    else: #sc
+        if conv_num == 1:
+            area_ax.set_ylim((0, 5))
+            area_ax.set_yticks((0, 2, 4))
+            area_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(2), "{:2d}".format(4)))
+            power_ax.set_ylim((0, 5))
+            power_ax.set_yticks((0, 2, 4))
+            power_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(2), "{:2d}".format(4)))
+        else:
+            area_ax.set_ylim((0, 130))
+            area_ax.set_yticks((0, 50, 100))
+            area_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(50), "{:2d}".format(100)))
+            power_ax.set_ylim((0, 105))
+            power_ax.set_yticks((0, 50, 100))
+            power_ax.set_yticklabels(("{:2d}".format(0), "{:2d}".format(50), "{:2d}".format(100)))
 
     fig.tight_layout()
-    plt.savefig(absolute_path + f'conv{conv_num}_{design}.pdf', bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
+    plt.savefig(absolute_path + f'conv{conv_num}_HWreuse_{design}.pdf', bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
 
 
 def main():
     # NOTE: Update absolute path and filename
-    path = '/home/diwu/Project/UnarySim/app/uBrain/hw/data_extract/'
+    path = '/home/zhewen/Repo/UnarySim/app/uBrain/hw/data_extract/'
     filename = "uBrain_resource.xlsx"
     file_exists = os.path.exists(path+filename)
     if file_exists == False:
@@ -176,6 +195,9 @@ def main():
     
     power_area_fold_stacked_bar(1, 'ubrain', path, filename)
     power_area_fold_stacked_bar(2, 'ubrain', path, filename)
+
+    power_area_fold_stacked_bar(1, 'sc', path, filename)
+    power_area_fold_stacked_bar(2, 'sc', path, filename)
 
     # example query_workbook
     # workbook = load_workbook(filename=path+filename, data_only=True)
