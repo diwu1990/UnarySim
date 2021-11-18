@@ -24,19 +24,19 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     power_sense_ubr = 0.01 * 64
 
     # extract cpu and systolic result
-    # format [dram, cpu]
+    # format [cpu, dram]
     area_cpu, runtime_cpu, freq_cpu, power_cpu = cpu_report(dir_root=cpu_dir, power_mode=0)
     # 4GB lpddr4 area is scaled from 25nm to 22nm, from https://ieeexplore.ieee.org/document/6901299?arnumber=6901299
     # cpu area is scaled from 20nm to 32nm, from https://en.wikichip.org/wiki/arm_holdings/microarchitectures/cortex-a57
     area_cpu = [area_sense_bl, 88.1 * 4 * (22 / 25)**2, 15.85 * ((32 / 20)**2)]
-    power_cpu = [[power_sense_bl, entry[0], entry[1]] for entry in power_cpu]
+    # format [dram, cpu]
+    power_cpu = [[power_sense_bl, entry[1], entry[0]] for entry in power_cpu]
 
     # extract cpu and systolic result
     # format [dram, sram, systolic, total]
     area_sys, runtime_sys, freq_sys, power_sys = systolic_report(dir_root=systolic_dir)
     area_sys = [area_sense_bl, area_sys[0], area_sys[1] + area_sys[2]]
     power_sys = [[power_sense_bl, entry[0], entry[1] + entry[2]] for entry in power_sys]
-
 
     # dram result for unary design
     area_unary_dram = 5.437757952 # mm^2, from https://github.com/diwu1990/UnarySim/blob/master/app/uBrain/hw/systolic_array/result/eyeriss_08b_bp_001c_uBrain_ddr3_w__spm/simEffOut/eyeriss_08b_bp_001c_uBrain_ddr3_w__spm_area.csv
@@ -127,8 +127,8 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     area_list_2d = np.array(area_list_2d).T
 
     ax.bar(x_idx-width, area_list_2d[0], width, hatch = None, alpha=0.99, color=gry, label='Sense')
-    ax.bar(x_axis, area_list_2d[1], width, hatch = None, alpha=0.99, color=sal, label='Store')
-    ax.bar(x_idx+width, area_list_2d[2], width, hatch = None, alpha=0.99, color=orc, label='Compute')
+    ax.bar(x_axis, area_list_2d[1], width, hatch = None, alpha=0.99, color=orc, label='Store')
+    ax.bar(x_idx+width, area_list_2d[2], width, hatch = None, alpha=0.99, color=sal, label='Compute')
     plt.yscale("log")
 
     fig.tight_layout()
@@ -175,6 +175,39 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     ax.legend(loc="best", ncol=3, frameon=True)
     plt.savefig(output_path+"/Power_total.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
     print("Total power fig saved!\n")
+
+
+    # on-chip best power plot
+    my_dpi = 300
+    fig_h = 1.3
+    fig_w = 3.3115
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    x_axis = ["CPU", "Systolic", "SC", "SC-A", "SC-P", "uBrain", "uBrain-A", "uBrain-P"]
+    x_idx = np.arange(len(x_axis))
+    width = 0.5
+    
+    runtime_unary = 14 / 128 * 1000
+    runtime_window = 10 / 128 * 1000
+    line_width = 0.5
+    marker_size = 1
+    best_onchip_power_list = []
+    best_onchip_power_list.append(power_cpu[9][2])
+    best_onchip_power_list.append(power_sys[9][2])
+    best_onchip_power_list.append(power_sto_h0[2])
+    best_onchip_power_list.append(power_sto_ba[2])
+    best_onchip_power_list.append(power_sto_bp[2])
+    best_onchip_power_list.append(power_ubr_h0[2])
+    best_onchip_power_list.append(power_ubr_ba[2])
+    best_onchip_power_list.append(power_ubr_bp[2])
+    ax.bar(x_idx, best_onchip_power_list, width, hatch = None, alpha=0.99, color=sal)
+    
+    fig.tight_layout()
+    ax.set_ylabel('Power ($mW$)')
+    ax.set_xticks(x_idx)
+    ax.set_xticklabels(x_axis)
+    # ax.legend(loc="best", ncol=3, frameon=True)
+    plt.savefig(output_path+"/Power_onchip.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
+    print("Onchip power fig saved!\n")
 
 
     # extract layerwise data
@@ -231,7 +264,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     area_sto_bp_rest, power_sto_bp_rest = layer_area_power_extract(bp_layers_sto, design, item, workbook)
 
 
-    # area of temporal layers in SC and uBrain
+    # area of layers in SC and uBrain
     my_dpi = 300
     fig_h = 3.5
     fig_w = 3.5
@@ -404,13 +437,178 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
 
 
 
+    # power of layers in SC and uBrain
+    my_dpi = 300
+    fig_h = 3.5
+    fig_w = 3.5
+    fig = plt.figure(figsize=(fig_w, fig_h))
+    plt.ylabel("Area ($mm^2$)")
+    x_axis = ["SC", "SC-A", "SC-P", "uBrain", "uBrain-A", "uBrain-P"]
+    x_idx = np.arange(len(x_axis))
+    width = 0.5
+
+    # conv1
+    index = 0
+    ax = plt.subplot(221)
+    layer_buf = np.array([power_sto_h0_buf[index], power_sto_ba_buf[index], power_sto_bp_buf[index], power_ubr_h0_buf[index], power_ubr_ba_buf[index], power_ubr_bp_buf[index]])
+    layer_rng = np.array([power_sto_h0_rng[index], power_sto_ba_rng[index], power_sto_bp_rng[index], power_ubr_h0_rng[index], power_ubr_ba_rng[index], power_ubr_bp_rng[index]])
+    layer_cnt = np.array([power_sto_h0_cnt[index], power_sto_ba_cnt[index], power_sto_bp_cnt[index], power_ubr_h0_cnt[index], power_ubr_ba_cnt[index], power_ubr_bp_cnt[index]])
+    layer_cmp = np.array([power_sto_h0_cmp[index], power_sto_ba_cmp[index], power_sto_bp_cmp[index], power_ubr_h0_cmp[index], power_ubr_ba_cmp[index], power_ubr_bp_cmp[index]])
+    layer_pc = np.array([power_sto_h0_pc[index], power_sto_ba_pc[index], power_sto_bp_pc[index], power_ubr_h0_pc[index], power_ubr_ba_pc[index], power_ubr_bp_pc[index]])
+    layer_rest = np.array([power_sto_h0_rest[index], power_sto_ba_rest[index], power_sto_bp_rest[index], power_ubr_h0_rest[index], power_ubr_ba_rest[index], power_ubr_bp_rest[index]])
+    l1 = ax.bar(x_idx, layer_buf, width, hatch = None, alpha=0.99, color=gry, label='BUF')[0]
+    current_bottom = layer_buf
+    l2 = ax.bar(x_idx, layer_rng, width, bottom = current_bottom, hatch = None, alpha=0.99, color=sal, label='RNG')[0]
+    current_bottom += layer_rng
+    l3 = ax.bar(x_idx, layer_cnt, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr1, label='CNT')[0]
+    current_bottom += layer_cnt
+    l4 = ax.bar(x_idx, layer_cmp, width, bottom = current_bottom, hatch = None, alpha=0.99, color=orc, label='CMP')[0]
+    current_bottom += layer_cmp
+    l5 = ax.bar(x_idx, layer_pc, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr2, label='PC')[0]
+    current_bottom += layer_pc
+    l6 = ax.bar(x_idx, layer_rest, width, bottom = current_bottom, hatch = None, alpha=0.99, color=lav, label='REST')[0]
+    current_bottom += layer_rest
+    ax.set_title('Conv1')
+    ax.set_xticks(x_idx)
+    ax.set_xticklabels(x_axis, rotation=30)
+
+    # conv2
+    index = 1
+    ax = plt.subplot(222)
+    layer_buf = np.array([power_sto_h0_buf[index], power_sto_ba_buf[index], power_sto_bp_buf[index], power_ubr_h0_buf[index], power_ubr_ba_buf[index], power_ubr_bp_buf[index]])
+    layer_rng = np.array([power_sto_h0_rng[index], power_sto_ba_rng[index], power_sto_bp_rng[index], power_ubr_h0_rng[index], power_ubr_ba_rng[index], power_ubr_bp_rng[index]])
+    layer_cnt = np.array([power_sto_h0_cnt[index], power_sto_ba_cnt[index], power_sto_bp_cnt[index], power_ubr_h0_cnt[index], power_ubr_ba_cnt[index], power_ubr_bp_cnt[index]])
+    layer_cmp = np.array([power_sto_h0_cmp[index], power_sto_ba_cmp[index], power_sto_bp_cmp[index], power_ubr_h0_cmp[index], power_ubr_ba_cmp[index], power_ubr_bp_cmp[index]])
+    layer_pc = np.array([power_sto_h0_pc[index], power_sto_ba_pc[index], power_sto_bp_pc[index], power_ubr_h0_pc[index], power_ubr_ba_pc[index], power_ubr_bp_pc[index]])
+    layer_rest = np.array([power_sto_h0_rest[index], power_sto_ba_rest[index], power_sto_bp_rest[index], power_ubr_h0_rest[index], power_ubr_ba_rest[index], power_ubr_bp_rest[index]])
+    ax.bar(x_idx, layer_buf, width, hatch = None, alpha=0.99, color=gry)
+    current_bottom = layer_buf
+    ax.bar(x_idx, layer_rng, width, bottom = current_bottom, hatch = None, alpha=0.99, color=sal)
+    current_bottom += layer_rng
+    ax.bar(x_idx, layer_cnt, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr1)
+    current_bottom += layer_cnt
+    ax.bar(x_idx, layer_cmp, width, bottom = current_bottom, hatch = None, alpha=0.99, color=orc)
+    current_bottom += layer_cmp
+    ax.bar(x_idx, layer_pc, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr2)
+    current_bottom += layer_pc
+    ax.bar(x_idx, layer_rest, width, bottom = current_bottom, hatch = None, alpha=0.99, color=lav)
+    current_bottom += layer_rest
+    ax.set_title('Conv2')
+    ax.set_xticks(x_idx)
+    ax.set_xticklabels(x_axis, rotation=30)
 
 
-    # area of rate layers in SC and uBrain
+    x_axis = ["SC", "uBrain"]
+    x_idx = np.arange(len(x_axis))
+    # fc3
+    index = 2
+    ax = plt.subplot(245)
+    layer_buf = np.array([power_sto_h0_buf[index], power_ubr_h0_buf[index]])
+    layer_rng = np.array([power_sto_h0_rng[index], power_ubr_h0_rng[index]])
+    layer_cnt = np.array([power_sto_h0_cnt[index], power_ubr_h0_cnt[index]])
+    layer_cmp = np.array([power_sto_h0_cmp[index], power_ubr_h0_cmp[index]])
+    layer_pc = np.array([power_sto_h0_pc[index], power_ubr_h0_pc[index]])
+    layer_rest = np.array([power_sto_h0_rest[index], power_ubr_h0_rest[index]])
+    ax.bar(x_idx, layer_buf, width, hatch = None, alpha=0.99, color=gry)
+    current_bottom = layer_buf
+    ax.bar(x_idx, layer_rng, width, bottom = current_bottom, hatch = None, alpha=0.99, color=sal)
+    current_bottom += layer_rng
+    ax.bar(x_idx, layer_cnt, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr1)
+    current_bottom += layer_cnt
+    ax.bar(x_idx, layer_cmp, width, bottom = current_bottom, hatch = None, alpha=0.99, color=orc)
+    current_bottom += layer_cmp
+    ax.bar(x_idx, layer_pc, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr2)
+    current_bottom += layer_pc
+    ax.bar(x_idx, layer_rest, width, bottom = current_bottom, hatch = None, alpha=0.99, color=lav)
+    current_bottom += layer_rest
+    ax.set_title('FC3')
+    ax.set_xticks(x_idx)
+    ax.set_xticklabels(x_axis, rotation=30)
 
-    # power of temporal layers in SC and uBrain
+    # mgu4
+    index = 3
+    ax = plt.subplot(246)
+    layer_buf = np.array([power_sto_h0_buf[index], power_ubr_h0_buf[index]])
+    layer_rng = np.array([power_sto_h0_rng[index], power_ubr_h0_rng[index]])
+    layer_cnt = np.array([power_sto_h0_cnt[index], power_ubr_h0_cnt[index]])
+    layer_cmp = np.array([power_sto_h0_cmp[index], power_ubr_h0_cmp[index]])
+    layer_pc = np.array([power_sto_h0_pc[index], power_ubr_h0_pc[index]])
+    layer_rest = np.array([power_sto_h0_rest[index], power_ubr_h0_rest[index]])
+    ax.bar(x_idx, layer_buf, width, hatch = None, alpha=0.99, color=gry)
+    current_bottom = layer_buf
+    ax.bar(x_idx, layer_rng, width, bottom = current_bottom, hatch = None, alpha=0.99, color=sal)
+    current_bottom += layer_rng
+    ax.bar(x_idx, layer_cnt, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr1)
+    current_bottom += layer_cnt
+    ax.bar(x_idx, layer_cmp, width, bottom = current_bottom, hatch = None, alpha=0.99, color=orc)
+    current_bottom += layer_cmp
+    ax.bar(x_idx, layer_pc, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr2)
+    current_bottom += layer_pc
+    ax.bar(x_idx, layer_rest, width, bottom = current_bottom, hatch = None, alpha=0.99, color=lav)
+    current_bottom += layer_rest
+    ax.set_title('MGU4')
+    ax.set_xticks(x_idx)
+    ax.set_xticklabels(x_axis, rotation=30)
 
-    # power of rate layers in SC and uBrain
+    # fc5
+    index = 4
+    ax = plt.subplot(247)
+    layer_buf = np.array([power_sto_h0_buf[index], power_ubr_h0_buf[index]])
+    layer_rng = np.array([power_sto_h0_rng[index], power_ubr_h0_rng[index]])
+    layer_cnt = np.array([power_sto_h0_cnt[index], power_ubr_h0_cnt[index]])
+    layer_cmp = np.array([power_sto_h0_cmp[index], power_ubr_h0_cmp[index]])
+    layer_pc = np.array([power_sto_h0_pc[index], power_ubr_h0_pc[index]])
+    layer_rest = np.array([power_sto_h0_rest[index], power_ubr_h0_rest[index]])
+    ax.bar(x_idx, layer_buf, width, hatch = None, alpha=0.99, color=gry)
+    current_bottom = layer_buf
+    ax.bar(x_idx, layer_rng, width, bottom = current_bottom, hatch = None, alpha=0.99, color=sal)
+    current_bottom += layer_rng
+    ax.bar(x_idx, layer_cnt, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr1)
+    current_bottom += layer_cnt
+    ax.bar(x_idx, layer_cmp, width, bottom = current_bottom, hatch = None, alpha=0.99, color=orc)
+    current_bottom += layer_cmp
+    ax.bar(x_idx, layer_pc, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr2)
+    current_bottom += layer_pc
+    ax.bar(x_idx, layer_rest, width, bottom = current_bottom, hatch = None, alpha=0.99, color=lav)
+    current_bottom += layer_rest
+    ax.set_title('FC5')
+    ax.set_xticks(x_idx)
+    ax.set_xticklabels(x_axis, rotation=30)
+
+    # fc6
+    index = 5
+    ax = plt.subplot(248)
+    layer_buf = np.array([power_sto_h0_buf[index], power_ubr_h0_buf[index]])
+    layer_rng = np.array([power_sto_h0_rng[index], power_ubr_h0_rng[index]])
+    layer_cnt = np.array([power_sto_h0_cnt[index], power_ubr_h0_cnt[index]])
+    layer_cmp = np.array([power_sto_h0_cmp[index], power_ubr_h0_cmp[index]])
+    layer_pc = np.array([power_sto_h0_pc[index], power_ubr_h0_pc[index]])
+    layer_rest = np.array([power_sto_h0_rest[index], power_ubr_h0_rest[index]])
+    ax.bar(x_idx, layer_buf, width, hatch = None, alpha=0.99, color=gry)
+    current_bottom = layer_buf
+    ax.bar(x_idx, layer_rng, width, bottom = current_bottom, hatch = None, alpha=0.99, color=sal)
+    current_bottom += layer_rng
+    ax.bar(x_idx, layer_cnt, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr1)
+    current_bottom += layer_cnt
+    ax.bar(x_idx, layer_cmp, width, bottom = current_bottom, hatch = None, alpha=0.99, color=orc)
+    current_bottom += layer_cmp
+    ax.bar(x_idx, layer_pc, width, bottom = current_bottom, hatch = None, alpha=0.99, color=gr2)
+    current_bottom += layer_pc
+    ax.bar(x_idx, layer_rest, width, bottom = current_bottom, hatch = None, alpha=0.99, color=lav)
+    current_bottom += layer_rest
+    ax.set_title('FC6')
+    ax.set_xticks(x_idx)
+    ax.set_xticklabels(x_axis, rotation=30)
+    
+    fig.tight_layout()
+    fig.text(0.05, 0.5, 'Power ($mW$)', ha='center', va='center', rotation='vertical')
+    fig.subplots_adjust(top=0.88, left=0.15)
+    line_labels = ["BUF", "RNG", "CNT", "CMP", "PC", "REST"]
+    fig.legend([l1, l2, l3, l4, l5, l6], line_labels, loc="upper center", ncol=6, frameon=True)
+    plt.savefig(output_path+"/Power_layerwise.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
+    print("Layerwise power fig saved!\n")
+
+
     
 
 def layer_area_power_extract(layers=[], design="sc", item="", workbook=None):
