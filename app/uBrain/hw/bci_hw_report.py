@@ -18,10 +18,10 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     matplotlib.rc('font', **font)
 
     # sensor of baselines and ubrain
-    area_sense_bl = 0.01 * 64
-    power_sense_bl = 0.01 * 64
-    area_sense_ubr = 0.01 * 64
-    power_sense_ubr = 0.01 * 64
+    area_sense_bl = 0.096
+    power_sense_bl = 0.0032
+    area_sense_ubr = 0.007816
+    power_sense_ubr = 0.003858
 
     # extract cpu and systolic result
     # format [cpu, dram]
@@ -51,8 +51,8 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     design = "sc"
     item = "TOTAL" # for TOTAL area and power
     # no halving logic
-    area_sto_h0 = [area_sense_ubr, area_unary_dram]
-    power_sto_h0 = [power_sense_ubr, power_unary_dram]
+    area_sto_h0 = [area_sense_bl, area_unary_dram]
+    power_sto_h0 = [power_sense_bl, power_unary_dram]
     h0_layers = ['conv1-F1', 'conv2-F1', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
     area_sto_h0_onchip, power_sto_h0_onchip = design_area_power_extract(h0_layers, design, item, workbook)
     area_sto_h0.append(area_sto_h0_onchip)
@@ -60,8 +60,8 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # print(area_sto_h0, power_sto_h0)
 
     # best area result
-    area_sto_ba = [area_sense_ubr, area_unary_dram]
-    power_sto_ba = [power_sense_ubr, power_unary_dram]
+    area_sto_ba = [area_sense_bl, area_unary_dram]
+    power_sto_ba = [power_sense_bl, power_unary_dram]
     ba_layers = ['conv1-F16', 'conv2-F32', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
     area_sto_ba_onchip, power_sto_ba_onchip = design_area_power_extract(ba_layers, design, item, workbook)
     area_sto_ba.append(area_sto_ba_onchip)
@@ -99,8 +99,8 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # print(area_ubr_ba, power_ubr_ba)
 
     # best power result
-    area_ubr_bp = [area_sense_bl, area_unary_dram]
-    power_ubr_bp = [power_sense_bl, power_unary_dram]
+    area_ubr_bp = [area_sense_ubr, area_unary_dram]
+    power_ubr_bp = [power_sense_ubr, power_unary_dram]
     bp_layers_ubr = ['conv1-F4', 'conv2-F8', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
     area_ubr_bp_onchip, power_ubr_bp_onchip = design_area_power_extract(bp_layers_ubr, design, item, workbook)
     area_ubr_bp.append(area_ubr_bp_onchip)
@@ -118,7 +118,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
 
     # total area plot
     my_dpi = 300
-    fig_h = 1
+    fig_h = 1.3
     fig_w = 3.3115
     x_axis = ["CPU", "Systolic", "SC", "SC-A", "SC-P", "uBrain", "uBrain-A", "uBrain-P"]
     fig, ax = plt.subplots(figsize=(fig_w, fig_h))
@@ -619,7 +619,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     print("\tOver Systolic array: {:3.2f}".format(best_sys_onchip_power / best_ubr_onchip_power))
     print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_power / best_ubr_onchip_power))
     print()
-    
+
     print("Onchip area improvement:\n")
     best_cpu_onchip_area = area_cpu[-1]
     best_sys_onchip_area = area_sys[-1]
