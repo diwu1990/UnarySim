@@ -21,7 +21,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     area_sense_bl = 0.096
     power_sense_bl = 0.0032
     area_sense_ubr = 0.007816
-    power_sense_ubr = 0.003858
+    power_sense_ubr = 0.001218490376
 
     # extract cpu and systolic result
     # format [cpu, dram]
@@ -610,7 +610,22 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     print("Layerwise power fig saved!\n")
 
     
-    print("Onchip power improvement:\n")
+    print("Sense area improvement (all channels): {:3.2f}".format(area_sense_bl/area_sense_ubr))
+    print()
+    print("Sense power improvement (all channels): {:3.2f}".format(power_sense_bl/power_sense_ubr))
+    print()
+
+    print("Compute (Onchip) area improvement:")
+    best_cpu_onchip_area = area_cpu[-1]
+    best_sys_onchip_area = area_sys[-1]
+    best_sto_onchip_area = area_sto_ba_onchip
+    best_ubr_onchip_area = area_ubr_ba_onchip
+    print("\tOver CPU           : {:3.2f}".format(best_cpu_onchip_area / best_ubr_onchip_area))
+    print("\tOver Systolic array: {:3.2f}".format(best_sys_onchip_area / best_ubr_onchip_area))
+    print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_area / best_ubr_onchip_area))
+    print()
+
+    print("Compute (Onchip) power improvement:")
     best_cpu_onchip_power = best_onchip_power_list[0]
     best_sys_onchip_power = best_onchip_power_list[1]
     best_sto_onchip_power = best_onchip_power_list[4]
@@ -620,14 +635,6 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_power / best_ubr_onchip_power))
     print()
 
-    print("Onchip area improvement:\n")
-    best_cpu_onchip_area = area_cpu[-1]
-    best_sys_onchip_area = area_sys[-1]
-    best_sto_onchip_area = area_sto_ba_onchip
-    best_ubr_onchip_area = area_ubr_ba_onchip
-    print("\tOver CPU           : {:3.2f}".format(best_cpu_onchip_area / best_ubr_onchip_area))
-    print("\tOver Systolic array: {:3.2f}".format(best_sys_onchip_area / best_ubr_onchip_area))
-    print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_area / best_ubr_onchip_area))
     
 
 def layer_area_power_extract(layers=[], design="sc", item="", workbook=None):
