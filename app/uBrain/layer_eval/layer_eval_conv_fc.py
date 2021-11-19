@@ -291,8 +291,8 @@ for idx in range(len(bitwidth_list)):
     interval = 1/2**((5).bit_length())
     x_axe = [(x[idx] - (5 - 1) / 2 * interval + x_tick * interval) for x_tick in range(5)]
     if idx == 0:
-        ax.plot(x_axe, data_fxp, "-^", label="FXP", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
-        ax.plot(x_axe, data_hub, "-s", label="TC", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_fxp, "-^", label="Systolic", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)
     else:
         ax.plot(x_axe, data_fxp, "-^", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
         ax.plot(x_axe, data_hub, "-s", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)

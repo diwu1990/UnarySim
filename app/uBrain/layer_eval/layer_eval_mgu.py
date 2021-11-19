@@ -27,7 +27,7 @@ mode = "bipolar"
 rng = "Sobol"
 bias = False
 
-err_array = np.zeros((len(bitwidth_list), 2, win_sz))
+err_array = np.zeros((len(bitwidth_list), 3, win_sz))
 
 outfile = "layer_eval_mgu_log.csv"
 fp = open(output_dir+outfile, "w")
@@ -49,9 +49,11 @@ for bitwidth_index in range(len(bitwidth_list)):
     hx1 = truncated_normal(hx1, mean=0, std=0.1)
     hx2 = hx1.clone().detach().to(device)
     hx3 = hx1.clone().detach().to(device)
+    hx4 = hx1.clone().detach().to(device)
     output1 = []
     output2 = []
     output3 = []
+    output4 = []
 
     rnn1 = HardMGUCell(input_sz, hidden_sz, bias=bias, hard=True).to(device)
 
@@ -63,6 +65,10 @@ for bitwidth_index in range(len(bitwidth_list)):
     rnn3.weight_f.data = rnn1.weight_f.clone().detach().to(device)
     rnn3.weight_n.data = rnn1.weight_n.clone().detach().to(device)
 
+    rnn4 = HUBMGUCell(input_sz, hidden_sz, bias=bias, 
+                    binary_weight_f=rnn1.weight_f, binary_bias_f=rnn1.bias_f, binary_weight_n=rnn1.weight_n, binary_bias_n=rnn1.bias_n, 
+                    rng=rng, bitwidth=bitwidth+1, mode=mode, depth=depth, depth_ismul=depth_ismul).to(device)
+
     for i in range(win_sz):
         hx1 = rnn1(input[i], hx1)
         output1.append(hx1)
@@ -72,6 +78,9 @@ for bitwidth_index in range(len(bitwidth_list)):
 
         hx3 = rnn3(input[i], hx3)
         output3.append(hx3)
+
+        hx4 = rnn4(input[i], hx4)
+        output3.append(hx4)
 
         hub_err = hx1 - hx2
         min = hub_err.min().item()
@@ -100,6 +109,20 @@ for bitwidth_index in range(len(bitwidth_list)):
         print(log)
         fp.write(log+"\n")
         err_array[bitwidth_index, 1, i] = rmse.cpu().item()
+
+        sc_err = hx1 - hx4
+        min = sc_err.min().item()
+        max = sc_err.max().item()
+        rmse = torch.sqrt(torch.mean(torch.square(sc_err)))
+        std, mean = torch.std_mean(sc_err)
+        log = "{:30s}".format(str(i)+"-th win output sc") + \
+                ", Absolute Error range," + "{:12f}".format(min) + ", {:12f}".format(max) + \
+                ", std," + "{:12f}".format(std) + \
+                ", mean," + "{:12f}".format(mean) + \
+                ", rmse," + "{:12f}".format(rmse)
+        print(log)
+        fp.write(log+"\n")
+        err_array[bitwidth_index, 2, i] = rmse.cpu().item()
     print()
 
 print(err_array)
@@ -122,13 +145,16 @@ fig, ax = plt.subplots(figsize=(fig_w, fig_h), dpi=my_dpi)
 for idx in range(len(bitwidth_list)):
     data_hub = err_array[idx, 0, :]
     data_fxp = err_array[idx, 1, :]
+    data_sc  = err_array[idx, 2, :]
     interval = 1/2**(win_sz.bit_length())
     x_axe = [(x[idx] - (win_sz - 1) / 2 * interval + x_tick * interval) for x_tick in range(win_sz)]
     if idx == 0:
-        ax.plot(x_axe, data_fxp, "-^", label="FXP", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
-        ax.plot(x_axe, data_hub, "-s", label="RC", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_fxp, "-^", label="Systolic", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_sc, "-P", label="SC", alpha=alpha, color="#AAAAAA", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)
     else:
         ax.plot(x_axe, data_fxp, "-^", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_sc, "-P", alpha=alpha, color="#AAAAAA", lw=0.5, ms=1.5)
         ax.plot(x_axe, data_hub, "-s", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)
 
 
@@ -146,6 +172,6 @@ ax.set_yticklabels(y_label_list)
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
 ax.set_ylabel('RMSE\n')
-ax.legend(ncol=2, frameon=True)
+ax.legend(ncol=3, frameon=True)
 fig.tight_layout()
 fig.savefig(output_dir+"layer_eval_mgu.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
