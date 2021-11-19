@@ -29,7 +29,7 @@ bias = False
 
 err_array = np.zeros((len(bitwidth_list), 2, win_sz))
 
-outfile = "layer_eval_rc_log.csv"
+outfile = "layer_eval_mgu_log.csv"
 fp = open(output_dir+outfile, "w")
 
 for bitwidth_index in range(len(bitwidth_list)):
@@ -148,4 +148,4 @@ ax.set_xticklabels(labels)
 ax.set_ylabel('RMSE\n')
 ax.legend(ncol=2, frameon=True)
 fig.tight_layout()
-fig.savefig(output_dir+"layer_eval_rc.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
+fig.savefig(output_dir+"layer_eval_mgu.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)

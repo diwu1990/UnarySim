@@ -34,7 +34,7 @@ intwidth = 1 # systolic array fxp
 
 mode = "bipolar"
 
-outfile = "layer_eval_tc_log.csv"
+outfile = "layer_eval_conv_fc_log.csv"
 fp = open(output_dir+outfile, "w")
 
 err_array = np.zeros((len(bitwidth_list), 2, 5))
@@ -312,4 +312,4 @@ ax.set_xticklabels(labels)
 ax.set_ylabel('RMSE\n')
 ax.legend(ncol=2, frameon=True)
 fig.tight_layout()
-fig.savefig(output_dir+"layer_eval_tc.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
+fig.savefig(output_dir+"layer_eval_conv_fc.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
