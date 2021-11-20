@@ -615,7 +615,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     print("Sense power improvement (all channels): {:3.2f}".format(power_sense_bl/power_sense_ubr))
     print()
 
-    print("Compute (Onchip) area improvement:")
+    print("Compute (On-chip) area improvement:")
     best_cpu_onchip_area = area_cpu[-1]
     best_sys_onchip_area = area_sys[-1]
     best_sto_onchip_area = area_sto_ba_onchip
@@ -625,7 +625,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_area / best_ubr_onchip_area))
     print()
 
-    print("Compute (Onchip) power improvement:")
+    print("Compute (On-chip) power improvement:")
     best_cpu_onchip_power = best_onchip_power_list[0]
     best_sys_onchip_power = best_onchip_power_list[1]
     best_sto_onchip_power = best_onchip_power_list[4]
@@ -635,6 +635,36 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     print("\tOver Stochastic    : {:3.2f}".format(best_sto_onchip_power / best_ubr_onchip_power))
     print()
 
+    # get max improve
+    design = "ubrain"
+    item = "TOTAL"
+    area_ubr_h0_total, power_ubr_h0_total = layer_area_power_extract(h0_layers, design, item, workbook)
+    area_ubr_ba_total, power_ubr_ba_total = layer_area_power_extract(ba_layers, design, item, workbook)
+    area_ubr_bp_total, power_ubr_bp_total = layer_area_power_extract(bp_layers_ubr, design, item, workbook)
+
+    design = "sc"
+    item = "TOTAL"
+    area_sto_h0_total, power_sto_h0_total = layer_area_power_extract(h0_layers, design, item, workbook)
+    area_sto_ba_total, power_sto_ba_total = layer_area_power_extract(ba_layers, design, item, workbook)
+    area_sto_bp_total, power_sto_bp_total = layer_area_power_extract(bp_layers_sto, design, item, workbook)
+
+    print("Max layerwise area improve:")
+    print("\tOver SC    : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_h0_total) / np.array(area_ubr_ba_total)), 
+                                                            np.argmax(np.array(area_sto_h0_total) / np.array(area_ubr_ba_total))))
+    print("\tOver SC-A  : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_ba_total) / np.array(area_ubr_ba_total)), 
+                                                            np.argmax(np.array(area_sto_ba_total) / np.array(area_ubr_ba_total))))
+    print("\tOver SC-P  : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_bp_total) / np.array(area_ubr_ba_total)), 
+                                                            np.argmax(np.array(area_sto_bp_total) / np.array(area_ubr_ba_total))))
+    print()
+
+    print("Max layerwise power improve:")
+    print("\tOver SC    : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_h0_total) / np.array(power_ubr_bp_total)), 
+                                                            np.argmax(np.array(power_sto_h0_total) / np.array(power_ubr_bp_total))))
+    print("\tOver SC-A  : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_ba_total) / np.array(power_ubr_bp_total)), 
+                                                            np.argmax(np.array(power_sto_ba_total) / np.array(power_ubr_bp_total))))
+    print("\tOver SC-P  : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_bp_total) / np.array(power_ubr_bp_total)), 
+                                                            np.argmax(np.array(power_sto_bp_total) / np.array(power_ubr_bp_total))))
+    print()
     
 
 def layer_area_power_extract(layers=[], design="sc", item="", workbook=None):
