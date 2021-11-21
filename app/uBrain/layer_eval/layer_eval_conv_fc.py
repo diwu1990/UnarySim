@@ -299,13 +299,7 @@ for idx in range(len(bitwidth_list)):
 
 locs = [0, 0.02, 0.04]
 ax.set_yticks(locs)
-y_label_list = []
-for y in locs:
-    if y != 0:
-        y_label_list.append("{:1.0E}".format(abs(y)))
-    else:
-        y_label_list.append("0")
-ax.set_yticklabels(y_label_list)
+ax.set_yticklabels(locs)
 
 ax.set_xticks(x)
 ax.set_xticklabels(labels)

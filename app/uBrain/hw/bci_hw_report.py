@@ -649,21 +649,38 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     area_sto_bp_total, power_sto_bp_total = layer_area_power_extract(bp_layers_sto, design, item, workbook)
 
     print("Max layerwise area improve:")
-    print("\tOver SC    : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_h0_total) / np.array(area_ubr_ba_total)), 
+    print("\tOver SC        : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_h0_total) / np.array(area_ubr_ba_total)), 
                                                             np.argmax(np.array(area_sto_h0_total) / np.array(area_ubr_ba_total))))
-    print("\tOver SC-A  : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_ba_total) / np.array(area_ubr_ba_total)), 
+    print("\tOver SC-A      : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_ba_total) / np.array(area_ubr_ba_total)), 
                                                             np.argmax(np.array(area_sto_ba_total) / np.array(area_ubr_ba_total))))
-    print("\tOver SC-P  : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_bp_total) / np.array(area_ubr_ba_total)), 
+    print("\tOver SC-P      : {:3.2f} at index {:2d}".format(np.amax(np.array(area_sto_bp_total) / np.array(area_ubr_ba_total)), 
                                                             np.argmax(np.array(area_sto_bp_total) / np.array(area_ubr_ba_total))))
     print()
 
     print("Max layerwise power improve:")
-    print("\tOver SC    : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_h0_total) / np.array(power_ubr_bp_total)), 
+    print("\tOver SC        : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_h0_total) / np.array(power_ubr_bp_total)), 
                                                             np.argmax(np.array(power_sto_h0_total) / np.array(power_ubr_bp_total))))
-    print("\tOver SC-A  : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_ba_total) / np.array(power_ubr_bp_total)), 
+    print("\tOver SC-A      : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_ba_total) / np.array(power_ubr_bp_total)), 
                                                             np.argmax(np.array(power_sto_ba_total) / np.array(power_ubr_bp_total))))
-    print("\tOver SC-P  : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_bp_total) / np.array(power_ubr_bp_total)), 
+    print("\tOver SC-P      : {:3.2f} at index {:2d}".format(np.amax(np.array(power_sto_bp_total) / np.array(power_ubr_bp_total)), 
                                                             np.argmax(np.array(power_sto_bp_total) / np.array(power_ubr_bp_total))))
+    print()
+
+    print("Max iso-latency power improve:")
+    closest_runtime_idx_cpu = np.argmin(np.abs(np.array(runtime_cpu) + runtime_window - runtime_unary))
+    closest_runtime_idx_sys = np.argmin(np.abs(np.array(runtime_sys) + runtime_window - runtime_unary))
+    # print("CPU runtime              : ", np.array(runtime_cpu) + runtime_window)
+    # print("Closest CPU runtime      : ", runtime_cpu[closest_runtime_idx_cpu] + runtime_window)
+    # print("Systolic runtime         : ", np.array(runtime_sys) + runtime_window)
+    # print("Closest Systolic runtime : ", runtime_sys[closest_runtime_idx_sys] + runtime_window)
+    print("\tOver CPU       : {:3.2f}".format(np.amax(np.array(np.sum(power_cpu[closest_runtime_idx_cpu])) / np.sum(power_ubr_bp)))) 
+    print("\tOver Systolic  : {:3.2f}".format(np.amax(np.array(np.sum(power_sys[closest_runtime_idx_sys])) / np.sum(power_ubr_bp))))
+    print()
+
+    print("Max iso-latency frequency decrease:")
+    ubr_sto_max_freq = 4.2
+    print("\tOver CPU       : {:3.2f}".format(np.amax(np.array(freq_cpu[closest_runtime_idx_cpu]) / ubr_sto_max_freq))) 
+    print("\tOver Systolic  : {:3.2f}".format(np.amax(np.array(freq_sys[closest_runtime_idx_sys]) / ubr_sto_max_freq)))
     print()
     
 
