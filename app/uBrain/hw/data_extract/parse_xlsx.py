@@ -123,7 +123,7 @@ def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None,
 
     fig, area_ax = plt.subplots(figsize=(fig_w, fig_h))
     area_ax.bar(x_idx - 0.5 * width, area, width, hatch = None, alpha=0.99, color=area_color, label='Area')
-    area_ax.set_ylabel('Area ($mm^2$)')
+    area_ax.set_ylabel('Area (mm$\mathregular{^2}$)')
     area_ax.minorticks_off()
 
     power_ax = area_ax.twinx()
@@ -136,7 +136,7 @@ def power_area_fold_stacked_bar(conv_num=1, design='ubrain', absolute_path=None,
         if design == 'ubrain':
             area_ax.legend(bars + bars2, labels + labels2, loc="upper center", ncol=3, frameon=True)
 
-    power_ax.set_ylabel('Power ($mW$)')
+    power_ax.set_ylabel('Power (mW)')
     power_ax.minorticks_off()
 
     area_ax.set_xticks(x_idx)

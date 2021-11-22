@@ -133,7 +133,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     plt.yscale("log")
 
     fig.tight_layout()
-    ax.set_ylabel('Area ($mm^2$)')
+    ax.set_ylabel('Area (mm$\mathregular{^2}$)')
     ax.set_xticks(x_idx)
     ax.set_xticklabels(x_axis)
     # ax.set_xticklabels(x_axis, rotation=30)
@@ -167,7 +167,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     plt.yscale("log")
     
     fig.tight_layout()
-    ax.set_ylabel('Power ($mW$)')
+    ax.set_ylabel('Power (mW)')
     # ax.set_ylim((0, 4500))
     # ax.set_yticks((0, 1000, 2000, 3000))
     ax.set_xlabel('Latency ($ms$)')
@@ -203,7 +203,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     ax.bar(x_idx, best_onchip_power_list, width, hatch = None, alpha=0.99, color=sal)
     
     fig.tight_layout()
-    ax.set_ylabel('Power ($mW$)')
+    ax.set_ylabel('Power (mW)')
     ax.set_xticks(x_idx)
     ax.set_xticklabels(x_axis)
     # ax.legend(loc="best", ncol=3, frameon=True)
@@ -270,7 +270,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     fig_h = 3
     fig_w = 3.5
     fig = plt.figure(figsize=(fig_w, fig_h))
-    plt.ylabel("Area ($mm^2$)")
+    plt.ylabel("Area (mm$\mathregular{^2}$)")
     x_axis = ["SC", "SC-A", "SC-P", "uBrain", "uBrain-A", "uBrain-P"]
     x_idx = np.arange(len(x_axis))
     width = 0.5
@@ -429,7 +429,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     ax.set_xticklabels(x_axis, rotation=30)
     
     fig.tight_layout()
-    fig.text(0.05, 0.5, 'Area ($mm^2$)', ha='center', va='center', rotation='vertical')
+    fig.text(0.05, 0.5, 'Area (mm$\mathregular{^2}$)', ha='center', va='center', rotation='vertical')
     fig.subplots_adjust(top=0.85, left=0.15)
     line_labels = ["BUF", "RNG", "CNT", "CMP", "PC", "REST"]
     fig.legend([l1, l2, l3, l4, l5, l6], line_labels, loc="upper center", ncol=6, frameon=True)
@@ -443,7 +443,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     fig_h = 3
     fig_w = 3.5
     fig = plt.figure(figsize=(fig_w, fig_h))
-    plt.ylabel("Area ($mm^2$)")
+    plt.ylabel("Area (mm$\mathregular{^2}$)")
     x_axis = ["SC", "SC-A", "SC-P", "uBrain", "uBrain-A", "uBrain-P"]
     x_idx = np.arange(len(x_axis))
     width = 0.5
@@ -602,7 +602,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     ax.set_xticklabels(x_axis, rotation=30)
     
     fig.tight_layout()
-    fig.text(0.05, 0.5, 'Power ($mW$)', ha='center', va='center', rotation='vertical')
+    fig.text(0.05, 0.5, 'Power (mW)', ha='center', va='center', rotation='vertical')
     fig.subplots_adjust(top=0.85, left=0.15)
     line_labels = ["BUF", "RNG", "CNT", "CMP", "PC", "REST"]
     fig.legend([l1, l2, l3, l4, l5, l6], line_labels, loc="upper center", ncol=6, frameon=True)
