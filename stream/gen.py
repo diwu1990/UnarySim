@@ -42,7 +42,7 @@ class RNG(torch.nn.Module):
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         self.rtype = swcfg["rtype"]
         assert self.rng == "sobol" or "race" or "lfsr" or "sys", \
-            "Error: the hw config 'rng' in the RNG class requires one of ['sobol', 'race', 'lfsr', 'sys']."
+            "Error: the hw config 'rng' in " + self + " class requires one of ['sobol', 'race', 'lfsr', 'sys']."
         if self.rng == "sobol":
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, self.dim-1].view(self.seq_len).mul_(self.seq_len)
@@ -62,37 +62,27 @@ class RNG(torch.nn.Module):
 
 class RawScale(torch.nn.Module):
     """
-    Scale raw data to source data in unary computing, which meets bipolar/unipolar requirements.
-    input percentile should be a number in range (0, 100].
-    returns a torch.nn.Parameter
+    Scale raw data to [-1, 1], which meets bipolar/unipolar bitstream requirements.
+    Data of type torch.nn.Parameter within (0, 100] percentile (%) of total data range are output.
     """
-    def __init__(self, 
-                 raw, 
-                 mode="bipolar", 
-                 percentile=100):
+    def __init__(
+        self, 
+        hwcfg={
+            "percentile" : 100
+        }):
         super(RawScale, self).__init__()
-        self.raw = raw
-        self.mode = mode
-        
-        # to do: add the percentile based scaling
-        self.percentile_down = (100 - percentile)/2
-        self.percentile_up = 100 - self.percentile_down
-        self.clamp_min = np.percentile(raw.cpu(), self.percentile_down)
-        self.clamp_max = np.percentile(raw.cpu(), self.percentile_up)
+        self.percentile = hwcfg["percentile"]
+        self.percentile_down = (100 - self.percentile) / 2 / 100
+        self.percentile_up = (100 - self.percentile_down) / 100
 
-        self.source = torch.nn.Parameter(torch.Tensor(raw.size()), requires_grad=False)
-        self.source.data = raw.clamp(self.clamp_min, self.clamp_max)
+    def forward(self, raw):
+        lower_bound = torch.quantile(raw, self.percentile_down)
+        upper_bound = torch.quantile(raw, self.percentile_up)
+        scale = torch.max(lower_bound.abs(), upper_bound.abs())
+        output = raw.clamp(lower_bound, upper_bound).div(scale)
+        return output
 
-    def forward(self):
-        if self.mode == "unipolar":
-            self.source.data = (self.source - torch.min(self.source))/(torch.max(self.source) - torch.min(self.source))
-        elif self.mode == "bipolar":
-            self.source.data = (self.source - torch.min(self.source))/(torch.max(self.source) - torch.min(self.source)) * 2 - 1
-        else:
-            raise ValueError("RawScale mode is not implemented.")
-        return self.source
-    
-    
+
 class BinGen(torch.nn.Module):
     """
     Convert source data within [-1, 1] to binary integer data of type torch.nn.Parameter for comparison
@@ -113,7 +103,7 @@ class BinGen(torch.nn.Module):
         self.mode = hwcfg["mode"].lower()
         self.rtype = swcfg["rtype"]
         assert self.mode == "unipolar" or "bipolar", \
-            "Error: the hw config 'mode' in the BinGen class requires one of ['unipolar', 'bipolar']."
+            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
         self.binary = torch.nn.Parameter(torch.Tensor(source.size()), requires_grad=False)
         if self.mode == "unipolar":
             self.binary.data = self.source
@@ -128,17 +118,20 @@ class BinGen(torch.nn.Module):
 
 class BSGen(torch.nn.Module):
     """
-    Compare source data with rng[cycle] to generate bit streams from source
-    only one rng sequence is used here
+    Compare binary data with rng[cycle] to generate bitstreams.
+    "cycle" is used to indicate the generated bit at the current cycle.
     """
-    def __init__(self, 
-                 binary, 
-                 rng, 
-                 stype=torch.float):
+    def __init__(
+        self, 
+        binary, 
+        rng, 
+        swcfg={
+            "stype" : torch.float
+        }):
         super(BSGen, self).__init__()
         self.binary = binary
         self.rng = rng
-        self.stype = stype
+        self.stype = swcfg["stype"]
     
     def forward(self, cycle):
         return torch.gt(self.binary, self.rng[cycle.type(torch.long)]).type(self.stype)

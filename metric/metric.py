@@ -74,7 +74,7 @@ class ProgError(torch.nn.Module):
         self.mode = hwcfg["mode"]
         self.source = torch.clamp(source/self.scale, -1., 1.)
         assert self.mode == "unipolar" or "bipolar", \
-            "Error: the hw config 'mode' in the " + self + " class requires one of ['unipolar', 'bipolar']."
+            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
         self.cycle = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.one_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.pp = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
