@@ -42,7 +42,7 @@ class RNG(torch.nn.Module):
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         self.rtype = swcfg["rtype"]
         assert self.rng == "sobol" or "race" or "lfsr" or "sys", \
-            "Error: the hw config 'rng' in the RNG class needs to be from ['sobol', 'race', 'lfsr', 'sys']."
+            "Error: the hw config 'rng' in the RNG class requires one of ['sobol', 'race', 'lfsr', 'sys']."
         if self.rng == "sobol":
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dim).draw(self.seq_len)[:, self.dim-1].view(self.seq_len).mul_(self.seq_len)
@@ -93,48 +93,53 @@ class RawScale(torch.nn.Module):
         return self.source
     
     
-class SourceGen(torch.nn.Module):
+class BinGen(torch.nn.Module):
     """
-    Convert source problistic data to binary integer data
-    returns a torch.nn.Parameter
+    Convert source data within [-1, 1] to binary integer data of type torch.nn.Parameter for comparison
     """
-    def __init__(self, 
-                 prob, 
-                 width=8, 
-                 mode="bipolar", 
-                 rtype=torch.float):
-        super(SourceGen, self).__init__()
-        self.prob = prob
-        self.mode = mode
-        self.rtype = rtype
-        self.len = pow(2, width)
-        self.binary = torch.nn.Parameter(torch.Tensor(prob.size()), requires_grad=False)
-        if mode == "unipolar":
-            self.binary.data = self.prob.mul(self.len).round()
-        elif mode == "bipolar":
-            self.binary.data = self.prob.add(1).div(2).mul(self.len).round()
-        else:
-            raise ValueError("SourceGen mode is not implemented.")
-        self.binary.data = self.binary.type(self.rtype)
+    def __init__(
+        self, 
+        source, 
+        hwcfg={
+            "width" : 8,
+            "mode" : "bipolar"
+        },
+        swcfg={
+            "rtype" : torch.float
+        }):
+        super(BinGen, self).__init__()
+        self.source = source
+        self.width = hwcfg["width"]
+        self.mode = hwcfg["mode"].lower()
+        self.rtype = swcfg["rtype"]
+        assert self.mode == "unipolar" or "bipolar", \
+            "Error: the hw config 'mode' in the BinGen class requires one of ['unipolar', 'bipolar']."
+        self.binary = torch.nn.Parameter(torch.Tensor(source.size()), requires_grad=False)
+        if self.mode == "unipolar":
+            self.binary.data = self.source
+        elif self.mode == "bipolar":
+            self.binary.data = self.source.add(1).div(2)
+        self.binary.data = self.binary << self.width
+        self.binary.data = self.binary.round().type(self.rtype)
         
     def forward(self):
         return self.binary
-    
+
 
 class BSGen(torch.nn.Module):
     """
-    Compare source data with rng_seq[rng_idx] to generate bit streams from source
+    Compare source data with rng[cycle] to generate bit streams from source
     only one rng sequence is used here
     """
     def __init__(self, 
-                 source, 
-                 rng_seq, 
+                 binary, 
+                 rng, 
                  stype=torch.float):
         super(BSGen, self).__init__()
-        self.source = source
-        self.rng_seq = rng_seq
+        self.binary = binary
+        self.rng = rng
         self.stype = stype
     
-    def forward(self, rng_idx):
-        return torch.gt(self.source, self.rng_seq[rng_idx.type(torch.long)]).type(self.stype)
+    def forward(self, cycle):
+        return torch.gt(self.binary, self.rng[cycle.type(torch.long)]).type(self.stype)
 

@@ -13,22 +13,18 @@ def test_rng():
         "rtype" : torch.float
     }
     rng = RNG(hwcfg, swcfg)()
-    assert rng is not None
     print(hwcfg["rng"], rng.to(device))
 
     hwcfg["rng"] = "race"
     rng = RNG(hwcfg, swcfg)()
-    assert rng is not None
     print(hwcfg["rng"], rng.to(device))
 
     hwcfg["rng"] = "lfsr"
     rng = RNG(hwcfg, swcfg)()
-    assert rng is not None
     print(hwcfg["rng"], rng.to(device))
 
     hwcfg["rng"] = "sys"
     rng = RNG(hwcfg, swcfg)()
-    assert rng is not None
     print(hwcfg["rng"], rng.to(device))
 
 
