@@ -17,6 +17,13 @@ class FSUSignAbs(torch.nn.Module):
             "stype" : torch.float
         }):
         super(FSUSignAbs, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["depth"] = hwcfg["depth"]
+
+        self.swcfg = {}
+        self.swcfg["stype"] = swcfg["stype"]
+        self.swcfg["btype"] = swcfg["btype"]
+
         self.depth = hwcfg["depth"]
         self.stype = swcfg["stype"]
         self.btype = swcfg["btype"]
