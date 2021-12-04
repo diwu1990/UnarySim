@@ -19,12 +19,14 @@ The components included in UnarySim belong to three categories, including
 Among those, components in **Stream Manipulation** and **Computing Kernel** can physically exist in real hardware, while those in **Performance Metric** are virtually for performance analysis.
 
 ### Prerequisite
-1. PyTorch (Version >= 1.7)
+1. PyTorch (Version >= 1.10)
 2. Python (Version >= 3.6)
 3. [pylfsr](https://github.com/Nikeshbajaj/Linear_Feedback_Shift_Register)
 4. numpy
 5. [torchinfo](https://github.com/TylerYep/torchinfo)
 6. matplotlib
+
+Environment Configuration: ```export PYTHONPATH=<UnarySim-Parent-Dir-Absolute-Path>/```
 
 ### Data Representation
 UnarySim has five categories of data, with each having default data type as _**'torch.float'**_ in PyTorch.

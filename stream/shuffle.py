@@ -37,7 +37,8 @@ class SkewedSync(torch.nn.Module):
 
 class Bi2Uni(torch.nn.Module):
     """
-    Convert bipolar bitstreams to unipolar with non-scaled addition
+    Convert bipolar bitstreams to unipolar with non-scaled addition, please refer to
+    "In-Stream Correlation-Based Division and Bit-Inserting Square Root in Stochastic Computing"
     """
     def __init__(
         self, 
@@ -69,7 +70,8 @@ class Bi2Uni(torch.nn.Module):
 
 class Uni2Bi(torch.nn.Module):
     """
-    Convert unipolar bitstreams to bipolar with scaled addition
+    Convert unipolar bitstreams to bipolar with scaled addition, please refer to
+    "In-Stream Correlation-Based Division and Bit-Inserting Square Root in Stochastic Computing"
     """
     def __init__(
         self,
