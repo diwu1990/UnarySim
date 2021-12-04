@@ -64,9 +64,9 @@ def test_uni2bi():
         
         result_pe = oVecPE()[1].cpu().numpy()
 
-    fig = plt.hist(result_pe, bins='auto')  # arguments are passed to np.histogram
-    plt.title("Histogram for final output error")
-    plt.show()
+    # fig = plt.hist(result_pe, bins='auto')  # arguments are passed to np.histogram
+    # plt.title("Histogram for final output error")
+    # plt.show()
 
     print(result_pe)
     print(result_pe.argmin(), result_pe.argmax())
