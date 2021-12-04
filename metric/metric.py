@@ -67,11 +67,15 @@ class ProgError(torch.nn.Module):
             "mode" : "bipolar"
         }):
         super(ProgError, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["scale"] = hwcfg["scale"]
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+
         # in_value is always binary
         # after scaling, unipolar should be within (0, 1), bipolar should be within (-1, 1).
         # therefore, clamping with (-1, 1) always works
         self.scale = hwcfg["scale"]
-        self.mode = hwcfg["mode"]
+        self.mode = hwcfg["mode"].lower()
         self.source = torch.clamp(source/self.scale, -1., 1.)
         assert self.mode == "unipolar" or "bipolar", \
             "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
@@ -107,6 +111,14 @@ class Stability(torch.nn.Module):
             "threshold" : 0.05
         }):
         super(Stability, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["scale"] = hwcfg["scale"]
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+        self.hwcfg["threshold"] = hwcfg["threshold"]
+
+        assert hwcfg["mode"].lower() == "unipolar" or "bipolar", \
+            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
+
         self.source = source
         self.threshold = torch.nn.Parameter(torch.tensor([hwcfg["threshold"]]), requires_grad=False)
         self.cycle = torch.nn.Parameter(torch.zeros(1), requires_grad=False)

@@ -35,12 +35,21 @@ class RNG(torch.nn.Module):
             "rtype" : torch.float
             }):
         super(RNG, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+        self.hwcfg["dim"] = hwcfg["dim"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
+
+        self.swcfg = {}
+        self.swcfg["rtype"] = swcfg["rtype"]
+
         self.width = hwcfg["width"]
         self.dim = hwcfg["dim"]
         self.rng = hwcfg["rng"].lower()
         self.seq_len = 2**self.width
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         self.rtype = swcfg["rtype"]
+
         assert self.rng == "sobol" or "race" or "lfsr" or "sys", \
             "Error: the hw config 'rng' in " + self + " class requires one of ['sobol', 'race', 'lfsr', 'sys']."
         if self.rng == "sobol":
@@ -71,6 +80,9 @@ class RawScale(torch.nn.Module):
             "percentile" : 100
         }):
         super(RawScale, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["percentile"] = hwcfg["percentile"]
+
         self.percentile = hwcfg["percentile"]
         self.percentile_down = (100 - self.percentile) / 2 / 100
         self.percentile_up = (100 - self.percentile_down) / 100
@@ -98,6 +110,13 @@ class BinGen(torch.nn.Module):
             "rtype" : torch.float
         }):
         super(BinGen, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+
+        self.swcfg = {}
+        self.swcfg["rtype"] = swcfg["rtype"]
+
         self.source = source
         self.width = hwcfg["width"]
         self.mode = hwcfg["mode"].lower()
@@ -129,6 +148,9 @@ class BSGen(torch.nn.Module):
             "stype" : torch.float
         }):
         super(BSGen, self).__init__()
+        self.swcfg = {}
+        self.swcfg["stype"] = swcfg["stype"]
+
         self.binary = binary
         self.rng = rng
         self.stype = swcfg["stype"]

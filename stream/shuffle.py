@@ -16,6 +16,13 @@ class SkewedSync(torch.nn.Module):
             "stype" : torch.float
         }):
         super(SkewedSync, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["depth"] = hwcfg["depth"]
+
+        self.swcfg = {}
+        self.swcfg["stype"] = swcfg["stype"]
+        self.swcfg["btype"] = swcfg["btype"]
+
         self.depth=hwcfg["depth"]
         self.btype=swcfg["btype"]
         self.stype=swcfg["stype"]
@@ -50,6 +57,13 @@ class Bi2Uni(torch.nn.Module):
             "btype" : torch.float
         }):
         super(Bi2Uni, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["depth"] = hwcfg["depth"]
+
+        self.swcfg = {}
+        self.swcfg["stype"] = swcfg["stype"]
+        self.swcfg["btype"] = swcfg["btype"]
+
         self.depth = hwcfg["depth"]
         self.stype = swcfg["stype"]
         self.btype = swcfg["btype"]
@@ -83,6 +97,13 @@ class Uni2Bi(torch.nn.Module):
             "btype" : torch.float
         }):
         super(Uni2Bi, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["depth"] = hwcfg["depth"]
+
+        self.swcfg = {}
+        self.swcfg["stype"] = swcfg["stype"]
+        self.swcfg["btype"] = swcfg["btype"]
+
         self.depth = hwcfg["depth"]
         self.stype = swcfg["stype"]
         self.btype = swcfg["btype"]
