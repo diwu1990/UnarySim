@@ -12,7 +12,7 @@ def test_uni2bi():
     hwcfg = {
             "width" : 8,
             "mode" : "unipolar",
-            "dim" : 1,
+            "dimr" : 1,
             "rng" : "sobol",
             "scale" : 1,
             "depth" : 4

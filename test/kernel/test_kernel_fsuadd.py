@@ -11,7 +11,8 @@ def test_fsuadd():
     hwcfg = {
             "width" : 12,
             "mode" : "bipolar",
-            "dim" : 0,
+            "dimr" : 1,
+            "dima" : 0,
             "rng" : "sobol",
             "scale" : 1,
             "depth" : 10,
@@ -25,8 +26,6 @@ def test_fsuadd():
     bitwidth = hwcfg["width"]
     rng = hwcfg["rng"]
 
-    row=128
-    col=10000
     plot_en=False
     modes = ["bipolar", "unipolar"]
     row = 128
@@ -53,24 +52,12 @@ def test_fsuadd():
             oVec = torch.sum(iVec, acc_dim).to(device)
 
             iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
-            hwcfg["dim"] = 1
             iVecRNG = RNG(hwcfg, swcfg)().to(device)
-            hwcfg["dim"] = 0
             iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
             hwcfg["scale"] = 1
             iVecPE = ProgError(iVec, hwcfg).to(device)
             hwcfg["scale"] = scale_mod if scale else 1
-            
-            if scale is True:
-                if acc_dim == 0:
-                    hwcfg["dim"] = 0
-                    oVecPE = ProgError(oVec, hwcfg).to(device)
-                elif acc_dim ==1:
-                    hwcfg["dim"] = 1
-                    oVecPE = ProgError(oVec, hwcfg).to(device)
-                    hwcfg["dim"] = 0
-            else:
-                oVecPE = ProgError(oVec, hwcfg).to(device)
+            oVecPE = ProgError(oVec, hwcfg).to(device)
 
             with torch.no_grad():
                 idx = torch.zeros(iVecSource.size()).type(torch.long).to(device)

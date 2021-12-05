@@ -14,7 +14,7 @@ def test_bi2uni():
     hwcfg = {
             "width" : 8,
             "mode" : "bipolar",
-            "dim" : 1,
+            "dimr" : 1,
             "rng" : "sobol",
             "scale" : 1,
             "depth" : 3

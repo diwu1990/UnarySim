@@ -9,7 +9,7 @@ class FSUAdd(torch.nn.Module):
         hwcfg={
             "mode" : "bipolar", 
             "scale" : None,
-            "dim" : 0,
+            "dima" : 0,
             "depth" : 10,
             "entry" : None
         }, 
@@ -22,7 +22,7 @@ class FSUAdd(torch.nn.Module):
         self.hwcfg["depth"] = hwcfg["depth"]
         self.hwcfg["mode"] = hwcfg["mode"].lower()
         self.hwcfg["scale"] = hwcfg["scale"]
-        self.hwcfg["dim"] = hwcfg["dim"]
+        self.hwcfg["dima"] = hwcfg["dima"]
         self.hwcfg["entry"] = hwcfg["entry"]
 
         self.swcfg = {}
@@ -37,10 +37,10 @@ class FSUAdd(torch.nn.Module):
         # scale is an arbitrary value that larger than 0
         self.scale = hwcfg["scale"]
         # dimension to do reduced sum
-        self.dim = hwcfg["dim"]
+        self.dima = hwcfg["dima"]
         # depth of the accumulator
         self.depth = hwcfg["depth"]
-        # number of entries in dim to do reduced sum
+        # number of entries in dima to do reduced sum
         self.entry = hwcfg["entry"]
 
         # max value in the accumulator
@@ -66,8 +66,8 @@ class FSUAdd(torch.nn.Module):
                 self.hwcfg["scale"] = scale
             else:
                 if self.scale is None:
-                    self.scale_carry.fill_(input.size()[self.dim])
-                    self.hwcfg["scale"] = input.size()[self.dim]
+                    self.scale_carry.fill_(input.size()[self.dima])
+                    self.hwcfg["scale"] = input.size()[self.dima]
                 else:
                     self.scale_carry.fill_(self.scale)
                     self.hwcfg["scale"] = self.scale
@@ -79,8 +79,8 @@ class FSUAdd(torch.nn.Module):
                     self.hwcfg["offset"] = (entry - self.scale_carry)/2
                 else:
                     if self.entry is None:
-                        self.offset.data = (input.size()[self.dim] - self.scale_carry)/2
-                        self.hwcfg["offset"] = (input.size()[self.dim] - self.scale_carry)/2
+                        self.offset.data = (input.size()[self.dima] - self.scale_carry)/2
+                        self.hwcfg["offset"] = (input.size()[self.dima] - self.scale_carry)/2
                     else:
                         self.offset.data = (self.entry - self.scale_carry)/2
                         self.hwcfg["offset"] = (self.entry - self.scale_carry)/2
@@ -94,8 +94,8 @@ class FSUAdd(torch.nn.Module):
                 self.hwcfg["entry"] = entry
             else:
                 if self.entry is None:
-                    self.entry = input.size()[self.dim]
-                    self.hwcfg["entry"] = input.size()[self.dim]
+                    self.entry = input.size()[self.dima]
+                    self.hwcfg["entry"] = input.size()[self.dima]
                 else:
                     self.entry = self.entry
                     self.hwcfg["entry"] = self.entry
@@ -103,7 +103,7 @@ class FSUAdd(torch.nn.Module):
         else:
             pass
 
-        acc_delta = torch.sum(input.type(self.btype), self.dim) - self.offset
+        acc_delta = torch.sum(input.type(self.btype), self.dima) - self.offset
         self.accumulator.data = self.accumulator.add(acc_delta).clamp(self.acc_min, self.acc_max)
         output = torch.ge(self.accumulator, self.scale_carry).type(self.btype)
         self.accumulator.sub_(output * self.scale_carry).clamp_(self.acc_min, self.acc_max)
