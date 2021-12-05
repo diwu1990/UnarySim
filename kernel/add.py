@@ -60,45 +60,45 @@ class FSUAdd(torch.nn.Module):
 
     def forward(self, input, scale=None, entry=None):
         if self.first:
-            if self.scale is None:
-                self.scale_carry.fill_(input.size()[self.dim])
-                self.hwcfg["scale"] = input.size()[self.dim]
-            else:
-                self.scale_carry.fill_(self.scale)
-                self.hwcfg["scale"] = self.scale
             if scale is not None:
                 # runtime scale will override the default value
                 self.scale_carry.fill_(scale)
                 self.hwcfg["scale"] = scale
             else:
-                pass
+                if self.scale is None:
+                    self.scale_carry.fill_(input.size()[self.dim])
+                    self.hwcfg["scale"] = input.size()[self.dim]
+                else:
+                    self.scale_carry.fill_(self.scale)
+                    self.hwcfg["scale"] = self.scale
 
             if self.mode == "bipolar":
-                if self.entry is None:
-                    self.offset.data = (input.size()[self.dim] - self.scale_carry)/2
-                    self.hwcfg["offset"] = (input.size()[self.dim] - self.scale_carry)/2
-                else:
-                    self.offset.data = (self.entry - self.scale_carry)/2
-                    self.hwcfg["offset"] = (self.entry - self.scale_carry)/2
                 if entry is not None:
                     # runtime entry will update the default offset in bipolar mode
                     self.offset.data = (entry - self.scale_carry)/2
                     self.hwcfg["offset"] = (entry - self.scale_carry)/2
+                else:
+                    if self.entry is None:
+                        self.offset.data = (input.size()[self.dim] - self.scale_carry)/2
+                        self.hwcfg["offset"] = (input.size()[self.dim] - self.scale_carry)/2
+                    else:
+                        self.offset.data = (self.entry - self.scale_carry)/2
+                        self.hwcfg["offset"] = (self.entry - self.scale_carry)/2
             else:
                 self.hwcfg["offset"] = self.offset
 
-            if self.entry is None:
-                self.entry = input.size()[self.dim]
-                self.hwcfg["entry"] = input.size()[self.dim]
-            else:
-                self.entry = self.entry
-                self.hwcfg["entry"] = self.entry
+            
             if entry is not None:
                 # runtime entry will override the default value
                 self.entry = entry
                 self.hwcfg["entry"] = entry
             else:
-                pass
+                if self.entry is None:
+                    self.entry = input.size()[self.dim]
+                    self.hwcfg["entry"] = input.size()[self.dim]
+                else:
+                    self.entry = self.entry
+                    self.hwcfg["entry"] = self.entry
             self.first = False
         else:
             pass

@@ -57,13 +57,18 @@ def test_fsuadd():
             iVecRNG = RNG(hwcfg, swcfg)().to(device)
             hwcfg["dim"] = 0
             iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
+            hwcfg["scale"] = 1
             iVecPE = ProgError(iVec, hwcfg).to(device)
+            hwcfg["scale"] = scale_mod if scale else 1
             
             if scale is True:
                 if acc_dim == 0:
+                    hwcfg["dim"] = 0
                     oVecPE = ProgError(oVec, hwcfg).to(device)
                 elif acc_dim ==1:
+                    hwcfg["dim"] = 1
                     oVecPE = ProgError(oVec, hwcfg).to(device)
+                    hwcfg["dim"] = 0
             else:
                 oVecPE = ProgError(oVec, hwcfg).to(device)
 
