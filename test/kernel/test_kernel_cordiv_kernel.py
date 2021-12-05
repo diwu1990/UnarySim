@@ -1,7 +1,7 @@
 # %%
 import torch
 from UnarySim.kernel.div import CORDIV_kernel
-from UnarySim.stream.gen import RNG, SourceGen, BSGen
+from UnarySim.stream.gen import RNG, BinGen, BSGen
 from UnarySim.metric.metric import ProgError
 import matplotlib.pyplot as plt
 
@@ -70,12 +70,12 @@ for mode in modes:
     quotientPE = ProgError(quotient, mode=mode).to(device)
     
     dividendPE = ProgError(dividend, mode=mode).to(device)
-    dividendSRC = SourceGen(dividend, bitwidth, mode=mode, rtype=rtype)().to(device)
+    dividendSRC = BinGen(dividend, bitwidth, mode=mode, rtype=rtype)().to(device)
     dividendRNG = RNG(bitwidth, 1, rng, rtype)().to(device)
     dividendBS = BSGen(dividendSRC, dividendRNG, stype).to(device)
     
     divisorPE  = ProgError(divisor,  mode=mode).to(device)
-    divisorSRC = SourceGen(divisor, bitwidth, mode=mode, rtype=rtype)().to(device)
+    divisorSRC = BinGen(divisor, bitwidth, mode=mode, rtype=rtype)().to(device)
     divisorRNG = RNG(bitwidth, 1, rng, rtype)().to(device)
     divisorBS = BSGen(divisorSRC, divisorRNG, stype).to(device)
 
