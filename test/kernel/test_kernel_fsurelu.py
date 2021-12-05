@@ -1,7 +1,7 @@
 import torch
-from UnarySim.kernel.relu import FSUReLU
-from UnarySim.stream.gen import RNG, BinGen, BSGen
-from UnarySim.metric.metric import ProgError
+from UnarySim.kernel import FSUReLU
+from UnarySim.stream import RNG, BinGen, BSGen
+from UnarySim.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import math

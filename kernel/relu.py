@@ -1,5 +1,4 @@
 import torch
-from UnarySim.kernel.shiftreg import ShiftReg
 
 class FSUReLU(torch.nn.Module):
     """
