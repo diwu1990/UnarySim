@@ -2,14 +2,19 @@ import torch
 
 class JKFF(torch.nn.Module):
     """
-    this module is a shift register for int8 tensor.
-    it takes in unary bits and output shifter register value, as well as the total number of 1s in current shift register.
+    This module is a JK Flip Flop.
     """
-    def __init__(self,
-                 stype=torch.float):
+    def __init__(
+        self,
+        swcfg={
+            "stype" : torch.float
+        }):
         super(JKFF, self).__init__()
+        self.swcfg = {}
+        self.swcfg["stype"] = swcfg["stype"]
+
+        self.stype = swcfg["stype"]
         self.jkff = torch.nn.Parameter(torch.zeros(1).type(torch.int8), requires_grad=False)
-        self.stype = stype
 
     def forward(self, J, K):
         j0 = torch.eq(J, 0).type(torch.int8)
