@@ -50,12 +50,12 @@ class RNG(torch.nn.Module):
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         self.rtype = swcfg["rtype"]
 
-        assert self.rng == "sobol" or "race" or "lfsr" or "sys", \
-            "Error: the hw config 'rng' in " + self + " class requires one of ['sobol', 'race', 'lfsr', 'sys']."
-        if self.rng == "sobol":
+        assert self.rng == "sobol" or "race" or "lfsr" or "sys" or "rc" or "tc", \
+            "Error: the hw config 'rng' in " + self + " class requires one of ['sobol', 'race', 'lfsr', 'sys', 'rc', 'tc']."
+        if self.rng == "sobol" or 'rc':
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dimr).draw(self.seq_len)[:, self.dimr-1].view(self.seq_len).mul_(self.seq_len)
-        elif self.rng == "race":
+        elif self.rng == "race" or 'tc':
             self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len)
         elif self.rng == "lfsr":
             lfsr_seq = get_lfsr_seq(width=self.width)
