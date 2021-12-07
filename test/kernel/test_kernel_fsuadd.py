@@ -12,7 +12,7 @@ def test_fsuadd():
             "width" : 12,
             "mode" : "bipolar",
             "dimr" : 1,
-            "dima" : 0,
+            "dima" : 1,
             "rng" : "sobol",
             "scale" : 1,
             "depth" : 10,
@@ -38,7 +38,7 @@ def test_fsuadd():
     for mode in modes:
         for scale in scaled:
             run_time = 0
-            acc_dim = 0
+            acc_dim = hwcfg["dima"]
             result_pe_cycle = []
             hwcfg["mode"] = mode
             hwcfg["scale"] = scale_mod if scale else 1

@@ -60,18 +60,6 @@ class FSUAdd(torch.nn.Module):
 
     def forward(self, input, scale=None, entry=None):
         if self.first:
-            if scale is not None:
-                # runtime scale will override the default value
-                self.scale_carry.fill_(scale)
-                self.hwcfg["scale"] = scale
-            else:
-                if self.scale is None:
-                    self.scale_carry.fill_(input.size()[self.dima])
-                    self.hwcfg["scale"] = input.size()[self.dima]
-                else:
-                    self.scale_carry.fill_(self.scale)
-                    self.hwcfg["scale"] = self.scale
-
             if entry is not None:
                 # runtime entry will override the default value
                 self.entry = entry
@@ -83,6 +71,18 @@ class FSUAdd(torch.nn.Module):
                 else:
                     self.entry = self.entry
                     self.hwcfg["entry"] = self.entry
+
+            if scale is not None:
+                # runtime scale will override the default value
+                self.scale_carry.fill_(scale)
+                self.hwcfg["scale"] = scale
+            else:
+                if self.scale is None:
+                    self.scale_carry.fill_(self.entry)
+                    self.hwcfg["scale"] = self.entry
+                else:
+                    self.scale_carry.fill_(self.scale)
+                    self.hwcfg["scale"] = self.scale
 
             if self.mode == "bipolar":
                 self.offset.data = (self.entry - self.scale_carry)/2

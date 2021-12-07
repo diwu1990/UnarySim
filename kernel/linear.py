@@ -75,7 +75,7 @@ class FSULinear(torch.nn.Module):
         hwcfg_acc = copy.deepcopy(self.hwcfg)
         hwcfg_acc["scale"] = scale_add
         hwcfg_acc["entry"] = in_features + bias
-        hwcfg_acc["dima"] = 0
+        hwcfg_acc["dima"] = 1
         self.ACC = FSUAdd(
             hwcfg_acc,
             self.swcfg)
@@ -182,6 +182,7 @@ class FSULinearPC(torch.nn.Linear):
             self.wrdx_i0 = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
 
     def FSULinear_PC_wrc(self, input):
+        # this function is for weight with rate coding
         # first dim should always be batch
         batch = input.size()[0]
 
@@ -219,6 +220,7 @@ class FSULinearPC(torch.nn.Linear):
             return out_i1 + out_i0
     
     def FSULinear_PC_wtc(self, input):
+        # this function is for weight with temporal coding
         # first dim should always be batch
         batch = input.size()[0]
 
