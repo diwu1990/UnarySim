@@ -95,7 +95,7 @@ class FSUDiv(torch.nn.Module):
 
         # data representation
         self.mode = hwcfg["mode"].lower()
-        assert self.mode == "unipolar" or "bipolar", \
+        assert self.mode in ["unipolar", "bipolar"], \
             "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
         self.stype = swcfg["stype"]
         self.btype = swcfg["btype"]

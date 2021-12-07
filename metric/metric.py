@@ -77,7 +77,7 @@ class ProgError(torch.nn.Module):
         self.scale = hwcfg["scale"]
         self.mode = hwcfg["mode"].lower()
         self.source = torch.clamp(source/self.scale, -1., 1.)
-        assert self.mode == "unipolar" or "bipolar", \
+        assert self.mode in ["unipolar", "bipolar"], \
             "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
         self.cycle = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.one_cnt = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
@@ -116,11 +116,12 @@ class Stability(torch.nn.Module):
         self.hwcfg["mode"] = hwcfg["mode"].lower()
         self.hwcfg["threshold"] = hwcfg["threshold"]
 
-        assert hwcfg["mode"].lower() == "unipolar" or "bipolar", \
+        self.mode = hwcfg["mode"].lower()
+        assert self.mode in ["unipolar", "bipolar"], \
             "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
 
         self.source = source
-        self.threshold = torch.nn.Parameter(torch.tensor([hwcfg["threshold"]]), requires_grad=False)
+        self.threshold = hwcfg["threshold"]
         self.cycle = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.pe = torch.nn.Parameter(torch.zeros(1), requires_grad=False)
         self.cycle_to_stable = torch.zeros_like(self.source) # cycle to reach (before) the stable state
