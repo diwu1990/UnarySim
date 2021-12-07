@@ -170,15 +170,15 @@ class FSULinearPC(torch.nn.Linear):
             self.brng = RNG(hwcfg_brng, swcfg)()
 
         # define the kernel linear for input bit 1
-        self.wbsg_i1 = BSGen(self.weight, self.wrng, hwcfg, swcfg)
+        self.wbsg_i1 = BSGen(self.weight, self.wrng, swcfg)
         self.wrdx_i1 = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
         if self.has_bias is True:
-            self.bbsg = BSGen(self.bias, self.brng, hwcfg, swcfg)
+            self.bbsg = BSGen(self.bias, self.brng, swcfg)
             self.brdx = torch.nn.Parameter(torch.zeros_like(self.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel for input bit 0, note that there is no bias required for this kernel
         if (self.mode == "bipolar") and (self.wtc is False):
-            self.wbsg_i0 = BSGen(self.weight, self.wrng, hwcfg, swcfg)
+            self.wbsg_i0 = BSGen(self.weight, self.wrng, swcfg)
             self.wrdx_i0 = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
 
     def FSULinear_PC_wrc(self, input):

@@ -51,7 +51,7 @@ def test_bi2uni():
     iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
 
     iVecRNG = RNG(hwcfg, swcfg)().to(device)
-    iVecBS = BSGen(iVecSource, iVecRNG, hwcfg, swcfg).to(device)
+    iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
 
     iVecPE = ProgError(iVec, hwcfg).to(device)
     hwcfg["mode"] = "unipolar"

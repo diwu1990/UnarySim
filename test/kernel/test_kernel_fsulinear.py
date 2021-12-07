@@ -70,7 +70,7 @@ def test_fsulinear():
 
             iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
             iVecRNG = RNG(hwcfg_input, swcfg)().to(device)
-            iVecBS = BSGen(iVecSource, iVecRNG, hwcfg, swcfg).to(device)
+            iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
 
             hwcfg["scale"] = 1
             iVecPE = ProgError(iVec, hwcfg).to(device)

@@ -63,7 +63,7 @@ def test_fsurelu():
         dut = FSUReLU(hwcfg, swcfg).to(device)
         
         inputRNG = RNG(hwcfg, swcfg)().to(device)
-        inputBS = BSGen(inputSRC, inputRNG, hwcfg, swcfg).to(device)
+        inputBS = BSGen(inputSRC, inputRNG, swcfg).to(device)
         with torch.no_grad():
             start_time = time.time()
             for i in range(2**bitwidth):

@@ -33,13 +33,13 @@ def test_bsgen():
     iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
 
     iVecRNG = RNG(hwcfg, swcfg)().to(device)
-    iVecBS = BSGen(iVecSource, iVecRNG, hwcfg, swcfg).to(device)
+    iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
 
     iVecPE = ProgError(iVec, hwcfg).to(device)
     with torch.no_grad():
         idx = torch.zeros(iVecSource.size()).type(torch.long).to(device)
         start_time = time.time()
-        for i in range(2**bitwidth):
+        for i in range(2**bitwidth*2):
             iBS = iVecBS(idx + i)
             iVecPE.Monitor(iBS)
             result_pe_cycle.append(1-torch.sqrt(torch.sum(torch.mul(iVecPE()[1][0], iVecPE()[1][0]))/col).item())

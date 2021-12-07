@@ -28,32 +28,32 @@ def test_fsuadd():
 
     plot_en=False
     modes = ["bipolar", "unipolar"]
-    row = 128
-    col = 10000
+    size = [128, 256]
 
     scaled = [True, False]
     result_pe = []
-    scale_mod = row
 
     for mode in modes:
         for scale in scaled:
             run_time = 0
             acc_dim = hwcfg["dima"]
+            scale_mod = size[acc_dim]
             result_pe_cycle = []
             hwcfg["mode"] = mode
             hwcfg["scale"] = scale_mod if scale else 1
+            print(hwcfg["scale"])
             uadd = FSUAdd(hwcfg, swcfg).to(device)
 
             if mode == "unipolar":
-                iVec = torch.rand(row, col).mul(2**bitwidth).round().div(2**bitwidth).to(device)
+                iVec = torch.rand(size).mul(2**bitwidth).round().div(2**bitwidth).to(device)
             elif mode == "bipolar":
-                iVec = torch.rand(row, col).mul(2).sub(1).mul(2**bitwidth).round().div(2**bitwidth).to(device)
+                iVec = torch.rand(size).mul(2).sub(1).mul(2**bitwidth).round().div(2**bitwidth).to(device)
             
             oVec = torch.sum(iVec, acc_dim).to(device)
 
             iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
             iVecRNG = RNG(hwcfg, swcfg)().to(device)
-            iVecBS = BSGen(iVecSource, iVecRNG, hwcfg, swcfg).to(device)
+            iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
             hwcfg["scale"] = 1
             iVecPE = ProgError(iVec, hwcfg).to(device)
             hwcfg["scale"] = scale_mod if scale else 1

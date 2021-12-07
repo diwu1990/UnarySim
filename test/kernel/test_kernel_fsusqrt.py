@@ -61,7 +61,7 @@ def test_fsusqrt(mode = "unipolar", bitwidth = 8, emit = True, jk_trace = False,
         dut_sqrt = FSUSqrt(hwcfg, swcfg).to(device)
         
         inputRNG = RNG(hwcfg, swcfg)().to(device)
-        inputBS = BSGen(inputSRC, inputRNG, hwcfg, swcfg).to(device)
+        inputBS = BSGen(inputSRC, inputRNG, swcfg).to(device)
         with torch.no_grad():
             start_time = time.time()
             for i in range(2**bitwidth):
