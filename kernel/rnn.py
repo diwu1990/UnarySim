@@ -3,14 +3,15 @@ import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
-from UnarySim.kernel.add import FSUAdd
-from UnarySim.kernel.mul import FSUMul
-from UnarySim.kernel.linear import FSULinearPC, FSULinear
+from UnarySim.kernel import FSUAdd
+from UnarySim.kernel import FSUMul
+from UnarySim.kernel import FSULinear
 from torch.cuda.amp import autocast
 from typing import List, Tuple, Optional, overload, Union
-from UnarySim.kernel.sigmoid import ScaleHardsigmoid
-from UnarySim.kernel.utils import truncated_normal, Round
-from UnarySim.metric.metric import SourceGen, RNG, BSGen, ProgError
+from UnarySim.kernel import HUBHardsigmoid
+from UnarySim.kernel import truncated_normal, Round
+from UnarySim.stream import BinGen, RNG, BSGen
+from UnarySim.metric import ProgError
 
 
 class FSUMGUCell(torch.nn.Module):
@@ -114,12 +115,12 @@ class HUBMGUCell(torch.nn.Module):
                         hx_buffer=hx, 
                         bitwidth=self.bitwidth, mode=self.mode, depth=self.depth, depth_ismul=self.depth_ismul).to(input.device)
         
-        iSource = SourceGen(input, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
+        iSource = BinGen(input, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
         iRNG = RNG(self.bitwidth, 1, self.rng)().to(input.device)
         iBSG = BSGen(iSource, iRNG).to(input.device)
         # iPE = ProgError(input, scale=1, mode=self.mode).to(input.device)
 
-        hSource = SourceGen(hx, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
+        hSource = BinGen(hx, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
         hRNG = RNG(self.bitwidth, 1, self.rng)().to(input.device)
         hBSG = BSGen(hSource, hRNG).to(input.device)
         # hPE = ProgError(hx, scale=1, mode=self.mode).to(input.device)
@@ -159,7 +160,7 @@ class HardMGUCell(torch.nn.Module):
         self.bias = bias
         self.hard = hard
         if hard == True:
-            self.fg_sigmoid = ScaleHardsigmoid()
+            self.fg_sigmoid = HUBHardsigmoid()
             self.ng_tanh = nn.Hardtanh()
         else:
             self.fg_sigmoid = nn.Sigmoid()
@@ -201,7 +202,7 @@ class HardMGUCell(torch.nn.Module):
         return hy
 
 
-class HardMGUCellFxp(torch.nn.Module):
+class HardMGUCellFXP(torch.nn.Module):
     """
     This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
     Batch is always the dim[0].
@@ -213,7 +214,7 @@ class HardMGUCellFxp(torch.nn.Module):
     """
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True,
                 intwidth=3, fracwidth=4) -> None:
-        super(HardMGUCellFxp, self).__init__()
+        super(HardMGUCellFXP, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.bias = bias
@@ -221,7 +222,7 @@ class HardMGUCellFxp(torch.nn.Module):
         self.trunc = Round(intwidth=intwidth, fracwidth=fracwidth)
 
         if hard == True:
-            self.fg_sigmoid = ScaleHardsigmoid()
+            self.fg_sigmoid = HUBHardsigmoid()
             self.ng_tanh = nn.Hardtanh()
         else:
             self.fg_sigmoid = nn.Sigmoid()
@@ -278,7 +279,7 @@ class HardMGUCellNUA(torch.nn.Module):
         self.bias = bias
         self.hard = hard
         if hard == True:
-            self.fg_sigmoid = ScaleHardsigmoid()
+            self.fg_sigmoid = HUBHardsigmoid()
             self.ng_tanh = nn.Hardtanh()
         else:
             self.fg_sigmoid = nn.Sigmoid()
@@ -334,7 +335,7 @@ class HardMGUCellPT(torch.nn.RNNCellBase):
         super(HardMGUCellPT, self).__init__(input_size, hidden_size, bias, num_chunks=2)
         self.hard = hard
         if hard == True:
-            self.forgetgate_sigmoid = ScaleHardsigmoid()
+            self.forgetgate_sigmoid = HUBHardsigmoid()
             self.newgate_tanh = nn.Hardtanh()
         else:
             self.forgetgate_sigmoid = nn.Sigmoid()
@@ -381,8 +382,8 @@ class HardGRUCellNUAPT(torch.nn.RNNCellBase):
         super(HardGRUCellNUAPT, self).__init__(input_size, hidden_size, bias, num_chunks=3)
         self.hard = hard
         if hard == True:
-            self.resetgate_sigmoid = ScaleHardsigmoid()
-            self.updategate_sigmoid = ScaleHardsigmoid()
+            self.resetgate_sigmoid = HUBHardsigmoid()
+            self.updategate_sigmoid = HUBHardsigmoid()
             self.newgate_tanh = nn.Hardtanh()
         else:
             self.resetgate_sigmoid = nn.Sigmoid()

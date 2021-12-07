@@ -1,10 +1,10 @@
 import torch
 import math
-from UnarySim.stream.gen import RNG, RNGMulti, SourceGen, BSGen, BSGenMulti
-from UnarySim.kernel.utils import conv2d_output_shape, num2tuple
-from UnarySim.kernel.linear import HUBLinearFunction
-from UnarySim.kernel.linear import FxpLinearFunction
-from UnarySim.kernel.add import FSUAdd
+from UnarySim.stream import RNG, BinGen, BSGen
+from UnarySim.kernel import conv2d_output_shape, num2tuple
+from UnarySim.kernel import HUBLinearFunction
+from UnarySim.kernel import FXPLinearFunction
+from UnarySim.kernel import FSUAdd
 from torch.cuda.amp import autocast
 
 class FSUConv2d(torch.nn.Module):
@@ -123,10 +123,10 @@ class FSUConv2dPC(torch.nn.Conv2d):
         
         # define the linear weight and bias
         if binary_weight is not None:
-            self.weight.data = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+            self.weight.data = BinGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
         
         if bias and (binary_bias is not None):
-            self.bias.data = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+            self.bias.data = BinGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
 
         # define the kernel linear
         self.weight_bsg = BSGen(self.weight.view(1, self.weight.size()[0], -1), self.rng, stype=stype)
@@ -282,10 +282,10 @@ class FSUConv2duGEMM(torch.nn.Conv2d):
         
         # define the linear weight and bias
         if binary_weight is not None:
-            self.weight.data = SourceGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+            self.weight.data = BinGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
         
         if bias and (binary_bias is not None):
-            self.bias.data = SourceGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+            self.bias.data = BinGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
 
         # define the kernel linear
         self.weight_bsg = BSGen(self.weight.view(1, self.weight.size()[0], -1), self.rng, stype=stype)
@@ -500,7 +500,7 @@ class HUBConv2d(torch.nn.Conv2d):
             return output + self.bias.view([1, self.bias.size()[0], 1, 1])
 
 
-class FxpConv2d(torch.nn.Conv2d):
+class FXPConv2d(torch.nn.Conv2d):
     """
     This module is the 2d conv layer, with binary input and binary output
     """
@@ -520,7 +520,7 @@ class FxpConv2d(torch.nn.Conv2d):
                     keep_res="input", # keep the resolution of input/output
                     more_res="input", # assign more resolution to input/weight
                     rounding="round"):
-        super(FxpConv2d, self).__init__(in_channels, 
+        super(FXPConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 
                                             stride, 
@@ -606,7 +606,7 @@ class FxpConv2d(torch.nn.Conv2d):
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size()[0], -1)
-        mm_out = FxpLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs_input, self.max_abs_wght)
+        mm_out = FXPLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs_input, self.max_abs_wght)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
