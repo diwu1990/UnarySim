@@ -9,7 +9,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def test_fsuadd():
     hwcfg = {
-            "width" : 8,
+            "width" : 12,
             "mode" : "bipolar",
             "dimr" : 1,
             "dima" : 0,
@@ -76,6 +76,7 @@ def test_fsuadd():
                 print("RNG: "+rng+", data: "+mode+", scaled: "+str(scale))
                 print("input error:  ", "min: ", torch.min(iVecPE()[1]).item(), "max: ", torch.max(iVecPE()[1]).item())
                 print("output error: ", "min: ", torch.min(oVecPE()[1]).item(), "max: ", torch.max(oVecPE()[1]).item(), "RMSE: ", rmse.item())
+                print()
                 if plot_en is True:
                     result_pe = oVecPE()[1].cpu().numpy()
                     print("error distribution=========>")
