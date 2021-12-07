@@ -1,4 +1,3 @@
-from matplotlib.colors import same_color
 import torch
 import math
 import copy
@@ -130,7 +129,7 @@ class FSULinearPC(torch.nn.Linear):
         
         self.width = hwcfg["width"]
         self.mode = hwcfg["mode"].lower()
-        assert self.mode == "unipolar" or "bipolar", \
+        assert self.mode in ["unipolar", "bipolar"], \
             "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
 
         self.btype = swcfg["btype"]
@@ -165,24 +164,24 @@ class FSULinearPC(torch.nn.Linear):
             # RNG for bias, should always apply rate coding
             hwcfg_brng = {
                 "width" : hwcfg["width"],
-                "rng" : "rc",
+                "rng" : "sobol",
                 "dimr" : hwcfg["dimr"]
             }
             self.brng = RNG(hwcfg_brng, swcfg)()
 
         # define the kernel linear for input bit 1
-        self.wbsg_i1 = BSGen(self.weight, self.wrng, swcfg)
+        self.wbsg_i1 = BSGen(self.weight, self.wrng, hwcfg, swcfg)
         self.wrdx_i1 = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
         if self.has_bias is True:
-            self.bbsg = BSGen(self.bias, self.brng, swcfg)
+            self.bbsg = BSGen(self.bias, self.brng, hwcfg, swcfg)
             self.brdx = torch.nn.Parameter(torch.zeros_like(self.bias, dtype=torch.long), requires_grad=False)
         
         # if bipolar, define a kernel for input bit 0, note that there is no bias required for this kernel
-        if self.mode == "bipolar":
-            self.wbsg_i0 = BSGen(self.weight, self.wrng, swcfg)
+        if (self.mode == "bipolar") and (self.wtc is False):
+            self.wbsg_i0 = BSGen(self.weight, self.wrng, hwcfg, swcfg)
             self.wrdx_i0 = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).unsqueeze(0)
 
-    def FSULinear_PC(self, input):
+    def FSULinear_PC_wrc(self, input):
         # first dim should always be batch
         batch = input.size()[0]
 
@@ -218,10 +217,45 @@ class FSULinearPC(torch.nn.Linear):
             out_i0.squeeze_(1)
 
             return out_i1 + out_i0
+    
+    def FSULinear_PC_wtc(self, input):
+        # first dim should always be batch
+        batch = input.size()[0]
+
+        # generate weight and bias bits for current cycle
+        wbit_i1 = self.wbsg_i1(self.wrdx_i1).type(torch.float)
+        if wbit_i1.size()[0] != batch:
+            wbit_i1 = torch.cat(batch*[wbit_i1], 0)
+            self.wrdx_i1 = torch.cat(batch*[self.wrdx_i1], 0)
+        torch.add(self.wrdx_i1, torch.ones_like(input).unsqueeze(1).type(torch.long), out=self.wrdx_i1)
+        
+        out_i1 = torch.empty(0, device=input.device)
+        torch.matmul(input.unsqueeze(1).type(torch.float), wbit_i1.transpose(1, 2), out=out_i1)
+        out_i1.squeeze_(1)
+        
+        if self.has_bias is True:
+            bbit = self.bbsg(self.brdx).type(torch.float)
+            self.brdx.add_(1)
+            out_i1 += bbit.unsqueeze(0).expand_as(out_i1)
+
+        if self.mode == "unipolar":
+            return out_i1
+        
+        if self.mode == "bipolar":
+            # generate weight and bias bits for current cycle
+            wbit_i0 = 1 - wbit_i1
+            out_i0 = torch.empty(0, device=input.device)
+            torch.matmul(1 - input.unsqueeze(1).type(torch.float), wbit_i0.transpose(1, 2), out=out_i0)
+            out_i0.squeeze_(1)
+
+            return out_i1 + out_i0
 
     @autocast()
     def forward(self, input):
-        return self.FSULinear_PC(input).type(self.stype)
+        if self.wtc:
+            return self.FSULinear_PC_wtc(input).type(self.stype)
+        else:
+            return self.FSULinear_PC_wrc(input).type(self.stype)
         
 
 # the HUBLinear and HUBLinearFunction are parallel implementations
