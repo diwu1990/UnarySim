@@ -35,18 +35,19 @@ def test_fsulinear():
 
     rng = hwcfg["rng"]
     in_feature = 256
-    out_feature = 1
+    out_feature = 10000
     bitwidth = hwcfg["width"]
     bias = True
-    modes = ["bipolar"]
-    scaled = [False]
-    # modes = ["bipolar", "unipolar"]
-    # scaled = [True, False]
+    # modes = ["bipolar"]
+    # scaled = [False]
+    modes = ["bipolar", "unipolar"]
+    scaled = [True, False]
     result_pe = []
     
     for mode in modes:
         for scale in scaled:
             hwcfg["mode"] = mode
+            hwcfg_input["mode"] = mode
             hwcfg["scale"] = (in_feature + bias) if scale else 1
             length = 2**bitwidth
             result_pe_cycle = []
@@ -92,6 +93,7 @@ def test_fsulinear():
                 print("RNG: "+rng+", data: "+mode+", scaled: "+str(scale))
                 print("input error:  ", "min: ", torch.min(iVecPE()[1]).item(), "max: ", torch.max(iVecPE()[1]).item())
                 print("output error: ", "min: ", torch.min(oVecPE()[1]).item(), "max: ", torch.max(oVecPE()[1]).item(), "RMSE: ", rmse.item())
+                print()
                 if plot_en is True:
                     result_pe = oVecPE()[1].cpu().numpy()
                     print("error distribution=========>")
