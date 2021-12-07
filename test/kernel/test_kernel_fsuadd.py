@@ -12,10 +12,10 @@ def test_fsuadd():
             "width" : 12,
             "mode" : "bipolar",
             "dimr" : 1,
-            "dima" : 1,
+            "dima" : 0,
             "rng" : "sobol",
             "scale" : 1,
-            "depth" : 10,
+            "depth" : 20,
             "entry" : None
         }
     swcfg = {
@@ -28,7 +28,7 @@ def test_fsuadd():
 
     plot_en=False
     modes = ["bipolar", "unipolar"]
-    size = [128, 256]
+    size = [128, 256, 512]
 
     scaled = [True, False]
     result_pe = []
@@ -41,7 +41,6 @@ def test_fsuadd():
             result_pe_cycle = []
             hwcfg["mode"] = mode
             hwcfg["scale"] = scale_mod if scale else 1
-            print(hwcfg["scale"])
             uadd = FSUAdd(hwcfg, swcfg).to(device)
 
             if mode == "unipolar":
@@ -56,8 +55,10 @@ def test_fsuadd():
             iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
             hwcfg["scale"] = 1
             iVecPE = ProgError(iVec, hwcfg).to(device)
+            print("iVecPE cfg", iVecPE.hwcfg)
             hwcfg["scale"] = scale_mod if scale else 1
             oVecPE = ProgError(oVec, hwcfg).to(device)
+            print("oVecPE cfg", oVecPE.hwcfg)
 
             with torch.no_grad():
                 idx = torch.zeros(iVecSource.size()).type(torch.long).to(device)
@@ -68,6 +69,9 @@ def test_fsuadd():
                     start_time = time.time()
                     oVecU = uadd(iBS)
                     run_time = time.time() - start_time + run_time
+
+                    if i == 0:
+                        print("uadd cfg", uadd.hwcfg)
                     
                     oVecPE.Monitor(oVecU)
                     rmse = torch.sqrt(torch.mean(torch.mul(oVecPE()[1], oVecPE()[1])))
