@@ -33,7 +33,7 @@ def test_bsgen():
     iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
 
     iVecRNG = RNG(hwcfg, swcfg)().to(device)
-    iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
+    iVecBS = BSGen(iVecSource, iVecRNG, hwcfg, swcfg).to(device)
 
     iVecPE = ProgError(iVec, hwcfg).to(device)
     with torch.no_grad():

@@ -13,7 +13,7 @@ def test_fsusignabs():
     hwcfg = {
             "width" : 8,
             "mode" : "bipolar",
-            "dim" : 1,
+            "dimr" : 1,
             "rng" : "sobol",
             "scale" : 1,
             "depth" : 5
@@ -56,7 +56,7 @@ def test_fsusignabs():
         dut = FSUSignAbs(hwcfg, swcfg).to(device)
         
         inputRNG = RNG(hwcfg, swcfg)().to(device)
-        inputBS = BSGen(inputSRC, inputRNG, swcfg).to(device)
+        inputBS = BSGen(inputSRC, inputRNG, hwcfg, swcfg).to(device)
         with torch.no_grad():
             start_time = time.time()
             for i in range(2**bitwidth):

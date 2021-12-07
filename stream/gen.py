@@ -144,17 +144,24 @@ class BSGen(torch.nn.Module):
         self, 
         binary, 
         rng, 
+        hwcfg={
+            "width" : 8
+        },
         swcfg={
             "stype" : torch.float
         }):
         super(BSGen, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+
         self.swcfg = {}
         self.swcfg["stype"] = swcfg["stype"]
 
         self.binary = binary
         self.rng = rng
+        self.len = 2**hwcfg["width"]
         self.stype = swcfg["stype"]
     
     def forward(self, cycle):
-        return torch.gt(self.binary, self.rng[cycle.type(torch.long)]).type(self.stype)
+        return torch.gt(self.binary, self.rng[cycle.type(torch.long)%self.len]).type(self.stype)
 

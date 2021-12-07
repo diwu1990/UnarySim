@@ -57,8 +57,8 @@ def test_fsumul_in_stream():
 
         iVecRNG0 = RNG(hwcfg, swcfg)().to(device)
         iVecRNG1 = RNG(hwcfg, swcfg)().to(device)
-        prob_0_BS = BSGen(prob_0_Source, iVecRNG0, swcfg).to(device)
-        prob_1_BS = BSGen(prob_1_Source, iVecRNG1, swcfg).to(device)
+        prob_0_BS = BSGen(prob_0_Source, iVecRNG0, hwcfg, swcfg).to(device)
+        prob_1_BS = BSGen(prob_1_Source, iVecRNG1, hwcfg, swcfg).to(device)
 
         with torch.no_grad():
             start_time = time.time()

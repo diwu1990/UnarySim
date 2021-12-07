@@ -56,13 +56,13 @@ class FSUMul(torch.nn.Module):
             assert in_1_prob is not None, "Error: the static multiplier requires in_1_prob."
             # directly create an unchange bitstream generator for static computation
             self.source_gen = BinGen(self.in_1_prob, hwcfg, swcfg)()
-            self.bsg = BSGen(self.source_gen, self.rng, {"stype" : torch.int8})
+            self.bsg = BSGen(self.source_gen, self.rng, hwcfg, {"stype" : torch.int8})
             # rng_idx is used later as an enable signal, get update every cycled
             self.rng_idx = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
             
             # Generate two seperate bitstream generators and two enable signals for bipolar mode
             if self.mode == "bipolar":
-                self.bsg_inv = BSGen(self.source_gen, self.rng, {"stype" : torch.int8})
+                self.bsg_inv = BSGen(self.source_gen, self.rng, hwcfg, {"stype" : torch.int8})
                 self.rng_idx_inv = torch.nn.Parameter(torch.zeros(1).type(torch.long), requires_grad=False)
         else:
             # use a shift register to store the count of 1s in one bitstream to generate data

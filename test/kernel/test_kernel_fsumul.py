@@ -49,7 +49,7 @@ def test_fsumul():
 
         iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
         iVecRNG = RNG(hwcfg, swcfg)().to(device)
-        iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
+        iVecBS = BSGen(iVecSource, iVecRNG, hwcfg, swcfg).to(device)
 
         with torch.no_grad():
             start_time = time.time()

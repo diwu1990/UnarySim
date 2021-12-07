@@ -9,7 +9,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def test_fsuadd():
     hwcfg = {
-            "width" : 12,
+            "width" : 8,
             "mode" : "bipolar",
             "dimr" : 1,
             "dima" : 0,
@@ -53,7 +53,7 @@ def test_fsuadd():
 
             iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
             iVecRNG = RNG(hwcfg, swcfg)().to(device)
-            iVecBS = BSGen(iVecSource, iVecRNG, swcfg).to(device)
+            iVecBS = BSGen(iVecSource, iVecRNG, hwcfg, swcfg).to(device)
             hwcfg["scale"] = 1
             iVecPE = ProgError(iVec, hwcfg).to(device)
             hwcfg["scale"] = scale_mod if scale else 1

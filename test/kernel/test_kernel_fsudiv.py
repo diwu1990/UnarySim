@@ -88,9 +88,9 @@ def test_fsudiv():
 
         hwcfg["dimr"] = 1
         dividendRNG = RNG(hwcfg, swcfg)().to(device)
-        dividendBS = BSGen(dividendSRC, dividendRNG, swcfg).to(device)
+        dividendBS = BSGen(dividendSRC, dividendRNG, hwcfg, swcfg).to(device)
         divisorRNG = RNG(hwcfg, swcfg)().to(device)
-        divisorBS = BSGen(divisorSRC, divisorRNG, swcfg).to(device)
+        divisorBS = BSGen(divisorSRC, divisorRNG, hwcfg, swcfg).to(device)
         with torch.no_grad():
             start_time = time.time()
             for i in range(2**bitwidth):
