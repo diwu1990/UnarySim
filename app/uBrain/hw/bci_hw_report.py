@@ -53,7 +53,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # no halving logic
     area_sto_h0 = [area_sense_bl, area_unary_dram]
     power_sto_h0 = [power_sense_bl, power_unary_dram]
-    h0_layers = ['conv1-F1', 'conv2-F1', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
+    h0_layers = ['conv1-F1', 'conv2-F1', 'fc3-F256', 'rnn4-F1-ugemm', 'fc5-F1', 'fc6-F1']
     area_sto_h0_onchip, power_sto_h0_onchip = design_area_power_extract(h0_layers, design, item, workbook)
     area_sto_h0.append(area_sto_h0_onchip)
     power_sto_h0.append(power_sto_h0_onchip)
@@ -62,7 +62,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # best area result
     area_sto_ba = [area_sense_bl, area_unary_dram]
     power_sto_ba = [power_sense_bl, power_unary_dram]
-    ba_layers = ['conv1-F16', 'conv2-F32', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
+    ba_layers = ['conv1-F16', 'conv2-F32', 'fc3-F256', 'rnn4-F1-ugemm', 'fc5-F1', 'fc6-F1']
     area_sto_ba_onchip, power_sto_ba_onchip = design_area_power_extract(ba_layers, design, item, workbook)
     area_sto_ba.append(area_sto_ba_onchip)
     power_sto_ba.append(power_sto_ba_onchip)
@@ -71,7 +71,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # best power result
     area_sto_bp = [area_sense_bl, area_unary_dram]
     power_sto_bp = [power_sense_bl, power_unary_dram]
-    bp_layers_sto = ['conv1-F8', 'conv2-F16', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
+    bp_layers_sto = ['conv1-F8', 'conv2-F16', 'fc3-F256', 'rnn4-F1-ugemm', 'fc5-F1', 'fc6-F1']
     area_sto_bp_onchip, power_sto_bp_onchip = design_area_power_extract(bp_layers_sto, design, item, workbook)
     area_sto_bp.append(area_sto_bp_onchip)
     power_sto_bp.append(power_sto_bp_onchip)
@@ -83,7 +83,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # no halving logic
     area_ubr_h0 = [area_sense_ubr, area_unary_dram]
     power_ubr_h0 = [power_sense_ubr, power_unary_dram]
-    h0_layers = ['conv1-F1', 'conv2-F1', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
+    h0_layers = ['conv1-F1', 'conv2-F1', 'fc3-F256', 'rnn4-F1-ugemm', 'fc5-F1', 'fc6-F1']
     area_ubr_h0_onchip, power_ubr_h0_onchip = design_area_power_extract(h0_layers, design, item, workbook)
     area_ubr_h0.append(area_ubr_h0_onchip)
     power_ubr_h0.append(power_ubr_h0_onchip)
@@ -92,7 +92,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # best area result
     area_ubr_ba = [area_sense_ubr, area_unary_dram]
     power_ubr_ba = [power_sense_ubr, power_unary_dram]
-    ba_layers = ['conv1-F16', 'conv2-F32', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
+    ba_layers = ['conv1-F16', 'conv2-F32', 'fc3-F256', 'rnn4-F1-ugemm', 'fc5-F1', 'fc6-F1']
     area_ubr_ba_onchip, power_ubr_ba_onchip = design_area_power_extract(ba_layers, design, item, workbook)
     area_ubr_ba.append(area_ubr_ba_onchip)
     power_ubr_ba.append(power_ubr_ba_onchip)
@@ -101,7 +101,7 @@ def bci_hw_report(cpu_dir="/home/diwu/Dropbox/project/UnaryComputing/2021 uBrain
     # best power result
     area_ubr_bp = [area_sense_ubr, area_unary_dram]
     power_ubr_bp = [power_sense_ubr, power_unary_dram]
-    bp_layers_ubr = ['conv1-F4', 'conv2-F8', 'fc3-F256', 'rnn4-F1', 'fc5-F1', 'fc6-F1']
+    bp_layers_ubr = ['conv1-F4', 'conv2-F8', 'fc3-F256', 'rnn4-F1-ugemm', 'fc5-F1', 'fc6-F1']
     area_ubr_bp_onchip, power_ubr_bp_onchip = design_area_power_extract(bp_layers_ubr, design, item, workbook)
     area_ubr_bp.append(area_ubr_bp_onchip)
     power_ubr_bp.append(power_ubr_bp_onchip)
