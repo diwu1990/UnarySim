@@ -7,7 +7,7 @@ from torch.cuda.amp import autocast
 
 class FSULinear(torch.nn.Module):
     """
-    This module is the fully connected layer, and its API is similar to the Linear class (input/output feature count, bias flag), except:
+    This module is the fully connected layer with both unary input and output, and its API is similar to the Linear class (input/output feature count, bias flag), except:
     1) weight_ext: external binary weight
     2) bias_ext: external binary bias
     3) width: binary data width

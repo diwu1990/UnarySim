@@ -21,7 +21,7 @@ def test_fsulinear():
         "mode" : "bipolar",
         "scale" : None,
         "depth" : 20,
-        "rng" : "Race",
+        "rng" : "Sobol",
         "dimr" : 1
     }
     swcfg={
