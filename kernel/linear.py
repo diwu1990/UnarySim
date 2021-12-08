@@ -7,7 +7,7 @@ from torch.cuda.amp import autocast
 
 class FSULinear(torch.nn.Module):
     """
-    This module is the fully connected layer with both unary input and output, and its API is similar to the Linear class (input/output feature count, bias flag), except:
+    This module is the fully connected layer with unary input and unary output, and its API is similar to the Linear class (input/output feature count, bias flag), except:
     1) weight_ext: external binary weight
     2) bias_ext: external binary bias
     3) width: binary data width
@@ -135,7 +135,7 @@ class FSULinearPC(torch.nn.Linear):
         self.width = hwcfg["width"]
         self.mode = hwcfg["mode"].lower()
         assert self.mode in ["unipolar", "bipolar"], \
-            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
 
         self.btype = swcfg["btype"]
         self.rtype = swcfg["rtype"]
@@ -159,12 +159,12 @@ class FSULinearPC(torch.nn.Linear):
         # define the linear weight and bias
         if weight_ext is not None:
             assert (weight_ext.size()[0], weight_ext.size()[1]) == (out_features, in_features), \
-                "Error: the hw config 'out_features, in_features' in " + self + " class unmatches the binary weight shape."
+                "Error: the hw config 'out_features, in_features' in " + str(self) + " class unmatches the binary weight shape."
             self.weight.data = BinGen(weight_ext, self.hwcfg, self.swcfg)()
         
         if bias and (bias_ext is not None):
             assert bias_ext.size()[0] == out_features, \
-                "Error: the hw config 'out_features' in " + self + " class unmatches the binary bias shape."
+                "Error: the hw config 'out_features' in " + str(self) + " class unmatches the binary bias shape."
             self.bias.data = BinGen(bias_ext, self.hwcfg, self.swcfg)()
             # RNG for bias, should always apply rate coding
             hwcfg_brng = {
@@ -264,7 +264,7 @@ class FSULinearPC(torch.nn.Linear):
     @autocast()
     def forward(self, input):
         assert len(input.size()) == 2, \
-            "Error: the input of the " + self + " class needs 2 dimensions."
+            "Error: the input of the " + str(self) + " class needs 2 dimensions."
         if self.wtc:
             return self.FSULinear_PC_wtc(input).type(self.stype)
         else:
@@ -274,7 +274,7 @@ class FSULinearPC(torch.nn.Linear):
 # the HUBLinear and HUBLinearFunction are parallel implementations
 class HUBLinear(torch.nn.Linear):
     """
-    this module is the fully connected layer, with binary input and binary output
+    This module is the fully connected layer, with binary input and binary output
     its API is similar to the parent class (input/output feature count, bias flag), except:
     1) binary data scale factor
     2) binary weight
