@@ -30,7 +30,7 @@ class FSUHardsigmoid(torch.nn.Module):
 
         self.mode = hwcfg["mode"].lower()
         assert self.mode in ["unipolar", "bipolar"], \
-            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
             
         hwcfg_add = {}
         hwcfg_add["depth"] = hwcfg["depth"]

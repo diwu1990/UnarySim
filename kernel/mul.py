@@ -45,7 +45,7 @@ class FSUMul(torch.nn.Module):
         
         self.mode = hwcfg["mode"].lower()
         assert self.mode in ["unipolar", "bipolar"], \
-            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
 
         # the random number generator used in computation
         self.rng = RNG(hwcfg, swcfg)()
@@ -54,7 +54,7 @@ class FSUMul(torch.nn.Module):
             # the probability of in_1 used in static computation
             self.in_1_prob = in_1_prob
             assert in_1_prob is not None, \
-                "Error: the static multiplier requires in_1_prob in " + self + " class."
+                "Error: the static multiplier requires in_1_prob in " + str(self) + " class."
             # directly create an unchange bitstream generator for static computation
             self.source_gen = BinGen(self.in_1_prob, hwcfg, swcfg)()
             self.bsg = BSGen(self.source_gen, self.rng, {"stype" : torch.int8})

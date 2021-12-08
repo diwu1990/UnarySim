@@ -58,6 +58,10 @@ class FSULinear(torch.nn.Module):
         self.swcfg["rtype"] = swcfg["rtype"]
         self.swcfg["stype"] = swcfg["stype"]
 
+        if (hwcfg["mode"].lower() == "bipolar") and (hwcfg["scale"] is not None) and (hwcfg["scale"] != (in_features + bias)):
+            assert self.hwcfg["rng"].lower() not in ["race", "tc", "race10", "tc10"], \
+                "Error: the hw config 'rng' in " + str(self) + " class should avoid ['race', 'tc', 'race10', 'tc10'] for bipolar data with non-scaled addition."
+
         self.PC = FSULinearPC(
             in_features, 
             out_features, 
@@ -75,7 +79,8 @@ class FSULinear(torch.nn.Module):
         hwcfg_acc = copy.deepcopy(self.hwcfg)
         hwcfg_acc["scale"] = scale_add
         hwcfg_acc["entry"] = in_features + bias
-        hwcfg_acc["dima"] = 1
+        # the pc result is unsqueezed before fed to the accumulator, so accumulation dim of FSUAdd is 0.
+        hwcfg_acc["dima"] = 0
         self.ACC = FSUAdd(
             hwcfg_acc,
             self.swcfg)
@@ -146,7 +151,7 @@ class FSULinearPC(torch.nn.Linear):
             "dimr" : hwcfg["dimr"]
         }
         self.wrng = RNG(hwcfg_wrng, swcfg)()
-        if hwcfg["rng"].lower() == "race" or "tc":
+        if hwcfg["rng"].lower() in ["race", "tc", "race10", "tc10"]:
             self.wtc = True
         else:
             self.wtc = False
@@ -193,17 +198,18 @@ class FSULinearPC(torch.nn.Linear):
             self.wrdx_i1 = torch.cat(batch*[self.wrdx_i1], 0)
         torch.add(self.wrdx_i1, input.unsqueeze(1).type(torch.long), out=self.wrdx_i1)
         
-        out_i1 = torch.empty(0, device=input.device)
-        torch.matmul(input.unsqueeze(1).type(torch.float), wbit_i1.transpose(1, 2), out=out_i1)
-        out_i1.squeeze_(1)
+        ibit_i1 = input.unsqueeze(1).type(torch.float)
+        obit_i1 = torch.empty(0, device=input.device)
+        torch.matmul(ibit_i1, wbit_i1.transpose(1, 2), out=obit_i1)
+        obit_i1.squeeze_(1)
         
         if self.has_bias is True:
             bbit = self.bbsg(self.brdx).type(torch.float)
             self.brdx.add_(1)
-            out_i1 += bbit.unsqueeze(0).expand_as(out_i1)
+            obit_i1 += bbit.unsqueeze(0).expand_as(obit_i1)
 
         if self.mode == "unipolar":
-            return out_i1
+            return obit_i1
         
         if self.mode == "bipolar":
             # generate weight and bias bits for current cycle
@@ -213,11 +219,12 @@ class FSULinearPC(torch.nn.Linear):
                 self.wrdx_i0 = torch.cat(batch*[self.wrdx_i0], 0)
             torch.add(self.wrdx_i0, 1 - input.unsqueeze(1).type(torch.long), out=self.wrdx_i0)
             
-            out_i0 = torch.empty(0, device=input.device)
-            torch.matmul(1 - input.unsqueeze(1).type(torch.float), wbit_i0.transpose(1, 2), out=out_i0)
-            out_i0.squeeze_(1)
+            ibit_i0 = 1 - ibit_i1
+            obit_i0 = torch.empty(0, device=input.device)
+            torch.matmul(ibit_i0, wbit_i0.transpose(1, 2), out=obit_i0)
+            obit_i0.squeeze_(1)
 
-            return out_i1 + out_i0
+            return obit_i1 + obit_i0
     
     def FSULinear_PC_wtc(self, input):
         # this function is for weight with temporal coding
@@ -231,29 +238,33 @@ class FSULinearPC(torch.nn.Linear):
             self.wrdx_i1 = torch.cat(batch*[self.wrdx_i1], 0)
         torch.add(self.wrdx_i1, torch.ones_like(input).unsqueeze(1).type(torch.long), out=self.wrdx_i1)
         
-        out_i1 = torch.empty(0, device=input.device)
-        torch.matmul(input.unsqueeze(1).type(torch.float), wbit_i1.transpose(1, 2), out=out_i1)
-        out_i1.squeeze_(1)
+        ibit_i1 = input.unsqueeze(1).type(torch.float)
+        obit_i1 = torch.empty(0, device=input.device)
+        torch.matmul(ibit_i1, wbit_i1.transpose(1, 2), out=obit_i1)
+        obit_i1.squeeze_(1)
         
         if self.has_bias is True:
             bbit = self.bbsg(self.brdx).type(torch.float)
             self.brdx.add_(1)
-            out_i1 += bbit.unsqueeze(0).expand_as(out_i1)
+            obit_i1 += bbit.unsqueeze(0).expand_as(obit_i1)
 
         if self.mode == "unipolar":
-            return out_i1
+            return obit_i1
         
         if self.mode == "bipolar":
             # generate weight and bias bits for current cycle
             wbit_i0 = 1 - wbit_i1
-            out_i0 = torch.empty(0, device=input.device)
-            torch.matmul(1 - input.unsqueeze(1).type(torch.float), wbit_i0.transpose(1, 2), out=out_i0)
-            out_i0.squeeze_(1)
+            ibit_i0 = 1 - ibit_i1
+            obit_i0 = torch.empty(0, device=input.device)
+            torch.matmul(ibit_i0, wbit_i0.transpose(1, 2), out=obit_i0)
+            obit_i0.squeeze_(1)
 
-            return out_i1 + out_i0
+            return obit_i1 + obit_i0
 
     @autocast()
     def forward(self, input):
+        assert len(input.size()) == 2, \
+            "Error: the input of the " + self + " class needs 2 dimensions."
         if self.wtc:
             return self.FSULinear_PC_wtc(input).type(self.stype)
         else:

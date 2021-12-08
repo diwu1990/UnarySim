@@ -13,9 +13,6 @@ def test_fsulinear():
 
     hwcfg_input={
         "width" : 12,
-        "mode" : "bipolar",
-        "scale" : None,
-        "depth" : 20,
         "rng" : "Sobol",
         "dimr" : 1
     }
@@ -24,7 +21,7 @@ def test_fsulinear():
         "mode" : "bipolar",
         "scale" : None,
         "depth" : 20,
-        "rng" : "Sobol",
+        "rng" : "Race",
         "dimr" : 1
     }
     swcfg={
@@ -35,7 +32,7 @@ def test_fsulinear():
 
     rng = hwcfg["rng"]
     in_feature = 256
-    out_feature = 10000
+    out_feature = 1000
     bitwidth = hwcfg["width"]
     bias = True
     # modes = ["bipolar"]

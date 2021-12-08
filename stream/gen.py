@@ -51,7 +51,7 @@ class RNG(torch.nn.Module):
         self.rtype = swcfg["rtype"]
 
         assert self.rng in ["sobol", "race", "lfsr", "sys", "rc", "tc", "race10", "tc10"], \
-            "Error: the hw config 'rng' in " + self + " class requires one of ['sobol', 'race', 'lfsr', 'sys', 'rc', 'tc', 'race10', 'tc10']."
+            "Error: the hw config 'rng' in " + str(self) + " class requires one of ['sobol', 'race', 'lfsr', 'sys', 'rc', 'tc', 'race10', 'tc10']."
         if (self.rng == "sobol") or (self.rng == "rc"):
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dimr).draw(self.seq_len)[:, self.dimr-1].view(self.seq_len).mul_(self.seq_len)
@@ -126,7 +126,7 @@ class BinGen(torch.nn.Module):
         self.mode = hwcfg["mode"].lower()
         self.rtype = swcfg["rtype"]
         assert self.mode in ["unipolar", "bipolar"], \
-            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
         self.binary = torch.nn.Parameter(torch.Tensor(source.size()), requires_grad=False)
         if self.mode == "unipolar":
             self.binary.data = self.source

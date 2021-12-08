@@ -45,16 +45,16 @@ class FSUSqrt(torch.nn.Module):
         # data representation
         self.mode = hwcfg["mode"].lower()
         assert self.mode in ["unipolar", "bipolar"], \
-            "Error: the hw config 'mode' in " + self + " class requires one of ['unipolar', 'bipolar']."
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
         
         self.jk_trace = hwcfg["jk_trace"]
         self.emit = hwcfg["emit"]
         self.entry_kn = hwcfg["entry_kn"]
         self.entry_sr = hwcfg["entry_sr"]
         assert math.ceil(math.log2(self.entry_kn)) == math.floor(math.log2(self.entry_kn)) , \
-            "Eroor: the hw config 'entry_kn' in " + self + " class needs to be power of 2."
+            "Eroor: the hw config 'entry_kn' in " + str(self) + " class needs to be power of 2."
         assert math.ceil(math.log2(self.entry_sr)) == math.floor(math.log2(self.entry_sr)) , \
-            "Eroor: the hw config 'entry_sr' in " + self + " class needs to be power of 2."
+            "Eroor: the hw config 'entry_sr' in " + str(self) + " class needs to be power of 2."
 
         self.stype = swcfg["stype"]
         if self.emit is True:
