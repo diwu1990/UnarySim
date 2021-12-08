@@ -50,13 +50,17 @@ class RNG(torch.nn.Module):
         self.rng_seq = torch.nn.Parameter(torch.Tensor(1, self.seq_len), requires_grad=False)
         self.rtype = swcfg["rtype"]
 
-        assert self.rng in ["sobol", "race", "lfsr", "sys", "rc", "tc"], \
-            "Error: the hw config 'rng' in " + self + " class requires one of ['sobol', 'race', 'lfsr', 'sys', 'rc', 'tc']."
+        assert self.rng in ["sobol", "race", "lfsr", "sys", "rc", "tc", "race10", "tc10"], \
+            "Error: the hw config 'rng' in " + self + " class requires one of ['sobol', 'race', 'lfsr', 'sys', 'rc', 'tc', 'race10', 'tc10']."
         if (self.rng == "sobol") or (self.rng == "rc"):
             # get the requested dimension of sobol random number
             self.rng_seq.data = torch.quasirandom.SobolEngine(self.dimr).draw(self.seq_len)[:, self.dimr-1].view(self.seq_len).mul_(self.seq_len)
         elif (self.rng == "race") or (self.rng == "tc"):
+            # the output sequence is in an ascending order
             self.rng_seq.data = torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len)
+        elif (self.rng == "race10") or (self.rng == "tc10"):
+            # the output sequence is in a descending order
+            self.rng_seq.data = torch.flip(torch.tensor([x/self.seq_len for x in range(self.seq_len)]).mul_(self.seq_len), [0])
         elif self.rng == "lfsr":
             lfsr_seq = get_lfsr_seq(width=self.width)
             self.rng_seq.data = torch.tensor(lfsr_seq).type(torch.float)

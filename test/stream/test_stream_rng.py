@@ -15,7 +15,15 @@ def test_rng():
     rng = RNG(hwcfg, swcfg)()
     print(hwcfg["rng"], rng.to(device))
 
+    hwcfg["rng"] = "rc"
+    rng = RNG(hwcfg, swcfg)()
+    print(hwcfg["rng"], rng.to(device))
+
     hwcfg["rng"] = "race"
+    rng = RNG(hwcfg, swcfg)()
+    print(hwcfg["rng"], rng.to(device))
+
+    hwcfg["rng"] = "tc"
     rng = RNG(hwcfg, swcfg)()
     print(hwcfg["rng"], rng.to(device))
 
@@ -24,6 +32,14 @@ def test_rng():
     print(hwcfg["rng"], rng.to(device))
 
     hwcfg["rng"] = "sys"
+    rng = RNG(hwcfg, swcfg)()
+    print(hwcfg["rng"], rng.to(device))
+
+    hwcfg["rng"] = "race10"
+    rng = RNG(hwcfg, swcfg)()
+    print(hwcfg["rng"], rng.to(device))
+
+    hwcfg["rng"] = "tc10"
     rng = RNG(hwcfg, swcfg)()
     print(hwcfg["rng"], rng.to(device))
 
