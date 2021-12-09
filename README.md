@@ -26,7 +26,7 @@ Among those, components in **Stream Manipulation** and **Computing Kernel** can 
 5. [torchinfo](https://github.com/TylerYep/torchinfo)
 6. matplotlib
 
-Environment Configuration: ```export PYTHONPATH=<UnarySim-Parent-Dir-Absolute-Path>/```
+Environment configuration before simulation: ```export PYTHONPATH=<UnarySim-Parent-Dir-Absolute-Path>/```
 
 ### Data Representation
 UnarySim has five categories of data, with each having default data type as _**'torch.float'**_ in PyTorch.
