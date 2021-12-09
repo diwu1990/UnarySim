@@ -11,7 +11,7 @@ def test_rawscale():
             "dimr" : 1,
             "rng" : "sobol",
             "scale" : 1,
-            "quantile": 100
+            "quantile": 0.95
         }
     swcfg = {
             "rtype" : torch.float,
@@ -19,7 +19,7 @@ def test_rawscale():
             "btype" : torch.float
         }
 
-    input = torch.randn([2, 3]).to(device)
+    input = torch.randn([256, 256]).to(device)
     print(input)
     srcbin = RawScale(hwcfg).to(device)
     print(srcbin(input))
