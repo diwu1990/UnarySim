@@ -77,24 +77,24 @@ class RNG(torch.nn.Module):
 class RawScale(torch.nn.Module):
     """
     Scale raw data to [-1, 1], which meets bipolar/unipolar bitstream requirements.
-    Data of type torch.nn.Parameter within (0, 100] percentile (%) of total data range are output.
+    Data of type torch.nn.Parameter within (0, 100] quantile (%) of total data range are output.
     """
     def __init__(
         self, 
         hwcfg={
-            "percentile" : 100
+            "quantile" : 100
         }):
         super(RawScale, self).__init__()
         self.hwcfg = {}
-        self.hwcfg["percentile"] = hwcfg["percentile"]
+        self.hwcfg["quantile"] = hwcfg["quantile"]
 
-        self.percentile = hwcfg["percentile"]
-        self.percentile_down = (100 - self.percentile) / 2 / 100
-        self.percentile_up = (100 - self.percentile_down) / 100
+        self.quantile = hwcfg["quantile"]
+        self.quantile_down = (100 - self.quantile) / 2 / 100
+        self.quantile_up = (100 - self.quantile_down) / 100
 
     def forward(self, raw):
-        lower_bound = torch.quantile(raw, self.percentile_down)
-        upper_bound = torch.quantile(raw, self.percentile_up)
+        lower_bound = torch.quantile(raw, self.quantile_down)
+        upper_bound = torch.quantile(raw, self.quantile_up)
         scale = torch.max(lower_bound.abs(), upper_bound.abs())
         output = raw.clamp(lower_bound, upper_bound).div(scale)
         return output
