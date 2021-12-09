@@ -31,10 +31,10 @@ class RNG(torch.nn.Module):
             "width" : 8, 
             "dimr" : 1, 
             "rng" : "Sobol"
-            },
+        },
         swcfg={
             "rtype" : torch.float
-            }):
+        }):
         super(RNG, self).__init__()
         self.hwcfg = {}
         self.hwcfg["width"] = hwcfg["width"]
