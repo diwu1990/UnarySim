@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from pylfsr import LFSR
+from math import log2, ceil, floor
 
 def get_lfsr_seq(width=8):
     polylist = LFSR().get_fpolyList(m=width)
@@ -152,6 +153,11 @@ class BSGen(torch.nn.Module):
             "stype" : torch.float
         }):
         super(BSGen, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["width"] = int(log2(len(self.rng)))
+        assert self.hwcfg["width"] == int(ceil(log2(len(self.rng)))) and self.hwcfg["width"] == int(floor(log2(len(self.rng)))), \
+            "Error: the input 'rng' needs a length of power of two in " + str(self) + " class."
+
         self.swcfg = {}
         self.swcfg["stype"] = swcfg["stype"]
 
