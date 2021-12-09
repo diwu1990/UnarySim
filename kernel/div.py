@@ -23,7 +23,7 @@ class CORDIV_kernel(torch.nn.Module):
         super(CORDIV_kernel, self).__init__()
         self.hwcfg = {}
         self.hwcfg["entry"] = hwcfg["entry"]
-        self.hwcfg["rng"] = hwcfg["rng"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
         self.hwcfg["dimr"] = hwcfg["dimr"]
 
         self.swcfg = {}
@@ -85,7 +85,7 @@ class FSUDiv(torch.nn.Module):
         self.hwcfg["depth_ss"] = hwcfg["depth_ss"]
         self.hwcfg["entry_kn"] = hwcfg["entry_kn"]
         self.hwcfg["mode"] = hwcfg["mode"].lower()
-        self.hwcfg["rng"] = hwcfg["rng"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
         self.hwcfg["dimr"] = hwcfg["dimr"]
 
         self.swcfg = {}

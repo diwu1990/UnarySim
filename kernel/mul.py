@@ -31,7 +31,7 @@ class FSUMul(torch.nn.Module):
         self.hwcfg["width"] = hwcfg["width"]
         self.hwcfg["mode"] = hwcfg["mode"].lower()
         self.hwcfg["static"] = hwcfg["static"]
-        self.hwcfg["rng"] = hwcfg["rng"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
         self.hwcfg["dimr"] = hwcfg["dimr"]
 
         self.swcfg={}

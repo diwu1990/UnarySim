@@ -35,7 +35,7 @@ class FSUSqrt(torch.nn.Module):
         self.hwcfg["emit"] = hwcfg["emit"]
         self.hwcfg["entry_kn"] = hwcfg["entry_kn"]
         self.hwcfg["entry_sr"] = hwcfg["entry_sr"]
-        self.hwcfg["rng"] = hwcfg["rng"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
         self.hwcfg["dimr"] = hwcfg["dimr"]
 
         self.swcfg = {}
