@@ -50,7 +50,7 @@ class FSULinear(torch.nn.Module):
         self.hwcfg["mode"] = hwcfg["mode"].lower()
         self.hwcfg["scale"] = hwcfg["scale"]
         self.hwcfg["depth"] = hwcfg["depth"]
-        self.hwcfg["rng"] = hwcfg["rng"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
         self.hwcfg["dimr"] = hwcfg["dimr"]
 
         self.swcfg = {}
@@ -124,7 +124,7 @@ class FSULinearPC(torch.nn.Linear):
         self.hwcfg = {}
         self.hwcfg["width"] = hwcfg["width"]
         self.hwcfg["mode"] = hwcfg["mode"].lower()
-        self.hwcfg["rng"] = hwcfg["rng"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
         self.hwcfg["dimr"] = hwcfg["dimr"]
 
         self.swcfg = {}
@@ -283,17 +283,39 @@ class HUBLinear(torch.nn.Linear):
     This cycle is the mac cycle using unipolar umul, i.e., half the bipolar umul. 
     As such, cycle = 2 ^ (bitwidth - 1).
     """
-    def __init__(self, 
-                 in_features, 
-                 out_features, 
-                 bias=True, 
-                 weight_ext=None, 
-                 bias_ext=None, 
-                 rng="Sobol", 
-                 cycle=128,
-                 rounding="round"):
+    def __init__(
+        self, 
+        in_features, 
+        out_features, 
+        bias=True, 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "widthi" : 8,
+            "rngi" : "Sobol",
+            "widthw" : 8,
+            "rngw" : "Sobol",
+            "cycle" : 128,
+            "rounding" : "round",
+            "signmag" : True
+        }):
         super(HUBLinear, self).__init__(in_features, out_features, bias)
-        
+        self.hwcfg = {}
+        self.hwcfg["widthi"] = hwcfg["widthi"]
+        self.hwcfg["rngi"] = hwcfg["rngi"].lower()
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["rngw"] = hwcfg["rngw"].lower()
+        self.hwcfg["rounding"] = hwcfg["rounding"].lower()
+        self.hwcfg["signmag"] = hwcfg["signmag"]
+        self.hwcfg["cycle"] = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
+
+        assert not (self.hwcfg["rngi"] in ["race", "tc", "race10", "tc10"] and self.hwcfg["rngw"] in ["race", "tc", "race10", "tc10"]), \
+            "Error: the hw config 'rngi' and 'rngw' in " + str(self) + " class can't adopt temporal coding simultaneously."
+
+        self.signmag = hwcfg["signmag"]
+        self.cycle_max = 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"])
+        self.cycle_act = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
+
         # weight and bias
         if weight_ext is not None:
             self.weight.data = weight_ext
@@ -301,33 +323,43 @@ class HUBLinear(torch.nn.Linear):
         if bias and (bias_ext is not None):
             self.bias.data = bias_ext
         
-        # mac computing cycle
-        self.cycle = cycle
-        
-        # bitwidth of rng
-        self.bitwidth = (self.cycle - 1).bit_length()
-        
-        # random_sequence from sobol RNG
-        self.irng = RNG(self.bitwidth, 1, rng)()
-        self.wrng = RNG(self.bitwidth, 1, "Sobol")()
+        swcfg={
+            "btype" : torch.float,
+            "rtype" : torch.float,
+            "stype" : torch.float
+        }
+
+        # random_sequence from RNG
+        hwcfg_irng = {
+            "width" : self.hwcfg["widthi"], 
+            "dimr" : 1, 
+            "rng" : self.hwcfg["rngi"]
+        }
+        self.irng = RNG(hwcfg_irng, swcfg)()
+        hwcfg_wrng = {
+            "width" : self.hwcfg["widthw"], 
+            "dimr" : 1, 
+            "rng" : self.hwcfg["rngw"]
+        }
+        self.wrng = RNG(hwcfg_wrng, swcfg)()
         
         # generate the value map for mul using current rng
         # dim 0 is input index
         # the tensor input value is the actual value produced by the rng
-        self.input_map = torch.nn.Parameter(torch.empty(cycle), requires_grad=False)
-        input_val_cycle = torch.empty(0)
-        torch.cat(cycle*[torch.arange(cycle, dtype=torch.float).unsqueeze(1)], 1, out=input_val_cycle)
-        input_bit_cycle = torch.empty(0)
-        torch.gt(input_val_cycle, self.irng.unsqueeze(0), out=input_bit_cycle)
-        self.input_map.data = torch.sum(input_bit_cycle, 1).squeeze_().type(torch.long)
+        self.imap = torch.nn.Parameter(torch.empty(self.cycle_max), requires_grad=False)
+        cycle_ival = torch.empty(0)
+        torch.cat(self.cycle_max*[torch.arange(self.cycle_max, dtype=torch.float).unsqueeze(1)], 1, out=cycle_ival)
+        cycle_ibit = torch.empty(0)
+        torch.gt(cycle_ival, self.irng.unsqueeze(0), out=cycle_ibit)
+        self.imap.data = torch.sum(cycle_ibit, 1).squeeze_().type(torch.long)
 
         # dim 0 is input index, dim 1 is weight index
         # the tensor value is the actual weight value produced by the rng, under a specific input and weight
-        self.wght_map = torch.nn.Parameter(torch.empty(cycle, cycle), requires_grad=False)
-        wght_bit_cycle = torch.empty(0)
-        torch.gt(input_val_cycle, self.wrng.unsqueeze(0), out=wght_bit_cycle)
-        for c in range(cycle):
-            self.wght_map.data[c] = torch.sum(wght_bit_cycle[:, 0:self.input_map.data[c]], 1).squeeze_()
+        self.wmap = torch.nn.Parameter(torch.empty(self.cycle_max, self.cycle_max), requires_grad=False)
+        cycle_wbit = torch.empty(0)
+        torch.gt(cycle_ival, self.wrng.unsqueeze(0), out=cycle_wbit)
+        for c in range(self.cycle_max):
+            self.wmap.data[c] = torch.sum(cycle_wbit[:, 0:self.imap.data[c]], 1).squeeze_()
         
         # rounding mode
         self.rounding = rounding
@@ -356,7 +388,7 @@ class HUBLinear(torch.nn.Linear):
             self.rshift_wght = wght_max_int - self.bitwidth
             self.rshift_output = self.bitwidth - input_max_int - wght_max_int
         
-        return HUBLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.wght_map)
+        return HUBLinearFunction.apply(input, self.weight, self.bias, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.wmap)
 
     
 # Inherit from Function
@@ -370,8 +402,11 @@ class HUBLinearFunction(torch.autograd.Function):
                 rshift_wght=3, 
                 rshift_output=3, 
                 cycle=128, 
-                wght_map=None):
+                wmap=None):
         ctx.save_for_backward(input, weight, bias)
+
+        assert len(input.size()) == 2, \
+            "Error: the input of HUBLinearFunction class needs 2 dimensions."
 
         # first dim should always be batch
         batch = input.size()[0]
@@ -405,7 +440,7 @@ class HUBLinearFunction(torch.autograd.Function):
         sign_wght_no_batch.unsqueeze_(0)
         act_wght = torch.empty(0, device=weight.device)
         torch.cat(batch*[sign_wght_no_batch], 0, out=act_wght)
-        torch.mul(wght_map[buf_input, buf_wght], act_wght, out=act_wght)
+        torch.mul(wmap[buf_input, buf_wght], act_wght, out=act_wght)
         
         output = torch.empty(0, device=weight.device)
         torch.matmul(act_input, act_wght.transpose(1, 2), out=output)
