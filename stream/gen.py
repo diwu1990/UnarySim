@@ -89,7 +89,7 @@ class RawScale(torch.nn.Module):
         self.hwcfg = {}
         self.hwcfg["quantile"] = hwcfg["quantile"]
 
-        assert hwcfg["quantile"] <= 1 and hwcfg["quantile"] > 0, \
+        assert hwcfg["quantile"] > 0 and hwcfg["quantile"] <= 1, \
             "Error: the hw config 'quantile' of " + str(self) + " class needs to be within (0, 1]."
 
         self.quantile = hwcfg["quantile"]
