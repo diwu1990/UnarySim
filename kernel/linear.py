@@ -302,15 +302,15 @@ class HUBLinear(torch.nn.Linear):
         }):
         super(HUBLinear, self).__init__(in_features, out_features, bias)
         self.hwcfg = {}
-        self.hwcfg["widthi"] = hwcfg["widthi"] - hwcfg["signmag"]
+        self.hwcfg["widthi"] = hwcfg["widthi"]
         self.hwcfg["rngi"] = hwcfg["rngi"].lower()
         self.hwcfg["quantilei"] = hwcfg["quantilei"]
-        self.hwcfg["widthw"] = hwcfg["widthw"] - hwcfg["signmag"]
+        self.hwcfg["widthw"] = hwcfg["widthw"]
         self.hwcfg["rngw"] = hwcfg["rngw"].lower()
         self.hwcfg["quantilew"] = hwcfg["quantilew"]
         self.hwcfg["rounding"] = hwcfg["rounding"].lower()
         self.hwcfg["signmag"] = hwcfg["signmag"]
-        self.hwcfg["cycle"] = min(hwcfg["cycle"], 2**max(self.hwcfg["widthi"], self.hwcfg["widthw"]))
+        self.hwcfg["cycle"] = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
 
         assert not (self.hwcfg["rngi"] in ["race", "tc", "race10", "tc10"] and self.hwcfg["rngw"] in ["race", "tc", "race10", "tc10"]), \
             "Error: the hw config 'rngi' and 'rngw' in " + str(self) + " class can't adopt temporal coding simultaneously."
@@ -330,9 +330,9 @@ class HUBLinear(torch.nn.Linear):
         self.quantilei = hwcfg["quantilei"]
         self.quantilew = hwcfg["quantilew"]
         # maximum possible run cycle
-        self.cycle_max = 2**max(self.hwcfg["widthi"], self.hwcfg["widthw"])
+        self.cycle_max = 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"])
         # actual run cycle
-        self.cycle_act = min(hwcfg["cycle"], 2**max(self.hwcfg["widthi"], self.hwcfg["widthw"]))
+        self.cycle_act = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
         
         print(self.hwcfg)
 
@@ -351,13 +351,13 @@ class HUBLinear(torch.nn.Linear):
 
         # random_sequence from RNG
         hwcfg_irng = {
-            "width" : self.hwcfg["widthi"], 
+            "width" : self.hwcfg["widthi"] - self.hwcfg["signmag"], 
             "dimr" : 1, 
             "rng" : self.hwcfg["rngi"]
         }
         self.irng = RNG(hwcfg_irng, swcfg)()
         hwcfg_wrng = {
-            "width" : self.hwcfg["widthw"], 
+            "width" : self.hwcfg["widthw"] - self.hwcfg["signmag"], 
             "dimr" : 1, 
             "rng" : self.hwcfg["rngw"]
         }
@@ -392,7 +392,7 @@ class HUBLinear(torch.nn.Linear):
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
         self.rshift_i, self.rshift_w, self.rshift_o = \
-            rshift_offset(input, self.weight, self.hwcfg["widthi"], self.hwcfg["widthw"], self.hwcfg["rounding"], self.quantilei, self.quantilew)
+            rshift_offset(input, self.weight, self.hwcfg["widthi"] - self.hwcfg["signmag"], self.hwcfg["widthw"] - self.hwcfg["signmag"], self.hwcfg["rounding"], self.quantilei, self.quantilew)
         
         return HUBLinearFunction.apply(input, self.weight, self.bias, 
                                         self.rshift_i, self.rshift_w, self.rshift_o, 
@@ -490,18 +490,28 @@ class FXPLinear(torch.nn.Linear):
     3) binary bias
     4) mac cycle
     """
-    def __init__(self, 
-                 in_features, 
-                 out_features, 
-                 bias=True, 
-                 weight_ext=None, 
-                 bias_ext=None, 
-                 bitwidth=8, 
-                 keep_res="input", # keep the resolution of input/output
-                 more_res="input", # assign more resolution to input/weight
-                 rounding="round"):
+    def __init__(
+        self, 
+        in_features, 
+        out_features, 
+        bias=True, 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "widthi" : 8,
+            "quantilei" : 1,
+            "widthw" : 8,
+            "quantilew" : 1,
+            "rounding" : "round"
+        }):
         super(FXPLinear, self).__init__(in_features, out_features, bias)
-
+        self.hwcfg = {}
+        self.hwcfg["widthi"] = hwcfg["widthi"]
+        self.hwcfg["quantilei"] = hwcfg["quantilei"]
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["quantilew"] = hwcfg["quantilew"]
+        self.hwcfg["rounding"] = hwcfg["rounding"].lower()
+        
         # weight and bias
         if weight_ext is not None:
             self.weight.data = weight_ext
@@ -509,31 +519,12 @@ class FXPLinear(torch.nn.Linear):
         if bias and (bias_ext is not None):
             self.bias.data = bias_ext
         
-        # bitwidth of abs
-        if isinstance(bitwidth, tuple):
-            self.bw_input, self.bw_wght = (bitwidth[0]-1, bitwidth[1]-1)
-        else:
-            if keep_res == "input":
-                self.bw_input, self.bw_wght = (bitwidth-1, bitwidth-1)
-            elif keep_res == "output":
-                if bitwidth % 2 == 0:
-                    self.bw_input, self.bw_wght = (int(bitwidth/2 - 1), int(bitwidth/2 - 1))
-                else:
-                    if more_res == "input":
-                        self.bw_input, self.bw_wght = (int((bitwidth+1)/2 - 1), int((bitwidth-1)/2 - 1))
-                    elif more_res == "weight":
-                        self.bw_input, self.bw_wght = (int((bitwidth-1)/2 - 1), int((bitwidth+1)/2 - 1))
-                    else:
-                        raise ValueError("more_res should be either 'input' or 'weight' when bitwidth is not a tuple and keep_res is 'output'.")
-            else:
-                raise ValueError("keep_res should be either 'input' or 'output' when bitwidth is not a tuple.")
-        
         # max abs value
         self.max_abs_input = 2**self.bw_input
         self.max_abs_wght = 2**self.bw_wght
         
         # rounding mode
-        self.rounding = rounding
+        self.rounding = hwcfg["rounding"]
         
         self.rshift_i = None
         self.rshift_w = None

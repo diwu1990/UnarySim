@@ -27,7 +27,7 @@ def test_fsulinear():
     bias = False
 
     total_bit = 8
-    input_int_bit = 3
+    input_int_bit = 0
     input_fra_bit = total_bit - input_int_bit
     
     input = ((torch.rand(batch, in_feature) - 0.5) * 2).to(device)
