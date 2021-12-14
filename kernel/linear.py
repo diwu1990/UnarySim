@@ -274,13 +274,14 @@ class FSULinearPC(torch.nn.Linear):
 # the HUBLinear and HUBLinearFunction are parallel implementations
 class HUBLinear(torch.nn.Linear):
     """
-    This module is the fully connected layer for binary signed data in fxp format.
+    This module is the fully connected layer for binary signed data in fxp format using unary computing.
     The hardware configuration specifies 
     1) the data with in bit for input and weight/bias
     2) the rng type for input and weight/bias
-    3) the cycle to early terminate the run
-    4) the rounding mode for both input and weight/bias
-    5) whether to use sign-magnitude format for both input and weight/bias, which can reduce the number of max cycle count to run
+    3) the quantile to quantize input and weight/bias
+    4) the cycle to early terminate the run
+    5) the rounding mode for both input and weight/bias
+    6) whether to use sign-magnitude format for both input and weight/bias, which can reduce the number of max cycle count to run
     """
     def __init__(
         self, 
@@ -327,8 +328,6 @@ class HUBLinear(torch.nn.Linear):
         assert self.hwcfg["signmag"] is True, \
             "Error: the hw config 'signmag' of " + str(self) + " class requires to be True, i.e., always computing on sign-magnitue data, for diverse architectures."
 
-        self.quantilei = hwcfg["quantilei"]
-        self.quantilew = hwcfg["quantilew"]
         # maximum possible run cycle
         self.cycle_max = 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"])
         # actual run cycle
@@ -381,9 +380,6 @@ class HUBLinear(torch.nn.Linear):
         for c in range(self.cycle_max):
             self.wmap.data[c] = torch.sum(cycle_wbit[:, 0:self.imap.data[c]], 1).squeeze_()
         
-        # rounding mode
-        self.rounding = hwcfg["rounding"]
-        
         self.rshift_i = None
         self.rshift_w = None
         self.rshift_o = None
@@ -392,7 +388,7 @@ class HUBLinear(torch.nn.Linear):
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
         self.rshift_i, self.rshift_w, self.rshift_o = \
-            rshift_offset(input, self.weight, self.hwcfg["widthi"] - self.hwcfg["signmag"], self.hwcfg["widthw"] - self.hwcfg["signmag"], self.hwcfg["rounding"], self.quantilei, self.quantilew)
+            rshift_offset(input, self.weight, self.hwcfg["widthi"] - self.hwcfg["signmag"], self.hwcfg["widthw"] - self.hwcfg["signmag"], self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
         
         return HUBLinearFunction.apply(input, self.weight, self.bias, 
                                         self.rshift_i, self.rshift_w, self.rshift_o, 
@@ -483,12 +479,11 @@ class HUBLinearFunction(torch.autograd.Function):
     
 class FXPLinear(torch.nn.Linear):
     """
-    this module is the fully connected layer, with binary input and binary output
-    its API is similar to the parent class (input/output feature count, bias flag), except:
-    1) binary data scale factor
-    2) binary weight
-    3) binary bias
-    4) mac cycle
+    This module is the fully connected layer for binary signed data in fxp format using binary computing.
+    The hardware configuration specifies 
+    1) the data with in bit for input and weight/bias
+    2) the quantile to quantize input and weight/bias
+    3) the rounding mode for both input and weight/bias
     """
     def __init__(
         self, 
@@ -520,11 +515,8 @@ class FXPLinear(torch.nn.Linear):
             self.bias.data = bias_ext
         
         # max abs value
-        self.max_abs_input = 2**self.bw_input
-        self.max_abs_wght = 2**self.bw_wght
-        
-        # rounding mode
-        self.rounding = hwcfg["rounding"]
+        self.max_abs_i = 2**self.hwcfg["widthi"]
+        self.max_abs_w = 2**self.hwcfg["widthw"]
         
         self.rshift_i = None
         self.rshift_w = None
@@ -533,31 +525,11 @@ class FXPLinear(torch.nn.Linear):
     @autocast()
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
-        with torch.no_grad():
-            if self.rshift_i is None:
-                imax_int = input.abs().max().log2()
-                if self.rounding == "round":
-                    imax_int = imax_int.round()
-                elif self.rounding == "floor":
-                    imax_int = imax_int.floor()
-                elif self.rounding == "ceil":
-                    imax_int = imax_int.ceil()
-                self.rshift_i = imax_int - self.bw_input
-            
-            if self.rshift_w is None:
-                wmax_int = self.weight.abs().max().log2()
-                if self.rounding == "round":
-                    wmax_int = wmax_int.round()
-                elif self.rounding == "floor":
-                    wmax_int = wmax_int.floor()
-                elif self.rounding == "ceil":
-                    wmax_int = wmax_int.ceil()
-                self.rshift_w = wmax_int - self.bw_wght
-                
-            if self.rshift_o is None:
-                self.rshift_o = 0 - self.rshift_i - self.rshift_w
+        self.rshift_i, self.rshift_w, _ = \
+            rshift_offset(input, self.weight, self.hwcfg["widthi"] - 1, self.hwcfg["widthw"] - 1, self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
+        self.rshift_o = 0 - self.rshift_i - self.rshift_w
         
-        return FXPLinearFunction.apply(input, self.weight, self.bias, self.rshift_i, self.rshift_w, self.rshift_o, self.max_abs_input, self.max_abs_wght)
+        return FXPLinearFunction.apply(input, self.weight, self.bias, self.rshift_i, self.rshift_w, self.rshift_o, self.max_abs_i, self.max_abs_w)
 
     
 # Inherit from Function
@@ -570,32 +542,32 @@ class FXPLinearFunction(torch.autograd.Function):
                 rshift_i=3, 
                 rshift_w=3, 
                 rshift_o=3, 
-                max_abs_input=128, 
-                max_abs_wght=128):
+                max_abs_i=128, 
+                max_abs_w=128):
         ctx.save_for_backward(input, weight, bias)
         
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # input preparation
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # round input to (bot, top)
-        bot_input = 0 - max_abs_input
-        top_input = max_abs_input - 1
-        input_round = torch.empty(0, device=input.device)
-        torch.round(input >> rshift_i, out=input_round)
-        torch.clamp(input_round.unsqueeze_(1), bot_input, top_input, out=input_round)
+        bot_i = 1 - max_abs_i
+        top_i = max_abs_i - 1
+        i_round = torch.empty(0, device=input.device)
+        torch.round(input >> rshift_i, out=i_round)
+        torch.clamp(i_round.unsqueeze_(1), bot_i, top_i, out=i_round)
         
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # weight preparation
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # round input to (bot, top)
-        bot_wght = 0 - max_abs_wght
-        top_wght = max_abs_wght - 1
-        wght_round = torch.empty(0, device=input.device)
-        torch.round(weight >> rshift_w, out=wght_round)
-        torch.clamp(wght_round.unsqueeze_(0), bot_wght, top_wght, out=wght_round)
+        bot_w = 1 - max_abs_w
+        top_w = max_abs_w - 1
+        w_round = torch.empty(0, device=input.device)
+        torch.round(weight >> rshift_w, out=w_round)
+        torch.clamp(w_round.unsqueeze_(0), bot_w, top_w, out=w_round)
         
         output = torch.empty(0, device=weight.device)
-        torch.matmul(input_round, wght_round.transpose(1, 2), out=output)
+        torch.matmul(i_round, w_round.transpose(1, 2), out=output)
         output = (output >> rshift_o).squeeze_(1)
         
         if bias is not None:
