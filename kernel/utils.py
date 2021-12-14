@@ -205,3 +205,39 @@ class Round(torch.nn.Module):
         else:
             return RoundingNoGrad.apply(input << self.fracwidth).clamp(self.min_val, self.max_val) >> self.fracwidth
 
+
+def rshift_offset(input, weight, widthi, widthw, rounding="round", quantilei=1, quantilew=1):
+    """
+    This function calculate the right shift offset for the abs value of the input, weight and output.
+    """
+    with torch.no_grad():
+        quantile_i_upper = 0.5 - quantilei / 2
+        quantile_i_lower = 0.5 + quantilei / 2
+        lower_bound_i = torch.quantile(input, quantile_i_lower)
+        upper_bound_i = torch.quantile(input, quantile_i_upper)
+        scale_i = torch.max(lower_bound_i.abs(), upper_bound_i.abs())
+        imax_int = scale_i.log2()
+
+        quantile_w_upper = 0.5 - quantilew / 2
+        quantile_w_lower = 0.5 + quantilew / 2
+        lower_bound_w = torch.quantile(weight, quantile_w_lower)
+        upper_bound_w = torch.quantile(weight, quantile_w_upper)
+        scale_w = torch.max(lower_bound_w.abs(), upper_bound_w.abs())
+        wmax_int = scale_w.log2()
+
+        if rounding == "round":
+            imax_int = imax_int.round()
+            wmax_int = wmax_int.round()
+        elif rounding == "floor":
+            imax_int = imax_int.floor()
+            wmax_int = wmax_int.floor()
+        elif rounding == "ceil":
+            imax_int = imax_int.ceil()
+            wmax_int = wmax_int.ceil()
+
+        rshift_i = imax_int - widthi
+        rshift_w = wmax_int - widthw
+        rshift_o = max(widthi, widthw) - imax_int - wmax_int
+
+        return rshift_i, rshift_w, rshift_o
+
