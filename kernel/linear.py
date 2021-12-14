@@ -313,7 +313,10 @@ class HUBLinear(torch.nn.Linear):
         self.hwcfg["signmag"] = hwcfg["signmag"]
         self.hwcfg["cycle"] = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
 
-        assert not (self.hwcfg["rngi"] in ["race", "tc", "race10", "tc10"] and self.hwcfg["rngw"] in ["race", "tc", "race10", "tc10"]), \
+        self.itc = (self.hwcfg["rngi"] in ["race", "tc", "race10", "tc10"])
+        self.wtc = (self.hwcfg["rngw"] in ["race", "tc", "race10", "tc10"])
+
+        assert not (self.itc and self.wtc), \
             "Error: the hw config 'rngi' and 'rngw' in " + str(self) + " class can't adopt temporal coding simultaneously."
 
         assert self.hwcfg["quantilei"] > 0 and self.hwcfg["quantilei"] <= 1, \
@@ -333,8 +336,6 @@ class HUBLinear(torch.nn.Linear):
         # actual run cycle
         self.cycle_act = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
         
-        print(self.hwcfg)
-
         # weight and bias
         if weight_ext is not None:
             self.weight.data = weight_ext
@@ -361,24 +362,38 @@ class HUBLinear(torch.nn.Linear):
             "rng" : self.hwcfg["rngw"]
         }
         self.wrng = RNG(hwcfg_wrng, swcfg)()
+
+        if (self.itc) and (not self.wtc):
+            # cbsg controller is input
+            self.rngctler = self.irng
+            self.rngctlee = self.wrng
+        elif (not self.itc) and (self.wtc):
+            # cbsg controller is weight
+            self.rngctler = self.wrng
+            self.rngctlee = self.irng
+        elif (not self.itc) and (not self.wtc):
+            # when rate coding is applied to both input and weight, always control weight with input
+            # the hardware cost of doing this is similar to the opposite
+            self.rngctler = self.irng
+            self.rngctlee = self.wrng
         
         # generate the value map for mul using current rng
         # dim 0 is input index
-        # the tensor input value is the actual value produced by the irng
-        self.imap = torch.nn.Parameter(torch.empty(self.cycle_max), requires_grad=False)
-        cycle_ival = torch.empty(0)
-        torch.cat(self.cycle_max*[torch.arange(self.cycle_max, dtype=torch.float).unsqueeze(1)], 1, out=cycle_ival)
-        cycle_ibit = torch.empty(0)
-        torch.gt(cycle_ival, self.irng.unsqueeze(0), out=cycle_ibit)
-        self.imap.data = torch.sum(cycle_ibit, 1).squeeze_().type(torch.long)
+        # the tensor input value is the actual value produced by the rngctler
+        self.mapctler = torch.nn.Parameter(torch.empty(self.cycle_max), requires_grad=False)
+        cycle_ctlerval = torch.empty(0)
+        torch.cat(self.cycle_max*[torch.arange(self.cycle_max, dtype=torch.float).unsqueeze(1)], 1, out=cycle_ctlerval)
+        cycle_ctlerbit = torch.empty(0)
+        torch.gt(cycle_ctlerval, self.rngctler.unsqueeze(0), out=cycle_ctlerbit)
+        self.mapctler.data = torch.sum(cycle_ctlerbit, 1).squeeze_().type(torch.long)
 
         # dim 0 is input index, dim 1 is weight index
-        # the tensor value is the actual weight value produced by the wrng, under a specific input and weight
-        self.wmap = torch.nn.Parameter(torch.empty(self.cycle_max, self.cycle_max), requires_grad=False)
-        cycle_wbit = torch.empty(0)
-        torch.gt(cycle_ival, self.wrng.unsqueeze(0), out=cycle_wbit)
+        # the tensor value is the actual weight value produced by the rngctlee, under a specific input and weight
+        self.mapctlee = torch.nn.Parameter(torch.empty(self.cycle_max, self.cycle_max), requires_grad=False)
+        cycle_ctleebit = torch.empty(0)
+        torch.gt(cycle_ctlerval, self.rngctlee.unsqueeze(0), out=cycle_ctleebit)
         for c in range(self.cycle_max):
-            self.wmap.data[c] = torch.sum(cycle_wbit[:, 0:self.imap.data[c]], 1).squeeze_()
+            self.mapctlee.data[c] = torch.sum(cycle_ctleebit[:, 0:self.mapctler.data[c]], 1).squeeze_()
         
         self.rshift_i = None
         self.rshift_w = None
@@ -392,18 +407,20 @@ class HUBLinear(torch.nn.Linear):
         
         return HUBLinearFunction.apply(input, self.weight, self.bias, 
                                         self.rshift_i, self.rshift_w, self.rshift_o, 
-                                        self.cycle_act, self.wmap)
+                                        self.cycle_act, self.mapctlee)
 
-    
+
 # Inherit from Function
 class HUBLinearFunction(torch.autograd.Function):
-
+    """
+    This code is for rate coding for both input and weight.
+    """
     # Note that both forward and backward are @staticmethods
     @staticmethod
     # bias is an optional argument
     def forward(ctx, input, weight, bias=None, 
                 rshift_i=3, rshift_w=3, rshift_o=3, 
-                cycle=128, wmap=None):
+                cycle=128, mapcbsg=None):
         ctx.save_for_backward(input, weight, bias)
 
         assert len(input.size()) == 2, \
@@ -415,7 +432,7 @@ class HUBLinearFunction(torch.autograd.Function):
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # input preparation
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-        # scale input to range 0~2^bitwidth-1
+        # scale input to range 0~2^widthi-1
         buf_i = torch.empty(0, dtype=torch.long, device=input.device)
         torch.abs((input >> rshift_i).unsqueeze_(1).round().type(torch.long), out=buf_i)
         torch.clamp(buf_i, 0, cycle-1, out=buf_i)
@@ -428,7 +445,7 @@ class HUBLinearFunction(torch.autograd.Function):
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # weight preparation
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-        # scale weight with batch to range 0~2^bitwidth-1
+        # scale weight with batch to range 0~2^widthw-1
         buf_w_no_batch = torch.empty(0, dtype=torch.long, device=weight.device)
         torch.abs((weight >> rshift_w).unsqueeze_(0).round().type(torch.long), out=buf_w_no_batch)
         torch.clamp(buf_w_no_batch, 0, cycle-1, out=buf_w_no_batch)
@@ -441,7 +458,7 @@ class HUBLinearFunction(torch.autograd.Function):
         sign_wght_no_batch.unsqueeze_(0)
         act_wght = torch.empty(0, device=weight.device)
         torch.cat(batch*[sign_wght_no_batch], 0, out=act_wght)
-        torch.mul(wmap[buf_i, buf_w], act_wght, out=act_wght)
+        torch.mul(mapcbsg[buf_i, buf_w], act_wght, out=act_wght)
         
         output = torch.empty(0, device=weight.device)
         torch.matmul(act_input, act_wght.transpose(1, 2), out=output)
@@ -597,3 +614,4 @@ class FXPLinearFunction(torch.autograd.Function):
             grad_bias = grad_output.sum(0)
 
         return grad_input, grad_weight, grad_bias, None, None, None, None, None
+

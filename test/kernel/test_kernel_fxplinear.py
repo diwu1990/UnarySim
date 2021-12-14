@@ -35,6 +35,7 @@ def test_fxplinear():
 
     ufc = FXPLinear(in_feature, out_feature, bias=bias, weight_ext=fc.weight, bias_ext=fc.bias, hwcfg=hwcfg).to(device)
     ufc_o = ufc(input)
+    print(ufc.hwcfg)
 
     fc_o.abs().mean().backward()
     ufc_o.abs().mean().backward()
@@ -45,22 +46,22 @@ def test_fxplinear():
     print("diff min:", diff.min())
     print("diff mean:", diff.mean())
     print("diff rmse:", torch.sqrt(torch.mean(torch.square(diff))))
-    print()
-
-    fig = plt.hist(diff.cpu().detach().numpy().flatten(), bins='auto')  # arguments are passed to np.histogram
-    plt.title("Histogram for output error")
-    plt.show()
 
     diff_grad = (ufc.weight.grad - fc.weight.grad)
-
+    print()
     print("diff grad max:", diff_grad.max())
     print("diff grad min:", diff_grad.min())
     print("diff grad mean:", diff_grad.mean())
     print("diff grad rmse:", torch.sqrt(torch.mean(torch.square(diff_grad))))
 
-    fig = plt.hist(diff_grad.cpu().detach().numpy().flatten(), bins='auto')  # arguments are passed to np.histogram
-    plt.title("Histogram for grad error")
-    plt.show()
+    if plot_en:
+        fig = plt.hist(diff.cpu().detach().numpy().flatten(), bins='auto')  # arguments are passed to np.histogram
+        plt.title("Histogram for output error")
+        plt.show()
+
+        fig = plt.hist(diff_grad.cpu().detach().numpy().flatten(), bins='auto')  # arguments are passed to np.histogram
+        plt.title("Histogram for grad error")
+        plt.show()
 
 
 if __name__ == '__main__':
