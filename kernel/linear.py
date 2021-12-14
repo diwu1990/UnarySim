@@ -95,7 +95,7 @@ class FSULinear(torch.nn.Module):
 class FSULinearPC(torch.nn.Linear):
     """
     This module is the parallel counter result of FSULinear before generating the bitstreams.
-    The allowed coding for input, weight and bias with guaranteed accuracy can have the following three options.s
+    The allowed coding for input, weight and bias with guaranteed accuracy can have the following three options.
     (input, weight, bias):
     1) rate, rate, rate
     2) rate, temporal, rate
