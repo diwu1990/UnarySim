@@ -139,7 +139,6 @@ class FSULinearPC(torch.nn.Linear):
         self.swcfg["rtype"] = swcfg["rtype"]
         self.swcfg["stype"] = swcfg["stype"]
         
-        self.width = hwcfg["width"]
         self.mode = hwcfg["mode"].lower()
         assert self.mode in ["unipolar", "bipolar"], \
             "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
