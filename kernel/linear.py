@@ -62,6 +62,13 @@ class FSULinear(torch.nn.Module):
             assert self.hwcfg["rng"].lower() not in ["race", "tc", "race10", "tc10"], \
                 "Error: the hw config 'rng' in " + str(self) + " class should avoid ['race', 'tc', 'race10', 'tc10'] for bipolar data with non-scaled addition."
 
+        assert self.swcfg["btype"] == torch.float, \
+            "Error: the sw config 'btype' in " + str(self) + " class requires 'torch.float'."
+        assert self.swcfg["rtype"] == torch.float, \
+            "Error: the sw config 'rtype' in " + str(self) + " class requires 'torch.float'."
+        assert self.swcfg["stype"] == torch.float, \
+            "Error: the sw config 'stype' in " + str(self) + " class requires 'torch.float'."
+
         self.PC = FSULinearPC(
             in_features, 
             out_features, 
@@ -137,9 +144,12 @@ class FSULinearPC(torch.nn.Linear):
         assert self.mode in ["unipolar", "bipolar"], \
             "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
 
-        self.btype = swcfg["btype"]
-        self.rtype = swcfg["rtype"]
-        self.stype = swcfg["stype"]
+        assert self.swcfg["btype"] == torch.float, \
+            "Error: the sw config 'btype' in " + str(self) + " class requires 'torch.float'."
+        assert self.swcfg["rtype"] == torch.float, \
+            "Error: the sw config 'rtype' in " + str(self) + " class requires 'torch.float'."
+        assert self.swcfg["stype"] == torch.float, \
+            "Error: the sw config 'stype' in " + str(self) + " class requires 'torch.float'."
 
         # bias indication for original linear layer
         self.has_bias = bias
