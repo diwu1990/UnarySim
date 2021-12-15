@@ -143,13 +143,6 @@ class FSULinearPC(torch.nn.Linear):
         assert self.mode in ["unipolar", "bipolar"], \
             "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
 
-        assert self.swcfg["btype"] == torch.float, \
-            "Error: the sw config 'btype' in " + str(self) + " class requires 'torch.float'."
-        assert self.swcfg["rtype"] == torch.float, \
-            "Error: the sw config 'rtype' in " + str(self) + " class requires 'torch.float'."
-        assert self.swcfg["stype"] == torch.float, \
-            "Error: the sw config 'stype' in " + str(self) + " class requires 'torch.float'."
-
         # bias indication for original linear layer
         self.has_bias = bias
         
