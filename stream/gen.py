@@ -157,6 +157,9 @@ class BSGen(torch.nn.Module):
             "stype" : torch.float
         }):
         super(BSGen, self).__init__()
+        self.binary = binary
+        self.rng = rng
+        
         self.hwcfg = {}
         self.hwcfg["width"] = int(log2(len(self.rng)))
         assert self.hwcfg["width"] == int(ceil(log2(len(self.rng)))) and self.hwcfg["width"] == int(floor(log2(len(self.rng)))), \
@@ -165,8 +168,6 @@ class BSGen(torch.nn.Module):
         self.swcfg = {}
         self.swcfg["stype"] = swcfg["stype"]
 
-        self.binary = binary
-        self.rng = rng
         self.len = len(self.rng)
         self.stype = swcfg["stype"]
     
