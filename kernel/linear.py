@@ -175,10 +175,10 @@ class FSULinearPC(torch.nn.Linear):
             assert bias_ext.size()[0] == out_features, \
                 "Error: the hw config 'out_features' in " + str(self) + " class unmatches the binary bias shape."
             self.bias.data = BinGen(bias_ext, self.hwcfg, self.swcfg)()
-            # RNG for bias, should always apply rate coding
+            # RNG for bias, same as RNG for weight
             hwcfg_brng = {
                 "width" : hwcfg["width"],
-                "rng" : "sobol",
+                "rng" : hwcfg["rng"],
                 "dimr" : hwcfg["dimr"]
             }
             self.brng = RNG(hwcfg_brng, swcfg)()
