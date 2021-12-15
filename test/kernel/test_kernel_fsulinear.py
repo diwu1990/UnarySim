@@ -33,10 +33,7 @@ def test_fsulinear():
     rng = hwcfg["rng"]
     in_feature = 256
     out_feature = 1000
-    bitwidth = hwcfg["width"]
     bias = True
-    # modes = ["bipolar"]
-    # scaled = [False]
     modes = ["bipolar", "unipolar"]
     scaled = [True, False]
     result_pe = []
@@ -46,7 +43,9 @@ def test_fsulinear():
             hwcfg["mode"] = mode
             hwcfg_input["mode"] = mode
             hwcfg["scale"] = (in_feature + bias) if scale else 1
-            length = 2**bitwidth
+            length = 2**hwcfg["width"]
+            length_input = 2**hwcfg_input["width"]
+
             result_pe_cycle = []
             fc = torch.nn.Linear(in_feature, out_feature, bias=bias).to(device)
             
@@ -62,7 +61,7 @@ def test_fsulinear():
             ufc = FSULinear(in_feature, out_feature, bias=bias, weight_ext=fc.weight, bias_ext=fc.bias, 
                               hwcfg=hwcfg, swcfg=swcfg).to(device)
 
-            iVec = ((torch.rand(1, in_feature)*length).round()/length).to(device)
+            iVec = ((torch.rand(1, in_feature)*length_input).round()/length_input).to(device)
             oVec = fc(iVec)
 
             iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
@@ -78,7 +77,7 @@ def test_fsulinear():
             with torch.no_grad():
                 idx = torch.zeros(iVecSource.size()).type(torch.long).to(device)
                 start_time = time.time()
-                for i in range(length):
+                for i in range(max(length, length_input)):
                     iBS = iVecBS(idx + i)
                     iVecPE.Monitor(iBS)
 
