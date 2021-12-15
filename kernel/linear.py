@@ -276,9 +276,9 @@ class FSULinearPC(torch.nn.Linear):
         assert len(input.size()) == 2, \
             "Error: the input of the " + str(self) + " class needs 2 dimensions."
         if self.wtc:
-            return self.FSULinear_PC_wtc(input).type(self.stype)
+            return self.FSULinear_PC_wtc(input).type(self.swcfg["stype"])
         else:
-            return self.FSULinear_PC_wrc(input).type(self.stype)
+            return self.FSULinear_PC_wrc(input).type(self.swcfg["stype"])
         
 
 # the HUBLinear and HUBLinearFunction are parallel implementations
