@@ -1,5 +1,5 @@
 import torch
-from UnarySim.kernel.conv import HUBConv2d
+from UnarySim.kernel import HUBConv2d
 import matplotlib.pyplot as plt
 import time
 import math

@@ -1,5 +1,5 @@
 import torch
-from UnarySim.kernel.conv import FXPConv2d
+from UnarySim.kernel import FXPConv2d
 import matplotlib.pyplot as plt
 import time
 import math
