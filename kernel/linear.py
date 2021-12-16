@@ -340,9 +340,13 @@ class HUBLinear(torch.nn.Linear):
         
         # weight and bias
         if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1]) == (out_features, in_features), \
+                "Error: the hw config 'out_features, in_features' in " + str(self) + " class unmatches the binary weight shape."
             self.weight.data = weight_ext
         
         if bias and (bias_ext is not None):
+            assert bias_ext.size()[0] == out_features, \
+                "Error: the hw config 'out_features' in " + str(self) + " class unmatches the binary bias shape."
             self.bias.data = bias_ext
         
         swcfg={
@@ -528,9 +532,13 @@ class FXPLinear(torch.nn.Linear):
         
         # weight and bias
         if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1]) == (out_features, in_features), \
+                "Error: the hw config 'out_features, in_features' in " + str(self) + " class unmatches the binary weight shape."
             self.weight.data = weight_ext
         
         if bias and (bias_ext is not None):
+            assert bias_ext.size()[0] == out_features, \
+                "Error: the hw config 'out_features' in " + str(self) + " class unmatches the binary bias shape."
             self.bias.data = bias_ext
         
         # max abs value
