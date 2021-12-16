@@ -5,7 +5,7 @@ from UnarySim.stream import RNG, BinGen, BSGen
 from UnarySim.kernel import conv2d_output_shape, num2tuple
 from UnarySim.kernel import HUBLinearFunction
 from UnarySim.kernel import FXPLinearFunction
-from UnarySim.kernel import FSUAdd
+from UnarySim.kernel import FSUAdd, rshift_offset
 from torch.cuda.amp import autocast
 
 class FSUConv2d(torch.nn.Module):
@@ -344,25 +344,39 @@ class FSUConv2dPC(torch.nn.Conv2d):
 
 class HUBConv2d(torch.nn.Conv2d):
     """
-    This module is the 2d conv layer, with binary input and binary output
-    This cycle is the mac cycle using unipolar umul, i.e., half the bipolar umul. 
-    As such, cycle = 2 ^ (bitwidth - 1).
+    This module is the fully connected layer for binary signed data in fxp format using unary computing.
+    The hardware configuration specifies 
+    1) the data with in bit for input and weight/bias
+    2) the rng type for input and weight/bias
+    3) the quantile to quantize input and weight/bias
+    4) the cycle to early terminate the run
+    5) the rounding mode for both input and weight/bias
+    6) whether to use sign-magnitude format for both input and weight/bias, which can reduce the number of max cycle count to run
     """
-    def __init__(self, 
-                    in_channels, 
-                    out_channels, 
-                    kernel_size, 
-                    stride=1, 
-                    padding=0, 
-                    dilation=1, 
-                    groups=1, 
-                    bias=True, 
-                    padding_mode='zeros', 
-                    weight_ext=None, 
-                    bias_ext=None, 
-                    rng="Sobol", 
-                    cycle=128,
-                    rounding="round"):
+    def __init__(
+        self, 
+        in_channels, 
+        out_channels, 
+        kernel_size, 
+        stride=1, 
+        padding=0, 
+        dilation=1, 
+        groups=1, 
+        bias=True, 
+        padding_mode='zeros', 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "widthi" : 8,
+            "rngi" : "Sobol",
+            "quantilei" : 1,
+            "widthw" : 8,
+            "rngw" : "Sobol",
+            "quantilew" : 1,
+            "cycle" : 128,
+            "rounding" : "round",
+            "signmag" : True
+        }):
         super(HUBConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 
@@ -372,82 +386,128 @@ class HUBConv2d(torch.nn.Conv2d):
                                             groups, 
                                             bias, 
                                             padding_mode)
+        self.hwcfg = {}
+        self.hwcfg["widthi"] = hwcfg["widthi"]
+        self.hwcfg["rngi"] = hwcfg["rngi"].lower()
+        self.hwcfg["quantilei"] = hwcfg["quantilei"]
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["rngw"] = hwcfg["rngw"].lower()
+        self.hwcfg["quantilew"] = hwcfg["quantilew"]
+        self.hwcfg["rounding"] = hwcfg["rounding"].lower()
+        self.hwcfg["signmag"] = hwcfg["signmag"]
+        self.hwcfg["cycle"] = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
+
+        self.itc = (self.hwcfg["rngi"] in ["race", "tc", "race10", "tc10"])
+        self.wtc = (self.hwcfg["rngw"] in ["race", "tc", "race10", "tc10"])
+
+        assert not (self.itc and self.wtc), \
+            "Error: the hw config 'rngi' and 'rngw' in " + str(self) + " class can't adopt temporal coding simultaneously."
+
+        assert self.hwcfg["quantilei"] > 0 and self.hwcfg["quantilei"] <= 1, \
+            "Error: the hw config 'quantilei' of " + str(self) + " class needs to be within (0, 1]."
         
-        assert groups==1, "Supported group number is 1."
-        assert padding_mode=='zeros', "Supported padding_mode number is 'zeros'."
+        assert self.hwcfg["quantilew"] > 0 and self.hwcfg["quantilew"] <= 1, \
+            "Error: the hw config 'quantilew' of " + str(self) + " class needs to be within (0, 1]."
+
+        assert self.hwcfg["rounding"] in ["round", "ceil", "floor"], \
+            "Error: the hw config 'rounding' of " + str(self) + " class requires one of ['round', 'ceil', 'floor']."
+
+        assert self.hwcfg["signmag"] is True, \
+            "Error: the hw config 'signmag' of " + str(self) + " class requires to be True, i.e., always computing on sign-magnitue data, for diverse architectures."
+
+        # maximum possible run cycle
+        self.cycle_max = 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"])
+        # actual run cycle
+        self.cycle_act = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
+
+        assert groups == 1, \
+            "Error: the 'groups' in " + str(self) + " class requires to be 1."
+        assert padding_mode == 'zeros', \
+            "Error: the 'padding_mode' in " + str(self) + " class requires to be 'zeros'."
 
         # weight and bias
         if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1], weight_ext.size()[2], weight_ext.size()[3]) == (out_channels, in_channels, num2tuple(kernel_size)[0], num2tuple(kernel_size)[1]), \
+                "Error: the hw config 'out_channels, in_channels, kernel_size' in " + str(self) + " class unmatches the binary weight shape."
             self.weight.data = weight_ext
         
         if bias and (bias_ext is not None):
+            assert bias_ext.size()[0] == out_channels, \
+                "Error: the hw config 'out_channels' in " + str(self) + " class unmatches the binary bias shape."
             self.bias.data = bias_ext
-            
-        # mac computing cycle
-        self.cycle = cycle
-        
-        # bitwidth of rng
-        self.bitwidth = (self.cycle - 1).bit_length()
-        
-        # random_sequence from sobol RNG
-        self.irng = RNG(self.bitwidth, 1, rng)()
-        self.wrng = RNG(self.bitwidth, 1, "Sobol")()
+
+        swcfg={
+            "btype" : torch.float,
+            "rtype" : torch.float,
+            "stype" : torch.float
+        }
+
+        # random_sequence from RNG
+        hwcfg_irng = {
+            "width" : self.hwcfg["widthi"] - self.hwcfg["signmag"], 
+            "dimr" : 1, 
+            "rng" : self.hwcfg["rngi"]
+        }
+        self.irng = RNG(hwcfg_irng, swcfg)()
+        hwcfg_wrng = {
+            "width" : self.hwcfg["widthw"] - self.hwcfg["signmag"], 
+            "dimr" : 1, 
+            "rng" : self.hwcfg["rngw"]
+        }
+        self.wrng = RNG(hwcfg_wrng, swcfg)()
+
+        if (self.itc) and (not self.wtc):
+            # cbsg controller is input
+            self.rngctler = self.irng
+            self.rngctlee = self.wrng
+        elif (not self.itc) and (self.wtc):
+            # cbsg controller is weight
+            self.rngctler = self.wrng
+            self.rngctlee = self.irng
+        elif (not self.itc) and (not self.wtc):
+            # when rate coding is applied to both input and weight, always control weight with input
+            # the hardware cost of doing this is similar to the opposite
+            self.rngctler = self.irng
+            self.rngctlee = self.wrng
         
         # generate the value map for mul using current rng
         # dim 0 is input index
-        # the tensor input value is the actual value produced by the rng
-        self.input_map = torch.nn.Parameter(torch.empty(cycle), requires_grad=False)
-        input_val_cycle = torch.empty(0)
-        torch.cat(cycle*[torch.as_tensor([c for c in range(cycle)], dtype=torch.float).unsqueeze(1)], 1, out=input_val_cycle)
-        input_bit_cycle = torch.empty(0)
-        torch.gt(input_val_cycle, self.irng.unsqueeze(0), out=input_bit_cycle)
-        self.input_map.data = torch.sum(input_bit_cycle, 1).squeeze_().type(torch.long)
+        # the tensor input value is the actual value produced by the rngctler
+        self.mapctler = torch.nn.Parameter(torch.empty(self.cycle_max), requires_grad=False)
+        cycle_ctlerval = torch.empty(0)
+        torch.cat(self.cycle_max*[torch.arange(self.cycle_max, dtype=torch.float).unsqueeze(1)], 1, out=cycle_ctlerval)
+        cycle_ctlerbit = torch.empty(0)
+        torch.gt(cycle_ctlerval, self.rngctler.unsqueeze(0), out=cycle_ctlerbit)
+        self.mapctler.data = torch.sum(cycle_ctlerbit, 1).squeeze_().type(torch.long)
 
         # dim 0 is input index, dim 1 is weight index
-        # the tensor value is the actual weight value produced by the rng, under a specific input and weight
-        self.wght_map = torch.nn.Parameter(torch.empty(cycle, cycle), requires_grad=False)
-        wght_bit_cycle = torch.empty(0)
-        torch.gt(input_val_cycle, self.wrng.unsqueeze(0), out=wght_bit_cycle)
-        for c in range(cycle):
-            self.wght_map.data[c] = torch.sum(wght_bit_cycle[:, 0:self.input_map.data[c]], 1).squeeze_()
+        # the tensor value is the actual weight value produced by the rngctlee, under a specific input and weight
+        self.mapctlee = torch.nn.Parameter(torch.empty(self.cycle_max, self.cycle_max), requires_grad=False)
+        cycle_ctleebit = torch.empty(0)
+        torch.gt(cycle_ctlerval, self.rngctlee.unsqueeze(0), out=cycle_ctleebit)
+        for c in range(self.cycle_max):
+            self.mapctlee.data[c] = torch.sum(cycle_ctleebit[:, 0:self.mapctler.data[c]], 1).squeeze_()
         
-        # rounding mode
-        self.rounding = rounding
-        
-        self.rshift_input = None
-        self.rshift_wght = None
-        self.rshift_output = None
+        self.rshift_i = None
+        self.rshift_w = None
+        self.rshift_o = None
     
     @autocast()
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
+        self.rshift_i, self.rshift_w, self.rshift_o = \
+            rshift_offset(input, self.weight, self.hwcfg["widthi"] - self.hwcfg["signmag"], self.hwcfg["widthw"] - self.hwcfg["signmag"], self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
+        
         with torch.no_grad():
-            input_max_int = input.abs().max().log2()
-            wght_max_int = self.weight.abs().max().log2()
-            if self.rounding == "round":
-                input_max_int = input_max_int.round()
-                wght_max_int = wght_max_int.round()
-            elif self.rounding == "floor":
-                input_max_int = input_max_int.floor()
-                wght_max_int = wght_max_int.floor()
-            elif self.rounding == "ceil":
-                input_max_int = input_max_int.ceil()
-                wght_max_int = wght_max_int.ceil()
-
-            self.rshift_input = input_max_int - self.bitwidth
-            self.rshift_wght = wght_max_int - self.bitwidth
-            self.rshift_output = self.bitwidth - input_max_int - wght_max_int
-            
             # all data are in NCHW
             output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
 
-        # See the autograd section for explanation of what happens here.
         input_im2col = torch.nn.functional.unfold(input, self.kernel_size, self.dilation, self.padding, self.stride)
         input_transpose = input_im2col.transpose(1, 2)
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size()[0], -1)
-        mm_out = HUBLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.cycle, self.wght_map)
+        mm_out = HUBLinearFunction.apply(input_reshape, weight, None, self.rshift_i, self.rshift_w, self.rshift_o, self.cycle_act, self.mapctlee)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
@@ -462,22 +522,26 @@ class FXPConv2d(torch.nn.Conv2d):
     """
     This module is the 2d conv layer, with binary input and binary output
     """
-    def __init__(self, 
-                    in_channels, 
-                    out_channels, 
-                    kernel_size, 
-                    stride=1, 
-                    padding=0, 
-                    dilation=1, 
-                    groups=1, 
-                    bias=True, 
-                    padding_mode='zeros', 
-                    weight_ext=None, 
-                    bias_ext=None, 
-                    bitwidth=8,
-                    keep_res="input", # keep the resolution of input/output
-                    more_res="input", # assign more resolution to input/weight
-                    rounding="round"):
+    def __init__(
+        self, 
+        in_channels, 
+        out_channels, 
+        kernel_size, 
+        stride=1, 
+        padding=0, 
+        dilation=1, 
+        groups=1, 
+        bias=True, 
+        padding_mode='zeros', 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "widthi" : 8,
+            "quantilei" : 1,
+            "widthw" : 8,
+            "quantilew" : 1,
+            "rounding" : "round"
+        }):
         super(FXPConv2d, self).__init__(in_channels, 
                                             out_channels, 
                                             kernel_size, 
@@ -490,71 +554,40 @@ class FXPConv2d(torch.nn.Conv2d):
 
         assert groups==1, "Supported group number is 1."
         assert padding_mode=='zeros', "Supported padding_mode number is 'zeros'."
-
+        self.hwcfg = {}
+        self.hwcfg["widthi"] = hwcfg["widthi"]
+        self.hwcfg["quantilei"] = hwcfg["quantilei"]
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["quantilew"] = hwcfg["quantilew"]
+        self.hwcfg["rounding"] = hwcfg["rounding"].lower()
+        
         # weight and bias
         if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1], weight_ext.size()[2], weight_ext.size()[3]) == (out_channels, in_channels, num2tuple(kernel_size)[0], num2tuple(kernel_size)[1]), \
+                "Error: the hw config 'out_channels, in_channels, kernel_size' in " + str(self) + " class unmatches the binary weight shape."
             self.weight.data = weight_ext
         
         if bias and (bias_ext is not None):
+            assert bias_ext.size()[0] == out_channels, \
+                "Error: the hw config 'out_channels' in " + str(self) + " class unmatches the binary bias shape."
             self.bias.data = bias_ext
-            
-        # bitwidth of abs
-        if isinstance(bitwidth, tuple):
-            self.bw_input, self.bw_wght = (bitwidth[0]-1, bitwidth[1]-1)
-        else:
-            if keep_res == "input":
-                self.bw_input, self.bw_wght = (bitwidth-1, bitwidth-1)
-            elif keep_res == "output":
-                if bitwidth % 2 == 0:
-                    self.bw_input, self.bw_wght = (int(bitwidth/2 - 1), int(bitwidth/2 - 1))
-                else:
-                    if more_res == "input":
-                        self.bw_input, self.bw_wght = (int((bitwidth+1)/2 - 1), int((bitwidth-1)/2 - 1))
-                    elif more_res == "weight":
-                        self.bw_input, self.bw_wght = (int((bitwidth-1)/2 - 1), int((bitwidth+1)/2 - 1))
-                    else:
-                        raise ValueError("more_res should be either 'input' or 'weight' when bitwidth is not a tuple and keep_res is 'output'.")
-            else:
-                raise ValueError("keep_res should be either 'input' or 'output' when bitwidth is not a tuple.")
         
         # max abs value
-        self.max_abs_input = 2**self.bw_input
-        self.max_abs_wght = 2**self.bw_wght
+        self.max_abs_i = 2**self.hwcfg["widthi"]
+        self.max_abs_w = 2**self.hwcfg["widthw"]
         
-        # rounding mode
-        self.rounding = rounding
-        
-        self.rshift_input = None
-        self.rshift_wght = None
-        self.rshift_output = None
+        self.rshift_i = None
+        self.rshift_w = None
+        self.rshift_o = None
     
     @autocast()
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
+        self.rshift_i, self.rshift_w, _ = \
+            rshift_offset(input, self.weight, self.hwcfg["widthi"] - 1, self.hwcfg["widthw"] - 1, self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
+        self.rshift_o = 0 - self.rshift_i - self.rshift_w
+
         with torch.no_grad():
-            if self.rshift_input is None:
-                input_max_int = input.abs().max().log2()
-                if self.rounding == "round":
-                    input_max_int = input_max_int.round()
-                elif self.rounding == "floor":
-                    input_max_int = input_max_int.floor()
-                elif self.rounding == "ceil":
-                    input_max_int = input_max_int.ceil()
-                self.rshift_input = input_max_int - self.bw_input
-            
-            if self.rshift_wght is None:
-                wght_max_int = self.weight.abs().max().log2()
-                if self.rounding == "round":
-                    wght_max_int = wght_max_int.round()
-                elif self.rounding == "floor":
-                    wght_max_int = wght_max_int.floor()
-                elif self.rounding == "ceil":
-                    wght_max_int = wght_max_int.ceil()
-                self.rshift_wght = wght_max_int - self.bw_wght
-                
-            if self.rshift_output is None:
-                self.rshift_output = 0 - self.rshift_input - self.rshift_wght
-            
             # all data are in NCHW
             output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
 
@@ -564,7 +597,7 @@ class FXPConv2d(torch.nn.Conv2d):
         input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
 
         weight = self.weight.view(self.weight.size()[0], -1)
-        mm_out = FXPLinearFunction.apply(input_reshape, weight, None, self.rshift_input, self.rshift_wght, self.rshift_output, self.max_abs_input, self.max_abs_wght)
+        mm_out = FXPLinearFunction.apply(input_reshape, weight, None, self.rshift_i, self.rshift_w, self.rshift_o, self.max_abs_i, self.max_abs_w)
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
