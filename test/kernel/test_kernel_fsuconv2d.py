@@ -1,23 +1,25 @@
+import math
 import torch
-from UnarySim.kernel import FSULinear
+from UnarySim.kernel import FSUConv2d
 from UnarySim.stream import RNG, BinGen, BSGen
 from UnarySim.metric import ProgError
 import matplotlib.pyplot as plt
 import time
 import torch.autograd.profiler as profiler
+from UnarySim.kernel import conv2d_output_shape, num2tuple
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def test_fsulinear():
+def test_fsuconv2d():
     plot_en=False
 
     hwcfg_input={
-        "width" : 12,
+        "width" : 8,
         "rng" : "Sobol",
         "dimr" : 1
     }
     hwcfg={
-        "width" : 12,
+        "width" : 8,
         "mode" : "bipolar",
         "scale" : None,
         "depth" : 20,
@@ -31,9 +33,17 @@ def test_fsulinear():
     }
 
     rng = hwcfg["rng"]
-    in_feature = 256
-    out_feature = 1000
-    bias = True
+    
+    in_channels=32 
+    out_channels=16 
+    kernel_size=3 
+    stride=2 
+    padding=0 
+    dilation=1 
+    groups=1 
+    bias=True 
+    padding_mode='zeros' 
+
     modes = ["bipolar", "unipolar"]
     scaled = [True, False]
     result_pe = []
@@ -42,27 +52,28 @@ def test_fsulinear():
         for scale in scaled:
             hwcfg["mode"] = mode
             hwcfg_input["mode"] = mode
-            hwcfg["scale"] = (in_feature + bias) if scale else 1
+            hwcfg["scale"] = (kernel_size * kernel_size * in_channels + bias) if scale else 1
+
             length = 2**hwcfg["width"]
             length_input = 2**hwcfg_input["width"]
-
             result_pe_cycle = []
-            fc = torch.nn.Linear(in_feature, out_feature, bias=bias).to(device)
+            conv2d = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, dilation=dilation, groups=groups, bias=bias, padding_mode=padding_mode).to(device)
             
             if mode == "unipolar":
-                fc.weight.data = torch.rand(out_feature, in_feature).mul(length).round().div(length).to(device)
+                conv2d.weight.data = torch.rand(out_channels, in_channels, kernel_size, kernel_size).mul(length).round().div(length).to(device)
                 if bias is True:
-                    fc.bias.data = torch.rand(out_feature).mul(length).round().div(length).to(device)
+                    conv2d.bias.data = torch.rand(out_channels).mul(length).round().div(length).to(device)
             elif mode == "bipolar":
-                fc.weight.data = torch.rand(out_feature, in_feature).mul(2).sub(1).mul(length).round().div(length).to(device)
+                conv2d.weight.data = torch.rand(out_channels, in_channels, kernel_size, kernel_size).mul(2).sub(1).mul(length).round().div(length).to(device)
                 if bias is True:
-                    fc.bias.data = torch.rand(out_feature).mul(2).sub(1).mul(length).round().div(length).to(device)
+                    conv2d.bias.data = torch.rand(out_channels).mul(2).sub(1).mul(length).round().div(length).to(device)
 
-            ufc = FSULinear(in_feature, out_feature, bias=bias, weight_ext=fc.weight, bias_ext=fc.bias, 
-                              hwcfg=hwcfg, swcfg=swcfg).to(device)
+            uconv2d = FSUConv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, dilation=dilation, groups=groups, bias=bias, padding_mode=padding_mode, 
+                                weight_ext=conv2d.weight, bias_ext=conv2d.bias, hwcfg=hwcfg, swcfg=swcfg).to(device)
 
-            iVec = ((torch.rand(1, in_feature)*length_input).round()/length_input).to(device)
-            oVec = fc(iVec)
+            input_size = (128, 32)
+            iVec = ((torch.rand(32, in_channels, input_size[0], input_size[1])*length_input).round()/length_input).to(device)
+            oVec = conv2d(iVec)
 
             iVecSource = BinGen(iVec, hwcfg, swcfg)().to(device)
             iVecRNG = RNG(hwcfg_input, swcfg)().to(device)
@@ -71,19 +82,19 @@ def test_fsulinear():
             hwcfg["scale"] = 1
             iVecPE = ProgError(iVec, hwcfg).to(device)
 
-            hwcfg["scale"] = (in_feature + bias) if scale else 1
+            hwcfg["scale"] = (kernel_size * kernel_size * in_channels + bias) if scale else 1
             oVecPE = ProgError(oVec, hwcfg).to(device)
             
             with torch.no_grad():
                 idx = torch.zeros(iVecSource.size()).type(torch.long).to(device)
                 start_time = time.time()
-                for i in range(max(length, length_input)):
+                for i in range(length):
                     iBS = iVecBS(idx + i)
                     iVecPE.Monitor(iBS)
 
-                    oVecU = ufc(iBS)
+                    oVecU = uconv2d(iBS)
                     oVecPE.Monitor(oVecU)
-                    rmse = torch.sqrt(torch.mean(torch.mul(oVecPE()[1], oVecPE()[1])))
+                    rmse = torch.sqrt(torch.sum(torch.mul(oVecPE()[1], oVecPE()[1]))/torch.prod(torch.tensor(oVecPE()[1].size())))
                     if plot_en is True:
                         result_pe_cycle.append(1-rmse.item())
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -104,4 +115,5 @@ def test_fsulinear():
 
 
 if __name__ == '__main__':
-    test_fsulinear()
+    test_fsuconv2d()
+

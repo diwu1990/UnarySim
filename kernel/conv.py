@@ -1,5 +1,6 @@
 import torch
 import math
+import copy
 from UnarySim.stream import RNG, BinGen, BSGen
 from UnarySim.kernel import conv2d_output_shape, num2tuple
 from UnarySim.kernel import HUBLinearFunction
@@ -11,142 +12,210 @@ class FSUConv2d(torch.nn.Module):
     """
     This module is for convolution with unary input and output
     """
-    def __init__(self, 
-                    in_channels, 
-                    out_channels, 
-                    kernel_size, 
-                    stride=1, 
-                    padding=0, 
-                    dilation=1, 
-                    groups=1, 
-                    bias=True, 
-                    padding_mode='zeros', 
-                    binary_weight=None, 
-                    binary_bias=None, 
-                    bitwidth=8, 
-                    mode="bipolar", 
-                    scaled=True, 
-                    scale=None, 
-                    depth=12, 
-                    btype=torch.float, 
-                    rtype=torch.float, 
-                    stype=torch.float):
+    def __init__(
+        self, 
+        in_channels, 
+        out_channels, 
+        kernel_size, 
+        stride=1, 
+        padding=0, 
+        dilation=1, 
+        groups=1, 
+        bias=True, 
+        padding_mode='zeros', 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "width" : 8,
+            "mode" : "bipolar",
+            "scale" : None,
+            "depth" : 12,
+            "rng" : "Sobol",
+            "dimr" : 1
+        },
+        swcfg={
+            "btype" : torch.float, 
+            "rtype" : torch.float, 
+            "stype" : torch.float
+        }):
         super(FSUConv2d, self).__init__()
 
-        self.stype = stype
-        self.PC = FSUConv2dPC(in_channels, 
-                                out_channels, 
-                                kernel_size, 
-                                stride=stride, 
-                                padding=padding, 
-                                dilation=dilation, 
-                                groups=groups, 
-                                bias=bias, 
-                                padding_mode=padding_mode, 
-                                binary_weight=binary_weight, 
-                                binary_bias=binary_bias, 
-                                bitwidth=bitwidth, 
-                                mode=mode, 
-                                btype=btype, 
-                                rtype=rtype, 
-                                stype=stype)
-        if scaled is True:
-            if scale is None:
-                scale_add = math.prod(num2tuple(kernel_size)) * in_channels + bias
-            else:
-                scale_add = scale
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+        self.hwcfg["scale"] = hwcfg["scale"]
+        self.hwcfg["depth"] = hwcfg["depth"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
+        self.hwcfg["dimr"] = hwcfg["dimr"]
+
+        self.swcfg = {}
+        self.swcfg["btype"] = swcfg["btype"]
+        self.swcfg["rtype"] = swcfg["rtype"]
+        self.swcfg["stype"] = swcfg["stype"]
+
+        if (hwcfg["mode"].lower() == "bipolar") and (hwcfg["scale"] is not None) and (hwcfg["scale"] != (math.prod(num2tuple(kernel_size)) * in_channels + bias)):
+            assert self.hwcfg["rng"].lower() not in ["race", "tc", "race10", "tc10"], \
+                "Error: the hw config 'rng' in " + str(self) + " class should avoid ['race', 'tc', 'race10', 'tc10'] for bipolar data with non-scaled addition."
+
+        assert self.swcfg["btype"] == torch.float, \
+            "Error: the sw config 'btype' in " + str(self) + " class requires 'torch.float'."
+        assert self.swcfg["rtype"] == torch.float, \
+            "Error: the sw config 'rtype' in " + str(self) + " class requires 'torch.float'."
+        assert self.swcfg["stype"] == torch.float, \
+            "Error: the sw config 'stype' in " + str(self) + " class requires 'torch.float'."
+
+        self.PC = FSUConv2dPC(
+            in_channels, 
+            out_channels, 
+            kernel_size, 
+            stride=stride, 
+            padding=padding, 
+            dilation=dilation, 
+            groups=groups, 
+            bias=bias, 
+            padding_mode=padding_mode, 
+            weight_ext=weight_ext, 
+            bias_ext=bias_ext, 
+            hwcfg=self.hwcfg,
+            swcfg=self.swcfg)
+        
+        self.scale = hwcfg["scale"]
+        if self.scale is None:
+            scale_add = math.prod(num2tuple(kernel_size)) * in_channels + bias
         else:
-            scale_add = 1.0
-        self.ACC = FSUAdd(mode=mode, 
-                                scaled=scaled, 
-                                scale=scale_add, 
-                                dim=0, 
-                                depth=depth, 
-                                entry=math.prod(num2tuple(kernel_size)) * in_channels + bias, 
-                                stype=stype)
+            scale_add = self.scale
+        hwcfg_acc = copy.deepcopy(self.hwcfg)
+        hwcfg_acc["scale"] = scale_add
+        hwcfg_acc["entry"] = math.prod(num2tuple(kernel_size)) * in_channels + bias
+        # the pc result is unsqueezed before fed to the accumulator, so accumulation dim of FSUAdd is 0.
+        hwcfg_acc["dima"] = 0
+        self.ACC = FSUAdd(
+            hwcfg_acc,
+            self.swcfg)
 
     @autocast()
     def forward(self, input, scale=None, entry=None):
         pc = self.PC(input)
         output = self.ACC(pc.unsqueeze(0), scale, entry)
-        return output.type(self.stype)
+        return output
 
 
 class FSUConv2dPC(torch.nn.Conv2d):
     """
-    This module is for convolution with unary input and output
+    This module is the parallel counter result of FSUConv2dPC before generating the bitstreams.
+    The allowed coding for input, weight and bias with guaranteed accuracy can have the following three options.
+    (input, weight, bias):
+    1) rate, rate, rate
+    2) rate, temporal, rate
+    3) temporal, rate, rate
+    However, this module itself does not force the input coding. Thus, above coding constraints should be done by users.
     """
-    def __init__(self, 
-                    in_channels, 
-                    out_channels, 
-                    kernel_size, 
-                    stride=1, 
-                    padding=0, 
-                    dilation=1, 
-                    groups=1, 
-                    bias=True, 
-                    padding_mode='zeros', 
-                    binary_weight=None, 
-                    binary_bias=None, 
-                    bitwidth=8, 
-                    mode="bipolar", 
-                    btype=torch.float, 
-                    rtype=torch.float, 
-                    stype=torch.float):
+    def __init__(
+        self, 
+        in_channels, 
+        out_channels, 
+        kernel_size, 
+        stride=1, 
+        padding=0, 
+        dilation=1, 
+        groups=1, 
+        bias=True, 
+        padding_mode='zeros', 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "width" : 8,
+            "mode" : "bipolar",
+            "rng" : "Sobol",
+            "dimr" : 1
+        },
+        swcfg={
+            "btype" : torch.float, 
+            "rtype" : torch.float, 
+            "stype" : torch.float
+        }):
         super(FSUConv2dPC, self).__init__(in_channels, out_channels, kernel_size, 
                                         stride=stride, padding=padding, dilation=dilation, groups=groups, bias=bias, padding_mode=padding_mode)
+        
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
+        self.hwcfg["dimr"] = hwcfg["dimr"]
+
+        self.swcfg = {}
+        self.swcfg["btype"] = swcfg["btype"]
+        self.swcfg["rtype"] = swcfg["rtype"]
+        self.swcfg["stype"] = swcfg["stype"]
+        
+        self.mode = hwcfg["mode"].lower()
+        assert self.mode in ["unipolar", "bipolar"], \
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
+
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
         self.dilation = dilation
-        self.has_bias = bias
-        self.mode = mode
-        self.stype = stype
-        self.btype = btype
-        self.rtype = rtype
-
-        assert groups==1, "Supported group number is 1."
-        assert padding_mode=='zeros', "Supported padding_mode number is 'zeros'."
-
-        self.mode = mode
         
+        assert groups == 1, \
+            "Error: the 'groups' in " + str(self) + " class requires to be 1."
+        assert padding_mode == 'zeros', \
+            "Error: the 'padding_mode' in " + str(self) + " class requires to be 'zeros'."
+
         # bias indication for original linear layer
         self.has_bias = bias
         
-        # data bit width
-        self.bitwidth = bitwidth
-        
-        # random_sequence from sobol RNG
-        self.rng = RNG(self.bitwidth, 1, "Sobol")()
-        
+        # RNG for weight
+        hwcfg_wrng = {
+            "width" : hwcfg["width"],
+            "rng" : hwcfg["rng"],
+            "dimr" : hwcfg["dimr"]
+        }
+        self.wrng = RNG(hwcfg_wrng, swcfg)()
+        if hwcfg["rng"].lower() in ["race", "tc", "race10", "tc10"]:
+            self.wtc = True
+        else:
+            self.wtc = False
+
         # define the linear weight and bias
-        if binary_weight is not None:
-            self.weight.data = BinGen(binary_weight, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+        if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1], weight_ext.size()[2], weight_ext.size()[3]) == (out_channels, in_channels, num2tuple(kernel_size)[0], num2tuple(kernel_size)[1]), \
+                "Error: the hw config 'out_channels, in_channels, kernel_size' in " + str(self) + " class unmatches the binary weight shape."
+            self.weight.data = BinGen(weight_ext, self.hwcfg, self.swcfg)()
         
-        if bias and (binary_bias is not None):
-            self.bias.data = BinGen(binary_bias, bitwidth=self.bitwidth, mode=mode, rtype=rtype)()
+        if bias and (bias_ext is not None):
+            assert bias_ext.size()[0] == out_channels, \
+                "Error: the hw config 'out_channels' in " + str(self) + " class unmatches the binary bias shape."
+            self.bias.data = BinGen(bias_ext, self.hwcfg, self.swcfg)()
+            # RNG for bias, same as RNG for weight
+            hwcfg_brng = {
+                "width" : hwcfg["width"],
+                "rng" : hwcfg["rng"],
+                "dimr" : hwcfg["dimr"]
+            }
+            self.brng = RNG(hwcfg_brng, swcfg)()
 
-        # define the kernel linear
-        self.weight_bsg = BSGen(self.weight.view(1, self.weight.size()[0], -1), self.rng, stype=stype)
-        self.weight_rng_idx = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).view(1, self.weight.size()[0], -1)
+        # define the kernel linear for input bit 1
+        self.wbsg_i1 = BSGen(self.weight.view(1, self.weight.size()[0], -1), self.wrng, swcfg)
+        self.wrdx_i1 = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).view(1, self.weight.size()[0], -1)
         if self.has_bias is True:
-            self.bias_bsg = BSGen(self.bias, self.rng, stype=stype)
-            self.bias_rng_idx = torch.nn.Parameter(torch.zeros_like(self.bias, dtype=torch.long), requires_grad=False)
+            self.bbsg = BSGen(self.bias, self.brng, swcfg)
+            self.brdx = torch.nn.Parameter(torch.zeros_like(self.bias, dtype=torch.long), requires_grad=False)
         
-        # if bipolar, define a kernel with inverse input, note that there is no bias required for this inverse kernel
-        if self.mode == "bipolar":
-            self.weight_bsg_inv = BSGen(self.weight.view(1, self.weight.size()[0], -1), self.rng, stype=stype)
-            self.weight_rng_idx_inv = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).view(1, self.weight.size()[0], -1)
-
+        # if bipolar, define a kernel for input bit 0, note that there is no bias required for this kernel
+        if (self.mode == "bipolar") and (self.wtc is False):
+            self.wbsg_i0 = BSGen(self.weight.view(1, self.weight.size()[0], -1), self.wrng, swcfg)
+            self.wrdx_i0 = torch.nn.Parameter(torch.zeros_like(self.weight, dtype=torch.long), requires_grad=False).view(1, self.weight.size()[0], -1)
+            
         # indicator of even/odd cycle
         self.even_cycle_flag = torch.nn.Parameter(torch.ones(1, dtype=torch.bool), requires_grad=False)
         self.padding_0 = torch.nn.ConstantPad2d(self.padding, 0)
         self.padding_1 = torch.nn.ConstantPad2d(self.padding, 1)
         self.bipolar_mode = torch.nn.Parameter(torch.tensor([self.mode == "bipolar"], dtype=torch.bool), requires_grad=False)
 
-    def FSUConv2d_PC(self, input):
+    def FSUConv2d_PC_wrc(self, input):
         output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
 
         if True in self.even_cycle_flag:
@@ -166,49 +235,111 @@ class FSUConv2dPC(torch.nn.Conv2d):
         batch = input_reshape.size()[0]
 
         # generate weight and bias bits for current cycle
-        weight_bs = self.weight_bsg(self.weight_rng_idx).type(torch.float)
-        if weight_bs.size()[0] != batch:
-            weight_bs = torch.cat(batch*[weight_bs], 0)
-            self.weight_rng_idx = torch.cat(batch*[self.weight_rng_idx], 0)
-        torch.add(self.weight_rng_idx, input_reshape.type(torch.long), out=self.weight_rng_idx)
+        wbit_i1 = self.wbsg_i1(self.wrdx_i1).type(torch.float)
+        if wbit_i1.size()[0] != batch:
+            wbit_i1 = torch.cat(batch*[wbit_i1], 0)
+            self.wrdx_i1 = torch.cat(batch*[self.wrdx_i1], 0)
+        torch.add(self.wrdx_i1, input_reshape.type(torch.long), out=self.wrdx_i1)
         
-        kernel_out = torch.empty(0, device=input.device)
-        torch.matmul(input_reshape.type(torch.float), weight_bs.transpose(1, 2), out=kernel_out)
-        kernel_out.squeeze_(1)
+        ibit_i1 = input_reshape.type(torch.float)
+        obin_i1 = torch.empty(0, device=input.device)
+        torch.matmul(ibit_i1, wbit_i1.transpose(1, 2), out=obin_i1)
+        obin_i1.squeeze_(1)
         
-        kernel_out_reshape = kernel_out.reshape(input.size()[0], -1, kernel_out.size()[-1])
-        kernel_out_transpose = kernel_out_reshape.transpose(1, 2)
-        kernel_out_fold = torch.nn.functional.fold(kernel_out_transpose, output_size, (1, 1))
+        obin_reshape_i1 = obin_i1.reshape(input.size()[0], -1, obin_i1.size()[-1])
+        obin_transpose_i1 = obin_reshape_i1.transpose(1, 2)
+        obin_fold_i1 = torch.nn.functional.fold(obin_transpose_i1, output_size, (1, 1))
 
         if self.has_bias is True:
-            bias_bs = self.bias_bsg(self.bias_rng_idx).type(torch.float)
-            self.bias_rng_idx.add_(1)
-            kernel_out_fold += bias_bs.view(1, -1, 1, 1).expand_as(kernel_out_fold)
+            bbit = self.bbsg(self.brdx).type(torch.float)
+            self.brdx.add_(1)
+            obin_fold_i1 += bbit.view(1, -1, 1, 1).expand_as(obin_fold_i1)
 
         if self.mode == "unipolar":
-            return kernel_out_fold
+            return obin_fold_i1
         
         if self.mode == "bipolar":
             # generate weight and bias bits for current cycle
-            weight_bs_inv = 1 - self.weight_bsg_inv(self.weight_rng_idx_inv).type(torch.float)
-            if weight_bs_inv.size()[0] != batch:
-                weight_bs_inv = torch.cat(batch*[weight_bs_inv], 0)
-                self.weight_rng_idx_inv = torch.cat(batch*[self.weight_rng_idx_inv], 0)
-            torch.add(self.weight_rng_idx_inv, 1 - input_reshape.type(torch.long), out=self.weight_rng_idx_inv)
+            wbit_i0 = 1 - self.wbsg_i0(self.wrdx_i0).type(torch.float)
+            if wbit_i0.size()[0] != batch:
+                wbit_i0 = torch.cat(batch*[wbit_i0], 0)
+                self.wrdx_i0 = torch.cat(batch*[self.wrdx_i0], 0)
+            torch.add(self.wrdx_i0, 1 - input_reshape.type(torch.long), out=self.wrdx_i0)
             
-            kernel_out_inv = torch.empty(0, device=input.device)
-            torch.matmul(1 - input_reshape.type(torch.float), weight_bs_inv.transpose(1, 2), out=kernel_out_inv)
-            kernel_out_inv.squeeze_(1)
+            ibit_i0 = 1 - ibit_i1
+            obin_i0 = torch.empty(0, device=input.device)
+            torch.matmul(ibit_i0, wbit_i0.transpose(1, 2), out=obin_i0)
+            obin_i0.squeeze_(1)
             
-            kernel_out_reshape_inv = kernel_out_inv.reshape(input.size()[0], -1, kernel_out_inv.size()[-1])
-            kernel_out_transpose_inv = kernel_out_reshape_inv.transpose(1, 2)
-            kernel_out_fold_inv = torch.nn.functional.fold(kernel_out_transpose_inv, output_size, (1, 1))
+            obin_reshape_i0 = obin_i0.reshape(input.size()[0], -1, obin_i0.size()[-1])
+            obin_transpose_i0 = obin_reshape_i0.transpose(1, 2)
+            obin_fold_i0 = torch.nn.functional.fold(obin_transpose_i0, output_size, (1, 1))
 
-            return kernel_out_fold + kernel_out_fold_inv
+            return obin_fold_i1 + obin_fold_i0
+    
+    def FSUConv2d_PC_wtc(self, input):
+        output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
+
+        if True in self.even_cycle_flag:
+            input_padding = self.padding_0(input)
+        else:
+            input_padding = self.padding_1(input)
+
+        # if unipolar mode, even_cycle_flag is always False to pad 0.
+        self.even_cycle_flag.data = self.bipolar_mode ^ self.even_cycle_flag
+
+        # See the autograd section for explanation of what happens here.
+        input_im2col = torch.nn.functional.unfold(input_padding, self.kernel_size, self.dilation, 0, self.stride)
+        input_transpose = input_im2col.transpose(1, 2)
+        input_reshape = input_transpose.reshape(-1, 1, input_transpose.size()[-1])
+
+        # first dim should always be batch
+        batch = input_reshape.size()[0]
+
+        # generate weight and bias bits for current cycle
+        wbit_i1 = self.wbsg_i1(self.wrdx_i1).type(torch.float)
+        if wbit_i1.size()[0] != batch:
+            wbit_i1 = torch.cat(batch*[wbit_i1], 0)
+            self.wrdx_i1 = torch.cat(batch*[self.wrdx_i1], 0)
+        torch.add(self.wrdx_i1, torch.ones_like(input_reshape).type(torch.long), out=self.wrdx_i1)
+        
+        ibit_i1 = input_reshape.type(torch.float)
+        obin_i1 = torch.empty(0, device=input.device)
+        torch.matmul(ibit_i1, wbit_i1.transpose(1, 2), out=obin_i1)
+        obin_i1.squeeze_(1)
+        
+        obin_reshape_i1 = obin_i1.reshape(input.size()[0], -1, obin_i1.size()[-1])
+        obin_transpose_i1 = obin_reshape_i1.transpose(1, 2)
+        obin_fold_i1 = torch.nn.functional.fold(obin_transpose_i1, output_size, (1, 1))
+
+        if self.has_bias is True:
+            bbit = self.bbsg(self.brdx).type(torch.float)
+            self.brdx.add_(1)
+            obin_fold_i1 += bbit.view(1, -1, 1, 1).expand_as(obin_fold_i1)
+
+        if self.mode == "unipolar":
+            return obin_fold_i1
+        
+        if self.mode == "bipolar":
+            # generate weight and bias bits for current cycle
+            wbit_i0 = 1 - wbit_i1
+            ibit_i0 = 1 - ibit_i1
+            obin_i0 = torch.empty(0, device=input.device)
+            torch.matmul(ibit_i0, wbit_i0.transpose(1, 2), out=obin_i0)
+            obin_i0.squeeze_(1)
+            
+            obin_reshape_i0 = obin_i0.reshape(input.size()[0], -1, obin_i0.size()[-1])
+            obin_transpose_i0 = obin_reshape_i0.transpose(1, 2)
+            obin_fold_i0 = torch.nn.functional.fold(obin_transpose_i0, output_size, (1, 1))
+
+            return obin_fold_i1 + obin_fold_i0
 
     @autocast()
     def forward(self, input):
-        return self.FSUConv2d_PC(input).type(self.stype)
+        if self.wtc:
+            return self.FSUConv2d_PC_wtc(input).type(self.swcfg["stype"])
+        else:
+            return self.FSUConv2d_PC_wrc(input).type(self.swcfg["stype"])
 
 
 class HUBConv2d(torch.nn.Conv2d):
@@ -227,8 +358,8 @@ class HUBConv2d(torch.nn.Conv2d):
                     groups=1, 
                     bias=True, 
                     padding_mode='zeros', 
-                    binary_weight=None, 
-                    binary_bias=None, 
+                    weight_ext=None, 
+                    bias_ext=None, 
                     rng="Sobol", 
                     cycle=128,
                     rounding="round"):
@@ -246,11 +377,11 @@ class HUBConv2d(torch.nn.Conv2d):
         assert padding_mode=='zeros', "Supported padding_mode number is 'zeros'."
 
         # weight and bias
-        if binary_weight is not None:
-            self.weight.data = binary_weight
+        if weight_ext is not None:
+            self.weight.data = weight_ext
         
-        if bias and (binary_bias is not None):
-            self.bias.data = binary_bias
+        if bias and (bias_ext is not None):
+            self.bias.data = bias_ext
             
         # mac computing cycle
         self.cycle = cycle
@@ -341,8 +472,8 @@ class FXPConv2d(torch.nn.Conv2d):
                     groups=1, 
                     bias=True, 
                     padding_mode='zeros', 
-                    binary_weight=None, 
-                    binary_bias=None, 
+                    weight_ext=None, 
+                    bias_ext=None, 
                     bitwidth=8,
                     keep_res="input", # keep the resolution of input/output
                     more_res="input", # assign more resolution to input/weight
@@ -361,11 +492,11 @@ class FXPConv2d(torch.nn.Conv2d):
         assert padding_mode=='zeros', "Supported padding_mode number is 'zeros'."
 
         # weight and bias
-        if binary_weight is not None:
-            self.weight.data = binary_weight
+        if weight_ext is not None:
+            self.weight.data = weight_ext
         
-        if bias and (binary_bias is not None):
-            self.bias.data = binary_bias
+        if bias and (bias_ext is not None):
+            self.bias.data = bias_ext
             
         # bitwidth of abs
         if isinstance(bitwidth, tuple):
@@ -442,3 +573,4 @@ class FXPConv2d(torch.nn.Conv2d):
             return output
         else:
             return output + self.bias.view([1, self.bias.size()[0], 1, 1])
+
