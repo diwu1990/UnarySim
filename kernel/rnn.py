@@ -57,6 +57,9 @@ class FSUMGUCell(torch.nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
 
+        assert self.hwcfg["mode"] in ["bipolar"], \
+            "Error: the hw config 'mode' in " + str(self) + " class requires 'bipolar'."
+
         assert (weight_ext_f.size()[0], weight_ext_f.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_f shape."
         assert (weight_ext_n.size()[0], weight_ext_n.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_n shape."
         if bias is True:
