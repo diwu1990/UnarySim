@@ -1,5 +1,6 @@
 import math
 import torch
+import copy
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,7 +9,7 @@ from UnarySim.kernel import FSUMul
 from UnarySim.kernel import FSULinear
 from torch.cuda.amp import autocast
 from typing import List, Tuple, Optional, overload, Union
-from UnarySim.kernel import HUBHardsigmoid
+from UnarySim.kernel import HUBHardsigmoid, HUBHardtanh
 from UnarySim.kernel import truncated_normal, Round
 from UnarySim.stream import BinGen, RNG, BSGen
 from UnarySim.metric import ProgError
@@ -21,31 +22,93 @@ class FSUMGUCell(torch.nn.Module):
     This module follows the uBrain implementation style to maximize hardware reuse.
     """
 
-    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, 
-                    binary_weight_f=None, binary_bias_f=None, binary_weight_n=None, binary_bias_n=None, 
-                    hx_buffer=None, 
-                    bitwidth=8, mode="bipolar", depth=10, depth_ismul=6) -> None:
+    def __init__(
+        self, 
+        input_size: int, hidden_size: int, bias: bool = True, 
+        weight_ext_f=None, bias_ext_f=None, weight_ext_n=None, bias_ext_n=None, 
+        hx_buffer=None, 
+        hwcfg={
+            "width" : 8,
+            "mode" : "bipolar",
+            "depth" : 10,
+            "depth_ismul" : 6,
+            "rng" : "Sobol",
+            "dimr" : 1
+        },
+        swcfg={
+            "btype" : torch.float,
+            "rtype" : torch.float,
+            "stype" : torch.float
+        }) -> None:
         super(FSUMGUCell, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+        self.hwcfg["depth"] = hwcfg["depth"]
+        self.hwcfg["depth_ismul"] = hwcfg["depth_ismul"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
+        self.hwcfg["dimr"] = hwcfg["dimr"]
+
+        self.swcfg = {}
+        self.swcfg["btype"] = swcfg["btype"]
+        self.swcfg["rtype"] = swcfg["rtype"]
+        self.swcfg["stype"] = swcfg["stype"]
+
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.bitwidth = bitwidth
 
-        assert mode=="bipolar", "FSUMGUCell requires 'bipolar' mode."
-        assert (binary_weight_f.size()[0], binary_weight_f.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_f shape."
-        assert (binary_weight_n.size()[0], binary_weight_n.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_n shape."
+        assert (weight_ext_f.size()[0], weight_ext_f.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_f shape."
+        assert (weight_ext_n.size()[0], weight_ext_n.size()[1]) == (hidden_size, hidden_size + input_size), "Incorrect weight_n shape."
         if bias is True:
-            assert binary_bias_f.size()[0] == hidden_size, "Incorrect bias_f shape."
-            assert binary_bias_n.size()[0] == hidden_size, "Incorrect bias_n shape."
+            assert bias_ext_f.size()[0] == hidden_size, "Incorrect bias_f shape."
+            assert bias_ext_n.size()[0] == hidden_size, "Incorrect bias_n shape."
 
+        hwcfg_linear={
+            "width" : self.hwcfg["width"],
+            "mode" : self.hwcfg["mode"],
+            "scale" : 1,
+            "depth" : self.hwcfg["depth"],
+            "rng" : self.hwcfg["rng"],
+            "dimr" : self.hwcfg["dimr"]
+        }
         self.fg_ug_tanh = FSULinear(hidden_size + input_size, hidden_size, bias=bias, 
-                                            binary_weight=binary_weight_f, binary_bias=binary_bias_f, bitwidth=bitwidth, mode=mode, scaled=False, depth=depth)
+                                            weight_ext=weight_ext_f, bias_ext=bias_ext_f, 
+                                            hwcfg=hwcfg_linear, swcfg=swcfg)
         self.ng_ug_tanh = FSULinear(hidden_size + input_size, hidden_size, bias=bias, 
-                                            binary_weight=binary_weight_n, binary_bias=binary_bias_n, bitwidth=bitwidth, mode=mode, scaled=False, depth=depth)
-
-        self.fg_sigmoid = FSUAdd(mode=mode, scaled=True, dim=0, depth=depth)
-        self.fg_hx_mul = FSUMul(bitwidth=bitwidth, mode=mode, static=True, input_prob_1=hx_buffer)
-        self.fg_ng_mul = FSUMul(bitwidth=depth_ismul, mode=mode, static=False)
-        self.hy_add = FSUAdd(mode=mode, scaled=False, dim=0, depth=depth, entry=3)
+                                            weight_ext=weight_ext_n, bias_ext=bias_ext_n, 
+                                            hwcfg=hwcfg_linear, swcfg=swcfg)
+        hwcfg_sigm={
+            "mode" : self.hwcfg["mode"],
+            "scale" : None,
+            "dima" : 0,
+            "depth" : self.hwcfg["depth"],
+            "entry" : None
+        }
+        self.fg_sigmoid = FSUAdd(hwcfg_sigm, swcfg)
+        hwcfg_hx_mul={
+            "width" : self.hwcfg["width"],
+            "mode" : self.hwcfg["mode"],
+            "static" : True,
+            "rng" : self.hwcfg["rng"],
+            "dimr" : self.hwcfg["dimr"]
+        }
+        self.fg_hx_mul = FSUMul(in_1_prob=hx_buffer, hwcfg=hwcfg_hx_mul, swcfg=swcfg)
+        hwcfg_ng_mul={
+            "width" : self.hwcfg["depth_ismul"],
+            "mode" : self.hwcfg["mode"],
+            "static" : False,
+            "rng" : self.hwcfg["rng"],
+            "dimr" : self.hwcfg["dimr"]
+        }
+        self.fg_ng_mul = FSUMul(in_1_prob=None, hwcfg=hwcfg_ng_mul, swcfg=swcfg)
+        hwcfg_hy={
+            "mode" : self.hwcfg["mode"],
+            "scale" : 1,
+            "dima" : 0,
+            "depth" : self.hwcfg["depth"],
+            "entry" : 3
+        }
+        self.hy_add = FSUAdd(hwcfg_hy, swcfg)
 
     def check_forward_input(self, input: Tensor) -> None:
         if input.size(1) != self.input_size:
@@ -86,24 +149,42 @@ class HUBMGUCell(torch.nn.Module):
     This module follows the uBrain implementation style to maximize hardware reuse.
     """
 
-    def __init__(self, input_size: int, hidden_size: int, bias: bool = True, 
-                    binary_weight_f=None, binary_bias_f=None, binary_weight_n=None, binary_bias_n=None, 
-                    rng="Sobol", bitwidth=8, mode="bipolar", depth=10, depth_ismul=6) -> None:
+    def __init__(
+        self, input_size: int, hidden_size: int, bias: bool = True, 
+        weight_ext_f=None, bias_ext_f=None, weight_ext_n=None, bias_ext_n=None, 
+        hwcfg={
+            "width" : 8,
+            "mode" : "bipolar",
+            "depth" : 10,
+            "depth_ismul" : 6,
+            "rng" : "Sobol",
+            "dimr" : 1
+        }) -> None:
         super(HUBMGUCell, self).__init__()
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+        self.hwcfg["depth"] = hwcfg["depth"]
+        self.hwcfg["depth_ismul"] = hwcfg["depth_ismul"]
+        self.hwcfg["rng"] = hwcfg["rng"].lower()
+        self.hwcfg["dimr"] = hwcfg["dimr"]
+
+        self.swcfg = {}
+        self.swcfg["btype"] = torch.float
+        self.swcfg["rtype"] = torch.float
+        self.swcfg["stype"] = torch.float
+
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.bias = bias
 
-        self.rng = rng
-        self.bitwidth = bitwidth
-        self.mode = mode
-        self.depth = depth
-        self.depth_ismul = depth_ismul
+        self.weight_f = weight_ext_f
+        self.bias_f = bias_ext_f
+        self.weight_n = weight_ext_n
+        self.bias_n = bias_ext_n
 
-        self.weight_f = binary_weight_f
-        self.bias_f = binary_bias_f
-        self.weight_n = binary_weight_n
-        self.bias_n = binary_bias_n
+        self.hwcfg_ope = copy.deepcopy(self.hwcfg)
+        self.hwcfg_ope["scale"] = 1
 
     @autocast()
     def forward(self, input: Tensor, hx: Tensor) -> Tensor:
@@ -111,31 +192,27 @@ class HUBMGUCell(torch.nn.Module):
             hx = torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device)
 
         rnncell = FSUMGUCell(self.input_size, self.hidden_size, bias=self.bias, 
-                        binary_weight_f=self.weight_f, binary_bias_f=self.bias_f, binary_weight_n=self.weight_n, binary_bias_n=self.bias_n, 
+                        weight_ext_f=self.weight_f, bias_ext_f=self.bias_f, weight_ext_n=self.weight_n, bias_ext_n=self.bias_n, 
                         hx_buffer=hx, 
-                        bitwidth=self.bitwidth, mode=self.mode, depth=self.depth, depth_ismul=self.depth_ismul).to(input.device)
+                        hwcfg=self.hwcfg, swcfg=self.swcfg).to(input.device)
         
-        iSource = BinGen(input, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
-        iRNG = RNG(self.bitwidth, 1, self.rng)().to(input.device)
-        iBSG = BSGen(iSource, iRNG).to(input.device)
-        # iPE = ProgError(input, scale=1, mode=self.mode).to(input.device)
+        iSource = BinGen(input, self.hwcfg, self.swcfg)().to(input.device)
+        iRNG = RNG(self.hwcfg, self.swcfg)().to(input.device)
+        iBSG = BSGen(iSource, iRNG, self.swcfg).to(input.device)
 
-        hSource = BinGen(hx, bitwidth=self.bitwidth, mode=self.mode)().to(input.device)
-        hRNG = RNG(self.bitwidth, 1, self.rng)().to(input.device)
-        hBSG = BSGen(hSource, hRNG).to(input.device)
-        # hPE = ProgError(hx, scale=1, mode=self.mode).to(input.device)
+        hSource = BinGen(hx, self.hwcfg, self.swcfg)().to(input.device)
+        hRNG = RNG(self.hwcfg, self.swcfg)().to(input.device)
+        hBSG = BSGen(hSource, hRNG, self.swcfg).to(input.device)
 
         oPE = ProgError(torch.zeros(input.size()[0], self.hidden_size, dtype=input.dtype, device=input.device), 
-                        scale=1, mode=self.mode).to(input.device)
+                        self.hwcfg_ope).to(input.device)
 
-        for c in range(2**self.bitwidth):
+        for c in range(2**self.hwcfg["width"]):
             idx = torch.zeros(iSource.size(), dtype=torch.long, device=input.device)
             iBS = iBSG(idx + c)
-            # iPE.Monitor(iBS)
 
             hdx = torch.zeros(hSource.size(), dtype=torch.long, device=input.device)
             hBS = hBSG(hdx + c)
-            # hPE.Monitor(hBS)
 
             oBS = rnncell(iBS, hBS)
             oPE.Monitor(oBS)
@@ -146,12 +223,12 @@ class HUBMGUCell(torch.nn.Module):
 
 class HardMGUCell(torch.nn.Module):
     """
-    This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
-    Batch is always the dim[0].
+    This is a minimal gated unit by replacing sigmoid and tanh with hubhardsigmoid and hubhardtanh if hard is set to True.
     Refer to "Simplified Minimal Gated Unit Variations for Recurrent Neural Networks" and "Gate-Variants of Gated Recurrent Unit (GRU) Neural Networks" for more details.
-    Hardtanh is to bound data to the legal unary range.
     This module is fully unary computing aware, i.e., all intermediate data are bounded to the legal unary range.
     This module follows the uBrain implementation style to maximize hardware reuse.
+    This modeule assigns batch to dim[0].
+    This module applies floating-point data.
     """
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True) -> None:
         super(HardMGUCell, self).__init__()
@@ -161,7 +238,7 @@ class HardMGUCell(torch.nn.Module):
         self.hard = hard
         if hard == True:
             self.fg_sigmoid = HUBHardsigmoid()
-            self.ng_tanh = nn.Hardtanh()
+            self.ng_tanh = HUBHardtanh()
         else:
             self.fg_sigmoid = nn.Sigmoid()
             self.ng_tanh = nn.Tanh()
@@ -187,7 +264,7 @@ class HardMGUCell(torch.nn.Module):
         
         # forget gate
         self.fg_ug_in = torch.cat((hx, input), 1)
-        self.fg_in = nn.Hardtanh()(F.linear(self.fg_ug_in, self.weight_f, self.bias_f))
+        self.fg_in = HUBHardtanh()(F.linear(self.fg_ug_in, self.weight_f, self.bias_f))
         self.fg = self.fg_sigmoid(self.fg_in)
         
         # new gate
@@ -198,19 +275,18 @@ class HardMGUCell(torch.nn.Module):
         # output
         self.fg_ng = self.fg * self.ng
         self.fg_ng_inv = 0 - self.fg_ng
-        hy = nn.Hardtanh()(self.ng + self.fg_ng_inv + self.fg_hx)
+        hy = HUBHardtanh()(self.ng + self.fg_ng_inv + self.fg_hx)
         return hy
 
 
 class HardMGUCellFXP(torch.nn.Module):
     """
-    This is a minimal gated unit by replacing sigmoid and tanh with scalehardsigmoid and hardtanh if hard is set to True.
-    Batch is always the dim[0].
+    This is a minimal gated unit by replacing sigmoid and tanh with hubhardsigmoid and hubhardtanh if hard is set to True.
     Refer to "Simplified Minimal Gated Unit Variations for Recurrent Neural Networks" and "Gate-Variants of Gated Recurrent Unit (GRU) Neural Networks" for more details.
-    Hardtanh is to bound data to the legal unary range.
     This module is fully unary computing aware, i.e., all intermediate data are bounded to the legal unary range.
     This module follows the uBrain implementation style to maximize hardware reuse.
-    This module applies fixed-point quantization.
+    This modeule assigns batch to dim[0].
+    This module applies fixed-point quantization using 'intwidth' and 'fracwidth'.
     """
     def __init__(self, input_size: int, hidden_size: int, bias: bool = True, hard: bool = True,
                 intwidth=3, fracwidth=4) -> None:
@@ -223,7 +299,7 @@ class HardMGUCellFXP(torch.nn.Module):
 
         if hard == True:
             self.fg_sigmoid = HUBHardsigmoid()
-            self.ng_tanh = nn.Hardtanh()
+            self.ng_tanh = HUBHardtanh()
         else:
             self.fg_sigmoid = nn.Sigmoid()
             self.ng_tanh = nn.Tanh()
@@ -249,7 +325,7 @@ class HardMGUCellFXP(torch.nn.Module):
         
         # forget gate
         self.fg_ug_in = torch.cat((self.trunc(hx), self.trunc(input)), 1)
-        self.fg_in = nn.Hardtanh()(F.linear(self.trunc(self.fg_ug_in), self.trunc(self.weight_f), self.trunc(self.bias_f)))
+        self.fg_in = HUBHardtanh()(F.linear(self.trunc(self.fg_ug_in), self.trunc(self.weight_f), self.trunc(self.bias_f)))
         self.fg = self.fg_sigmoid(self.trunc(self.fg_in))
         
         # new gate
@@ -260,6 +336,6 @@ class HardMGUCellFXP(torch.nn.Module):
         # output
         self.fg_ng = self.trunc(self.fg) * self.trunc(self.ng)
         self.fg_ng_inv = 0 - self.trunc(self.fg_ng)
-        hy = nn.Hardtanh()(self.trunc(self.ng) + self.trunc(self.fg_ng_inv) + self.trunc(self.fg_hx))
+        hy = HUBHardtanh()(self.trunc(self.ng) + self.trunc(self.fg_ng_inv) + self.trunc(self.fg_hx))
         return hy
 
