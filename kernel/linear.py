@@ -336,7 +336,11 @@ class HUBLinear(torch.nn.Linear):
         # maximum possible run cycle
         self.cycle_max = 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"])
         # actual run cycle
-        self.cycle_act = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
+        if self.hwcfg["cycle"] is None:
+            self.cycle_act = self.cycle_max
+        else:
+            self.cycle_act = min(self.hwcfg["cycle"], self.cycle_max)
+        self.hwcfg["cycle"] = self.cycle_act
         
         # weight and bias
         if weight_ext is not None:
@@ -624,4 +628,358 @@ class FXPLinearFunction(torch.autograd.Function):
             grad_bias = grad_output.sum(0)
 
         return grad_input, grad_weight, grad_bias, None, None, None, None, None
+
+
+class TLUTLinear(torch.nn.Linear):
+    """
+    This module is the fully connected layer using temporal look-up table (T-LUT). 
+    This module always applies sign-magnitude format for temporal bitstreams.
+    The hardware configuration specifies
+    1) the variable to produce temporal coded bitstreams
+    2) the format with in bit for input and weight/bias, only used for temporal coded fxp data
+    3) the data with in bit for input and weight/bias, as well as for the temporal coded bitstreams
+    4) the quantile to quantize input and weight/bias
+    5) the cycle to early terminate the run
+    6) the rounding mode for both input and weight/bias
+    """
+    def __init__(
+        self, 
+        in_features, 
+        out_features, 
+        bias=True, 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "temporal" : "i",
+            "widtht" : 4,
+            "formati" : "fxp",
+            "widthi" : 8,
+            "quantilei" : 1,
+            "formatw" : "fxp",
+            "widthw" : 8,
+            "quantilew" : 1,
+            "cycle" : None,
+            "rounding" : "round",
+            "signmag" : True
+        }):
+        super(TLUTLinear, self).__init__(in_features, out_features, bias)
+        self.hwcfg = {}
+        self.hwcfg["temporal"] = hwcfg["temporal"].lower()
+        self.hwcfg["widtht"] = hwcfg["widtht"]
+        self.hwcfg["formati"] = hwcfg["formati"].lower()
+        self.hwcfg["widthi"] = hwcfg["widthi"]
+        self.hwcfg["quantilei"] = hwcfg["quantilei"]
+        self.hwcfg["formatw"] = hwcfg["formatw"].lower()
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["quantilew"] = hwcfg["quantilew"]
+        self.hwcfg["cycle"] = hwcfg["cycle"]
+        self.hwcfg["rounding"] = hwcfg["rounding"].lower()
+        self.hwcfg["signmag"] = hwcfg["signmag"]
+
+        assert self.hwcfg["temporal"] in ["i", "w", "input", "weight"], \
+            "Error: the hw config 'temporal' in " + str(self) + " class requires one of ['i', 'input', 'w', 'weight']."
+
+        assert self.hwcfg["formati"] in ["fxp", "bfloat16", "float16", "float32"], \
+            "Error: the hw config 'formati' in " + str(self) + " class requires one of ['fxp', 'bfloat16', 'float16', 'float32']."
+        
+        assert self.hwcfg["formatw"] in ["fxp", "bfloat16", "float16", "float32"], \
+            "Error: the hw config 'formatw' in " + str(self) + " class requires one of ['fxp', 'bfloat16', 'float16', 'float32']."
+
+        assert self.hwcfg["quantilei"] > 0 and self.hwcfg["quantilei"] <= 1, \
+            "Error: the hw config 'quantilei' of " + str(self) + " class needs to be within (0, 1]."
+        
+        assert self.hwcfg["quantilew"] > 0 and self.hwcfg["quantilew"] <= 1, \
+            "Error: the hw config 'quantilew' of " + str(self) + " class needs to be within (0, 1]."
+
+        assert self.hwcfg["rounding"] in ["round", "ceil", "floor"], \
+            "Error: the hw config 'rounding' of " + str(self) + " class requires one of ['round', 'ceil', 'floor']."
+
+        assert self.hwcfg["signmag"] is True, \
+            "Error: the hw config 'signmag' of " + str(self) + " class requires to be True, i.e., always computing on the magnitude of the data."
+
+        # weight and bias
+        if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1]) == (out_features, in_features), \
+                "Error: the hw config 'out_features, in_features' in " + str(self) + " class unmatches the binary weight shape."
+            self.weight.data = weight_ext
+        
+        if bias and (bias_ext is not None):
+            assert bias_ext.size()[0] == out_features, \
+                "Error: the hw config 'out_features' in " + str(self) + " class unmatches the binary bias shape."
+            self.bias.data = bias_ext
+        
+        if (self.hwcfg["formati"] in ["fxp"]) and (self.hwcfg["formatw"] in ["fxp"]):
+            self.mode = "fxpfxp"
+        elif (self.hwcfg["formati"] not in ["fxp"]) and (self.hwcfg["formatw"] not in ["fxp"]):
+            self.mode = "fpfp"
+        else:
+            self.mode = "fxpfp"
+
+        # maximum possible run cycle
+        self.cycle_max = 2**self.hwcfg["widtht"]
+        # actual run cycle
+        if self.hwcfg["cycle"] is None:
+            self.cycle_act = self.cycle_max
+        else:
+            self.cycle_act = min(self.hwcfg["cycle"], self.cycle_max)
+        self.hwcfg["cycle"] = self.cycle_act
+
+        self.widthi = self.hwcfg["widthi"] - 1
+        self.widthw = self.hwcfg["widthw"] - 1
+
+        if self.hwcfg["temporal"] in ["i", "input"]:
+            if self.hwcfg["formati"] in ["fxp"]:
+                self.width = self.hwcfg["widthi"] - 1
+            elif self.hwcfg["formati"] in ["bfloat16"]:
+                self.width = 8
+            elif self.hwcfg["formati"] in ["float16"]:
+                self.width = 11
+            elif self.hwcfg["formati"] in ["float32"]:
+                self.width = 24
+        elif self.hwcfg["temporal"] in ["w", "weight"]:
+            if self.hwcfg["formatw"] in ["fxp"]:
+                self.width = self.hwcfg["widthw"] - 1
+            elif self.hwcfg["formatw"] in ["bfloat16"]:
+                self.width = 8
+            elif self.hwcfg["formatw"] in ["float16"]:
+                self.width = 11
+            elif self.hwcfg["formatw"] in ["float32"]:
+                self.width = 24
+        
+        self.degree = int(math.ceil(self.width / self.hwcfg["widtht"]))
+        self.delta = int(self.degree * self.hwcfg["widtht"] - self.width)
+        
+        self.rshift_i = None
+        self.rshift_w = None
+        self.rshift_o = None
+    
+    def forward(self, input):
+        # See the autograd section for explanation of what happens here.
+        if self.mode == "fxpfxp":
+            return TLUTLinearFXPFXPFunction.apply(input, self.weight, self.bias, 
+                self.hwcfg["temporal"], self.widthi, self.widthw, self.hwcfg["widtht"], self.degree, self.delta, self.cycle_act, -self.cycle_act,
+                self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
+        elif self.mode == "fxpfp":
+            return TLUTLinearFXPFPFunction.apply(input, self.weight, self.bias, 
+                self.hwcfg["temporal"], self.width, self.hwcfg["widtht"], self.degree, self.delta, self.cycle_act, -self.cycle_act,
+                self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
+        elif self.mode == "fpfp":
+            return TLUTLinearFPFPFunction.apply(input, self.weight, self.bias, 
+                self.hwcfg["temporal"], self.width, self.hwcfg["widtht"], self.degree, self.delta, self.cycle_act, -self.cycle_act)
+    
+# Inherit from Function
+class TLUTLinearFXPFXPFunction(torch.autograd.Function):
+
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    # bias is an optional argument
+    def forward(ctx, input, weight, bias=None, 
+                temporal="i", widthi=8, widthw=8, widtht=4, degree=2, delta=0, cycle_pos=16, cycle_neg=-16, rounding="round", quantilei=1, quantilew=1):
+        ctx.save_for_backward(input, weight, bias)
+
+        input_fp32 = input.detach().clone().to(torch.float)
+        weight_fp32 = weight.detach().clone().to(torch.float)
+        
+        input_new = torch.zeros_like(input_fp32)
+        weight_new = torch.zeros_like(weight_fp32)
+
+        rshift_i, rshift_w, _ = rshift_offset(input_fp32, weight_fp32, widthi, widthw, rounding, quantilei, quantilew)
+        
+        torch.trunc((input_fp32 >> rshift_i).clamp(-2**widthi+1, 2**widthi-1), out=input_fp32)
+        torch.trunc((weight_fp32 >> rshift_w).clamp(-2**widthw+1, 2**widthw-1), out=weight_fp32)
+
+        if temporal in ["i", "input"]:
+            frac = torch.zeros_like(input_fp32)
+            for i in range(degree):
+                input_fp32 = input_fp32 >> widtht
+                torch.frac(input_fp32, out=frac)
+                torch.trunc(input_fp32, out=input_fp32)
+                torch.clamp(frac << widtht, cycle_neg+1, cycle_pos-1, out=frac)
+                torch.add(frac >> widtht, input_new >> widtht, out=input_new)
+            input_new = (input_new << (delta + widthi + rshift_i)).type(weight.type())
+            weight_new = (weight_fp32 << rshift_w).type(weight.type())
+        elif temporal in ["w", "weight"]:
+            frac = torch.zeros_like(weight_fp32)
+            for i in range(degree):
+                weight_fp32 = weight_fp32 >> widtht
+                torch.frac(weight_fp32, out=frac)
+                torch.trunc(weight_fp32, out=weight_fp32)
+                torch.clamp(frac << widtht, cycle_neg+1, cycle_pos-1, out=frac)
+                torch.add(frac >> widtht, weight_new >> widtht, out=weight_new)
+            input_new = (input_fp32 << rshift_i).type(input.type())
+            weight_new = (weight_new << (delta + widthw + rshift_w)).type(input.type())
+        
+        output = torch.zeros_like(input)
+        torch.matmul(input_new, weight_new.t(), out=output)
+        
+        if bias is not None:
+            output += bias.unsqueeze(0).expand_as(output)
+        return output
+
+    # This function has only a single output, so it gets only one gradient
+    @staticmethod
+    def backward(ctx, grad_output):
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        input, weight, bias = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        # These needs_input_grad checks are optional and there only to
+        # improve efficiency. If you want to make your code simpler, you can
+        # skip them. Returning gradients for inputs that don't require it is
+        # not an error.
+        if ctx.needs_input_grad[0]:
+            grad_input = grad_output.matmul(weight)
+        if ctx.needs_input_grad[1]:
+            grad_weight = grad_output.t().matmul(input)
+        if bias is not None and ctx.needs_input_grad[2]:
+            grad_bias = grad_output.sum(0)
+
+        return grad_input, grad_weight, grad_bias, None, None, None, None, None, None, None, None, None, None, None
+
+
+# Inherit from Function
+class TLUTLinearFXPFPFunction(torch.autograd.Function):
+
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    # bias is an optional argument
+    def forward(ctx, input, weight, bias=None, 
+                temporal="i", width=8, widtht=4, degree=2, delta=0, cycle_pos=16, cycle_neg=-16, rounding="round", quantilei=1, quantilew=1):
+        ctx.save_for_backward(input, weight, bias)
+        input_fp32 = input.detach().clone().to(torch.float)
+        weight_fp32 = weight.detach().clone().to(torch.float)
+
+        rshift_i, rshift_w, _ = rshift_offset(input_fp32, weight_fp32, width, width, rounding, quantilei, quantilew)
+
+        if temporal in ["i", "input"]:
+            input_new = torch.zeros_like(input_fp32)
+            frac = torch.zeros_like(input_fp32)
+            torch.trunc((input_fp32 >> rshift_i).clamp(-2**width+1, 2**width-1), out=input_fp32)
+            for i in range(degree):
+                input_fp32 = input_fp32 >> widtht
+                torch.frac(input_fp32, out=frac)
+                torch.trunc(input_fp32, out=input_fp32)
+                torch.clamp(frac << widtht, cycle_neg+1, cycle_pos-1, out=frac)
+                torch.add(frac >> widtht, input_new >> widtht, out=input_new)
+            input_new = (input_new << (delta + width + rshift_i)).type(weight.type())
+            weight_new = weight
+        elif temporal in ["w", "weight"]:
+            weight_new = torch.zeros_like(weight_fp32)
+            frac = torch.zeros_like(weight_fp32)
+            torch.trunc((weight_fp32 >> rshift_w).clamp(-2**width+1, 2**width-1), out=weight_fp32)
+            for i in range(degree):
+                weight_fp32 = weight_fp32 >> widtht
+                torch.frac(weight_fp32, out=frac)
+                torch.trunc(weight_fp32, out=weight_fp32)
+                torch.clamp(frac << widtht, cycle_neg+1, cycle_pos-1, out=frac)
+                torch.add(frac >> widtht, weight_new >> widtht, out=weight_new)
+            input_new = input
+            weight_new = (weight_new << (delta + width + rshift_w)).type(input.type())
+        
+        output = torch.zeros_like(input)
+        torch.matmul(input_new, weight_new.t(), out=output)
+        
+        if bias is not None:
+            output += bias.unsqueeze(0).expand_as(output)
+        return output
+
+    # This function has only a single output, so it gets only one gradient
+    @staticmethod
+    def backward(ctx, grad_output):
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        input, weight, bias = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        # These needs_input_grad checks are optional and there only to
+        # improve efficiency. If you want to make your code simpler, you can
+        # skip them. Returning gradients for inputs that don't require it is
+        # not an error.
+        if ctx.needs_input_grad[0]:
+            grad_input = grad_output.matmul(weight)
+        if ctx.needs_input_grad[1]:
+            grad_weight = grad_output.t().matmul(input)
+        if bias is not None and ctx.needs_input_grad[2]:
+            grad_bias = grad_output.sum(0)
+
+        return grad_input, grad_weight, grad_bias, None, None, None, None, None, None, None, None, None, None
+
+
+# Inherit from Function
+class TLUTLinearFPFPFunction(torch.autograd.Function):
+
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    # bias is an optional argument
+    def forward(ctx, input, weight, bias=None, 
+                temporal="i", width=8, widtht=4, degree=2, delta=0, cycle_pos=16, cycle_neg=-16):
+        ctx.save_for_backward(input, weight, bias)
+
+        dtype = input.type()
+
+        if temporal in ["i", "input"]:
+            input_fp32 = input.detach().clone().type(torch.float)
+            mantissa, exponent = torch.frexp(input_fp32)
+            frac = torch.zeros_like(input_fp32)
+            mantissa_new = torch.zeros_like(input_fp32)
+        elif temporal in ["w", "weight"]:
+            weight_fp32 = weight.detach().clone().type(torch.float)
+            mantissa, exponent = torch.frexp(weight_fp32)
+            frac = torch.zeros_like(weight_fp32)
+            mantissa_new = torch.zeros_like(weight_fp32)
+
+        mantissa = mantissa << width
+        for i in range(degree):
+            mantissa = mantissa >> widtht
+            torch.frac(mantissa, out=frac)
+            torch.trunc(mantissa, out=mantissa)
+            torch.clamp(frac << widtht, cycle_neg+1, cycle_pos-1, out=frac)
+            torch.add(frac >> widtht, mantissa_new >> widtht, out=mantissa_new)
+
+        mantissa_new = mantissa_new << delta
+
+        if temporal in ["i", "input"]:
+            input_new = torch.ldexp(mantissa_new, exponent).type(dtype)
+            weight_new = weight
+        elif temporal in ["w", "weight"]:
+            input_new = input
+            weight_new = torch.ldexp(mantissa_new, exponent).type(dtype)
+        
+        output = torch.zeros_like(input)
+        torch.matmul(input_new, weight_new.t(), out=output)
+
+        if bias is not None:
+            output += bias.unsqueeze(0).expand_as(output)
+        return output
+
+    # This function has only a single output, so it gets only one gradient
+    @staticmethod
+    def backward(ctx, grad_output):
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        input, weight, bias = ctx.saved_tensors
+        grad_input = grad_weight = grad_bias = None
+
+        # These needs_input_grad checks are optional and there only to
+        # improve efficiency. If you want to make your code simpler, you can
+        # skip them. Returning gradients for inputs that don't require it is
+        # not an error.
+        if ctx.needs_input_grad[0]:
+            grad_input = grad_output.matmul(weight)
+        if ctx.needs_input_grad[1]:
+            grad_weight = grad_output.t().matmul(input)
+        if bias is not None and ctx.needs_input_grad[2]:
+            grad_bias = grad_output.sum(0)
+
+        return grad_input, grad_weight, grad_bias, None, None, None, None, None, None, None
 
