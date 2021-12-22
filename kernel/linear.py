@@ -638,9 +638,9 @@ class TLUTLinear(torch.nn.Linear):
     1) the variable to produce temporal coded bitstreams
     2) the format with in bit for input and weight/bias, only used for temporal coded fxp data
     3) the data with in bit for input and weight/bias, as well as for the temporal coded bitstreams
-    4) the quantile to quantize input and weight/bias
+    4) the quantile to quantize input and weight/bias, only used for temporal coded fxp datas
     5) the cycle to early terminate the run
-    6) the rounding mode for both input and weight/bias
+    6) the rounding mode for both input and weight/bias, only used for temporal coded fxp datas
     """
     def __init__(
         self, 
