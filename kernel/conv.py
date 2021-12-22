@@ -5,6 +5,7 @@ from UnarySim.stream import RNG, BinGen, BSGen
 from UnarySim.kernel import conv2d_output_shape, num2tuple
 from UnarySim.kernel import HUBLinearFunction
 from UnarySim.kernel import FXPLinearFunction
+from UnarySim.kernel import TLUTLinearFXPFXPFunction, TLUTLinearFXPFPFunction, TLUTLinearFPFPFunction
 from UnarySim.kernel import FSUAdd, rshift_offset
 from torch.cuda.amp import autocast
 
@@ -601,6 +602,176 @@ class FXPConv2d(torch.nn.Conv2d):
         mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
         mm_out_transpose = mm_out_reshape.transpose(1, 2)
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
+
+        if self.bias is None:
+            return output
+        else:
+            return output + self.bias.view([1, self.bias.size()[0], 1, 1])
+
+
+
+class TLUTConv2d(torch.nn.Conv2d):
+    """
+    This module is the 2d conv layer using temporal look-up table (T-LUT). 
+    This module always applies sign-magnitude format for temporal bitstreams.
+    The hardware configuration specifies
+    1) the variable to produce temporal coded bitstreams
+    2) the format with in bit for input and weight/bias, only used for temporal coded fxp data
+    3) the data with in bit for input and weight/bias, as well as for the temporal coded bitstreams
+    4) the quantile to quantize input and weight/bias, only used for temporal coded fxp datas
+    5) the cycle to early terminate the run
+    6) the rounding mode for both input and weight/bias, only used for temporal coded fxp datas
+    """
+    def __init__(
+        self, 
+        in_channels, 
+        out_channels, 
+        kernel_size, 
+        stride=1, 
+        padding=0, 
+        dilation=1, 
+        groups=1, 
+        bias=True, 
+        padding_mode='zeros', 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "temporal" : "i",
+            "widtht" : 4,
+            "formati" : "fxp",
+            "widthi" : 8,
+            "quantilei" : 1,
+            "formatw" : "fxp",
+            "widthw" : 8,
+            "quantilew" : 1,
+            "cycle" : None,
+            "rounding" : "round",
+            "signmag" : True
+        }):
+        super(TLUTConv2d, self).__init__(in_channels, 
+                                            out_channels, 
+                                            kernel_size, 
+                                            stride, 
+                                            padding, 
+                                            dilation, 
+                                            groups, 
+                                            bias, 
+                                            padding_mode)
+
+        assert groups==1, "Supported group number is 1."
+        assert padding_mode=='zeros', "Supported padding_mode number is 'zeros'."
+        self.hwcfg = {}
+        self.hwcfg["temporal"] = hwcfg["temporal"].lower()
+        self.hwcfg["widtht"] = hwcfg["widtht"]
+        self.hwcfg["formati"] = hwcfg["formati"].lower()
+        self.hwcfg["widthi"] = hwcfg["widthi"]
+        self.hwcfg["quantilei"] = hwcfg["quantilei"]
+        self.hwcfg["formatw"] = hwcfg["formatw"].lower()
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["quantilew"] = hwcfg["quantilew"]
+        self.hwcfg["cycle"] = hwcfg["cycle"]
+        self.hwcfg["rounding"] = hwcfg["rounding"].lower()
+        self.hwcfg["signmag"] = hwcfg["signmag"]
+
+        assert self.hwcfg["temporal"] in ["i", "w", "input", "weight"], \
+            "Error: the hw config 'temporal' in " + str(self) + " class requires one of ['i', 'input', 'w', 'weight']."
+
+        assert self.hwcfg["formati"] in ["fxp", "bfloat16", "float16", "float32"], \
+            "Error: the hw config 'formati' in " + str(self) + " class requires one of ['fxp', 'bfloat16', 'float16', 'float32']."
+        
+        assert self.hwcfg["formatw"] in ["fxp", "bfloat16", "float16", "float32"], \
+            "Error: the hw config 'formatw' in " + str(self) + " class requires one of ['fxp', 'bfloat16', 'float16', 'float32']."
+
+        assert self.hwcfg["quantilei"] > 0 and self.hwcfg["quantilei"] <= 1, \
+            "Error: the hw config 'quantilei' of " + str(self) + " class needs to be within (0, 1]."
+        
+        assert self.hwcfg["quantilew"] > 0 and self.hwcfg["quantilew"] <= 1, \
+            "Error: the hw config 'quantilew' of " + str(self) + " class needs to be within (0, 1]."
+
+        assert self.hwcfg["rounding"] in ["round", "ceil", "floor"], \
+            "Error: the hw config 'rounding' of " + str(self) + " class requires one of ['round', 'ceil', 'floor']."
+
+        assert self.hwcfg["signmag"] is True, \
+            "Error: the hw config 'signmag' of " + str(self) + " class requires to be True, i.e., always computing on the magnitude of the data."
+        
+        # weight and bias
+        if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1], weight_ext.size()[2], weight_ext.size()[3]) == (out_channels, in_channels, num2tuple(kernel_size)[0], num2tuple(kernel_size)[1]), \
+                "Error: the hw config 'out_channels, in_channels, kernel_size' in " + str(self) + " class unmatches the binary weight shape."
+            self.weight.data = weight_ext
+        
+        if bias and (bias_ext is not None):
+            assert bias_ext.size()[0] == out_channels, \
+                "Error: the hw config 'out_channels' in " + str(self) + " class unmatches the binary bias shape."
+            self.bias.data = bias_ext
+        
+        if (self.hwcfg["formati"] in ["fxp"]) and (self.hwcfg["formatw"] in ["fxp"]):
+            self.mode = "fxpfxp"
+        elif (self.hwcfg["formati"] not in ["fxp"]) and (self.hwcfg["formatw"] not in ["fxp"]):
+            self.mode = "fpfp"
+        else:
+            self.mode = "fxpfp"
+
+        # maximum possible run cycle
+        self.cycle_max = 2**self.hwcfg["widtht"]
+        # actual run cycle
+        if self.hwcfg["cycle"] is None:
+            self.cycle_act = self.cycle_max
+        else:
+            self.cycle_act = min(self.hwcfg["cycle"], self.cycle_max)
+        self.hwcfg["cycle"] = self.cycle_act
+
+        self.widthi = self.hwcfg["widthi"] - 1
+        self.widthw = self.hwcfg["widthw"] - 1
+
+        if self.hwcfg["temporal"] in ["i", "input"]:
+            if self.hwcfg["formati"] in ["fxp"]:
+                self.width = self.hwcfg["widthi"] - 1
+            elif self.hwcfg["formati"] in ["bfloat16"]:
+                self.width = 8
+            elif self.hwcfg["formati"] in ["float16"]:
+                self.width = 11
+            elif self.hwcfg["formati"] in ["float32"]:
+                self.width = 24
+        elif self.hwcfg["temporal"] in ["w", "weight"]:
+            if self.hwcfg["formatw"] in ["fxp"]:
+                self.width = self.hwcfg["widthw"] - 1
+            elif self.hwcfg["formatw"] in ["bfloat16"]:
+                self.width = 8
+            elif self.hwcfg["formatw"] in ["float16"]:
+                self.width = 11
+            elif self.hwcfg["formatw"] in ["float32"]:
+                self.width = 24
+        
+        self.degree = int(math.ceil(self.width / self.hwcfg["widtht"]))
+        self.delta = int(self.degree * self.hwcfg["widtht"] - self.width)
+    
+    def forward(self, input):
+        with torch.no_grad():
+            # all data are in NCHW
+            output_size = conv2d_output_shape((input.size()[2], input.size()[3]), kernel_size=self.kernel_size, dilation=self.dilation, pad=self.padding, stride=self.stride)
+
+        # See the autograd section for explanation of what happens here.
+        input_im2col = torch.nn.functional.unfold(input.type(torch.float), self.kernel_size, self.dilation, self.padding, self.stride).type(input.type())
+        input_transpose = input_im2col.transpose(1, 2)
+        input_reshape = input_transpose.reshape(-1, input_transpose.size()[-1])
+
+        weight = self.weight.view(self.weight.size()[0], -1)
+        # See the autograd section for explanation of what happens here.
+        if self.mode == "fxpfxp":
+            mm_out = TLUTLinearFXPFXPFunction.apply(input_reshape, weight, None, 
+                self.hwcfg["temporal"], self.widthi, self.widthw, self.hwcfg["widtht"], self.degree, self.delta, self.cycle_act, -self.cycle_act,
+                self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
+        elif self.mode == "fxpfp":
+            mm_out = TLUTLinearFXPFPFunction.apply(input_reshape, weight, None, 
+                self.hwcfg["temporal"], self.width, self.hwcfg["widtht"], self.degree, self.delta, self.cycle_act, -self.cycle_act,
+                self.hwcfg["rounding"], self.hwcfg["quantilei"], self.hwcfg["quantilew"])
+        elif self.mode == "fpfp":
+            mm_out = TLUTLinearFPFPFunction.apply(input_reshape, weight, None, 
+                self.hwcfg["temporal"], self.width, self.hwcfg["widtht"], self.degree, self.delta, self.cycle_act, -self.cycle_act)
+        mm_out_reshape = mm_out.reshape(input.size()[0], -1, mm_out.size()[-1])
+        mm_out_transpose = mm_out_reshape.transpose(1, 2)
+        output = torch.nn.functional.fold(mm_out_transpose.type(torch.float), output_size, (1, 1)).type(input.type())
 
         if self.bias is None:
             return output

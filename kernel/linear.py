@@ -748,10 +748,6 @@ class TLUTLinear(torch.nn.Linear):
         
         self.degree = int(math.ceil(self.width / self.hwcfg["widtht"]))
         self.delta = int(self.degree * self.hwcfg["widtht"] - self.width)
-        
-        self.rshift_i = None
-        self.rshift_w = None
-        self.rshift_o = None
     
     def forward(self, input):
         # See the autograd section for explanation of what happens here.
@@ -809,8 +805,7 @@ class TLUTLinearFXPFXPFunction(torch.autograd.Function):
             input_new = (input_fp32 << rshift_i).type(input.type())
             weight_new = (weight_new << (delta + widthw + rshift_w)).type(input.type())
         
-        output = torch.zeros_like(input)
-        torch.matmul(input_new, weight_new.t(), out=output)
+        output = torch.matmul(input_new, weight_new.t())
         
         if bias is not None:
             output += bias.unsqueeze(0).expand_as(output)
@@ -880,8 +875,7 @@ class TLUTLinearFXPFPFunction(torch.autograd.Function):
             input_new = input
             weight_new = (weight_new << (delta + width + rshift_w)).type(input.type())
         
-        output = torch.zeros_like(input)
-        torch.matmul(input_new, weight_new.t(), out=output)
+        output = torch.matmul(input_new, weight_new.t())
         
         if bias is not None:
             output += bias.unsqueeze(0).expand_as(output)
@@ -952,8 +946,7 @@ class TLUTLinearFPFPFunction(torch.autograd.Function):
             input_new = input
             weight_new = torch.ldexp(mantissa_new, exponent).type(dtype)
         
-        output = torch.zeros_like(input)
-        torch.matmul(input_new, weight_new.t(), out=output)
+        output = torch.matmul(input_new, weight_new.t())
 
         if bias is not None:
             output += bias.unsqueeze(0).expand_as(output)
