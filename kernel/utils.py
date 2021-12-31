@@ -168,9 +168,9 @@ def progerror_report(progerror, name="progerror", report_value=False, report_rel
                 ", rmse," + "{:12f}".format(rmse))
 
 
-class RoundingNoGrad(torch.autograd.Function):
+class RoundSTE(torch.autograd.Function):
     """
-    RoundingNoGrad is a rounding operation which bypasses the input gradient to output directly.
+    RoundSTE is a rounding operation which bypasses the input gradient to output directly.
     Original round()/floor()/ceil() opertions have a gradient of 0 everywhere, which is not useful 
     when doing approximate computing.
     This is something like the straight-through estimator (STE) for quantization-aware training.
@@ -178,14 +178,14 @@ class RoundingNoGrad(torch.autograd.Function):
     """
     # Note that both forward and backward are @staticmethods
     @staticmethod
-    def forward(ctx, input):
-        return torch.round(input)
+    def forward(ctx, input, fracwidth, min_val, max_val):
+        return torch.round(input << fracwidth).clamp(min_val, max_val) >> fracwidth
     
     # This function has only a single output, so it gets only one gradient
     @staticmethod
     def backward(ctx, grad_output):
         grad_input = grad_output
-        return grad_input
+        return grad_input, None, None, None
     
     
 class Round(torch.nn.Module):
@@ -197,13 +197,13 @@ class Round(torch.nn.Module):
         self.intwidth = intwidth
         self.fracwidth = fracwidth
         self.max_val = (2**(intwidth + fracwidth) - 1)
-        self.min_val = 0 - (2**(intwidth + fracwidth))
+        self.min_val = 1 - (2**(intwidth + fracwidth))
 
     def forward(self, input) -> Tensor:
         if input is None:
             return None
         else:
-            return RoundingNoGrad.apply(input << self.fracwidth).clamp(self.min_val, self.max_val) >> self.fracwidth
+            return RoundSTE.apply(input.type(torch.float), self.fracwidth, self.min_val, self.max_val).type(input.type())
 
 
 def rshift_offset(input, weight, widthi, widthw, rounding="round", quantilei=1, quantilew=1):
