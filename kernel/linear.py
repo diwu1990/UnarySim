@@ -2,7 +2,7 @@ import torch
 import math
 import copy
 from UnarySim.stream import RNG, BinGen, BSGen
-from UnarySim.kernel import FSUAdd, rshift_offset
+from UnarySim.kernel import FSUAdd, rshift_offset, Round
 from torch.cuda.amp import autocast
 
 class FSULinear(torch.nn.Module):
@@ -17,7 +17,7 @@ class FSULinear(torch.nn.Module):
     7) rng: weight rng type
     8) dimr: weight rng dimension
 
-    The allowed coding for input, weight and bias with guaranteed accuracy can have the following three options.s
+    The allowed coding for input, weight and bias with guaranteed accuracy can have the following three options.
     (input, weight, bias):
     1) rate, rate, rate
     2) rate, temporal, rate
@@ -975,4 +975,133 @@ class TLUTLinearFPFPFunction(torch.autograd.Function):
             grad_bias = grad_output.sum(0)
 
         return grad_input, grad_weight, grad_bias, None, None, None, None, None, None, None
+
+
+class FSULinearStoNe(torch.nn.Linear):
+    """
+    This module is the fully connected layer with unary input and unary output, and its API is similar to the Linear class (input/output feature count, bias flag), except:
+    1) weight_ext: external binary weight
+    2) bias_ext: external binary bias
+    3) mode: input spike polarity
+    4) format: binary weight format
+    5) width: binary weight width
+    6) scale: accumulation scale
+    7) depth: accumulator depth
+
+    The allowed coding for input is rate coding for high accuracy.
+    However, this module itself does not force the input coding. Thus, above coding constraints should be done by users.
+    """
+    def __init__(
+        self, 
+        in_features, 
+        out_features, 
+        bias=False, 
+        weight_ext=None, 
+        bias_ext=None, 
+        bptt=True, 
+        hwcfg={
+            "mode" : "bipolar",
+            "format" : "fxp",
+            "widthw" : 8,
+            "scale" : None,
+            "depth" : 20,
+            "leak" : 0.5,
+            "widthg" : 0.1
+        }):
+        super(FSULinearStoNe, self).__init__(in_features, out_features, bias)
+        self.hwcfg = {}
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+        self.hwcfg["format"] = hwcfg["format"].lower()
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["scale"] = hwcfg["scale"]
+        self.hwcfg["depth"] = hwcfg["depth"]
+        self.hwcfg["leak"] = hwcfg["leak"]
+        self.hwcfg["widthg"] = hwcfg["widthg"]
+
+        assert self.hwcfg["format"] in ["fxp", "bfloat16", "float16", "float32"], \
+            "Error: the hw config 'format' in " + str(self) + " class requires one of ['fxp', 'bfloat16', 'float16', 'float32']."
+
+        self.mode = hwcfg["mode"].lower()
+        assert self.mode in ["unipolar", "bipolar"], \
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
+
+        if self.hwcfg["format"] in ["fxp", "float32"]:
+            self.format = torch.float32
+        elif self.hwcfg["format"] in ["bloat16"]:
+            self.format = torch.bfloat16
+        elif self.hwcfg["format"] in ["float16"]:
+            self.format = torch.float16
+
+        if self.hwcfg["format"] in ["fxp"]:
+            self.quant = Round(intwidth=self.hwcfg["depth"]-self.hwcfg["widthw"], fracwidth=self.hwcfg["widthw"]-1)
+
+        # define the linear weight and bias
+        if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1]) == (out_features, in_features), \
+                "Error: the hw config 'out_features, in_features' in " + str(self) + " class unmatches the binary weight shape."
+            self.weight.data = weight_ext
+        
+        assert (bias is False) and (bias_ext is None), "Error: bias=True in " + str(self) + " class is not supported."
+
+        # if bias and (bias_ext is not None):
+        #     assert bias_ext.size()[0] == out_features, \
+        #         "Error: the hw config 'out_features' in " + str(self) + " class unmatches the binary bias shape."
+        #     self.bias.data = bias_ext
+        
+        self.u_prev = 0
+        self.s_prev = 0
+        
+        self.bptt = bptt
+
+        self.leak_alpha = self.hwcfg["leak"]
+        self.vth = self.hwcfg["scale"]
+        if self.hwcfg["mode"] == "unipolar":
+            self.leak_const = 0.
+        else:
+            self.leak_const = (in_features + bias - self.hwcfg["scale"]) / 2.
+
+        print(self.leak_alpha, self.vth, self.leak_const)
+
+    def forward_bptt(self, input):
+        if self.hwcfg["format"] in ["fxp"]:
+            ws = torch.matmul(self.quant(input).type(self.format), self.quant(self.weight).t().type(self.format))
+            ws = self.quant(ws)
+        else:
+            ws = torch.matmul(input.type(self.format), self.weight.t().type(self.format))
+        u = torch.nn.ReLU()(self.leak_alpha * self.u_prev - self.s_prev * self.vth + ws - self.leak_const)
+        out = FSULinearFireStep.apply(u, self.vth, self.hwcfg["widthg"]).type(self.format)
+        self.u_prev = u.detach().clone()
+        self.s_prev = out.detach().clone()
+        return out, u
+
+    def forward_scaling(self, input):
+        return None
+
+    def forward(self, input):
+        if self.bptt:
+            return self.forward_bptt(input)
+        else:
+            return self.forward_scaling(input)
+
+
+# Inherit from Function
+class FSULinearFireStep(torch.autograd.Function):
+    """
+    Using step function for neuron firing with approximate gradients and without surrogating gradients.
+    """
+    @staticmethod
+    def forward(ctx, mem, vth, widthg):
+        ctx.save_for_backward(mem)
+        ctx.mem = mem
+        ctx.vth = vth
+        ctx.widthg = widthg
+        return (mem > vth).type(torch.float32)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        mem, = ctx.saved_tensors
+        diff_abs_legal = torch.abs(mem - ctx.vth) < ctx.widthg
+        grad_input = grad_output*torch.where(diff_abs_legal, 1./(2*ctx.widthg), 0.)
+
+        return grad_input, None, None
 
