@@ -2,7 +2,7 @@ import torch
 import math
 import copy
 from UnarySim.stream import RNG, BinGen, BSGen
-from UnarySim.kernel import FSUAdd, rshift_offset, Round
+from UnarySim.kernel import FSUAdd, rshift_offset, Round, NCFireStep
 from torch.cuda.amp import autocast
 
 class FSULinear(torch.nn.Module):
@@ -1027,7 +1027,7 @@ class FSULinearStoNe(torch.nn.Linear):
 
         if self.hwcfg["format"] in ["fxp", "float32"]:
             self.format = torch.float32
-        elif self.hwcfg["format"] in ["bloat16"]:
+        elif self.hwcfg["format"] in ["bfloat16"]:
             self.format = torch.bfloat16
         elif self.hwcfg["format"] in ["float16"]:
             self.format = torch.float16
@@ -1069,7 +1069,7 @@ class FSULinearStoNe(torch.nn.Linear):
         else:
             ws = torch.matmul(input.type(self.format)*self.m-self.k, self.weight.t().type(self.format))
         u = self.leak_alpha * self.u_prev - (self.s_prev*self.m-self.k) * self.vth + ws
-        out = FSULinearFireStep.apply(u, self.vth, self.hwcfg["widthg"]).type(self.format)
+        out = NCFireStep.apply(u, self.vth, self.hwcfg["widthg"]).type(self.format)
         self.u_prev = u.detach().clone()
         self.s_prev = out.detach().clone()
         return out, u
@@ -1082,26 +1082,4 @@ class FSULinearStoNe(torch.nn.Linear):
             return self.forward_bptt(input)
         else:
             return self.forward_scaling(input)
-
-
-# Inherit from Function
-class FSULinearFireStep(torch.autograd.Function):
-    """
-    Using step function for neuron firing with approximate gradients and without surrogating gradients.
-    """
-    @staticmethod
-    def forward(ctx, mem, vth, widthg):
-        ctx.save_for_backward(mem)
-        ctx.mem = mem
-        ctx.vth = vth
-        ctx.widthg = widthg
-        return (mem > vth).type(torch.float32)
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        mem, = ctx.saved_tensors
-        diff_abs_legal = torch.abs(mem - ctx.vth) < ctx.widthg
-        grad_input = grad_output*torch.where(diff_abs_legal, 1./(2*ctx.widthg), 0.)
-
-        return grad_input, None, None
 
