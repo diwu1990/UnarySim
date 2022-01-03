@@ -9,7 +9,7 @@ from UnarySim.stream import RNG, BinGen, BSGen
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def test_stonelinear():
+def test_stonelinear(epochs=1):
     data = "mnist"
     time_step = 10
     mode = "bipolar"
@@ -19,7 +19,7 @@ def test_stonelinear():
 
     hwcfg={
             "mode" : mode,
-            "format" : "fxp",
+            "format" : "bfloat16",
             "widthw" : widthw,
             "scale" : 1.2,
             "depth" : 20,
@@ -104,7 +104,7 @@ def test_stonelinear():
         test_loader = test_loader_mnist
         
     with torch.autograd.set_detect_anomaly(True):
-        for epoch in range(30):
+        for epoch in range(epochs):
             model.train()
             running_loss = 0.0
             for i, (data, target) in enumerate(train_loader):
@@ -150,5 +150,5 @@ def test_stonelinear():
 
 
 if __name__ == '__main__':
-    test_stonelinear()
+    test_stonelinear(epochs=30)
 
