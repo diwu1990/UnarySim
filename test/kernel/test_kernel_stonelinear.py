@@ -15,10 +15,10 @@ def test_stonelinear():
             "mode" : "bipolar",
             "format" : "float32",
             "widthw" : 8,
-            "scale" : 512,
+            "scale" : 1,
             "depth" : 20,
-            "leak" : 1,
-            "widthg" : 1.25
+            "leak" : 0.5,
+            "widthg" : 0.5
         }
     data = "mnist"
 
@@ -53,7 +53,7 @@ def test_stonelinear():
                         inp, 
                         hwcfg={
                             "width" : 12,
-                            "mode" : "unipolar"
+                            "mode" : "bipolar"
                         },
                         swcfg={
                             "rtype" : torch.float
@@ -72,7 +72,6 @@ def test_stonelinear():
                 _, U = self.fc_out(x)
                 u_out = u_out + U
             return u_out
-
 
 
     batch_size_train = 256
