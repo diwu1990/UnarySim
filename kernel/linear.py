@@ -1056,19 +1056,19 @@ class FSULinearStoNe(torch.nn.Linear):
         self.leak_alpha = self.hwcfg["leak"]
         self.vth = self.hwcfg["scale"]
         if self.hwcfg["mode"] == "unipolar":
-            self.leak_const = 0.
+            self.m = 1.
+            self.k = 0.
         else:
-            self.leak_const = (in_features + bias - self.hwcfg["scale"]) / 2.
-
-        print(self.leak_alpha, self.vth, self.leak_const)
+            self.m = 2.
+            self.k = 1.
 
     def forward_bptt(self, input):
         if self.hwcfg["format"] in ["fxp"]:
-            ws = torch.matmul(self.quant(input).type(self.format), self.quant(self.weight).t().type(self.format))
+            ws = torch.matmul(self.quant(input).type(self.format)*self.m-self.k, self.quant(self.weight).t().type(self.format))
             ws = self.quant(ws)
         else:
-            ws = torch.matmul(input.type(self.format), self.weight.t().type(self.format))
-        u = torch.nn.ReLU()(self.leak_alpha * self.u_prev - self.s_prev * self.vth + ws - self.leak_const)
+            ws = torch.matmul(input.type(self.format)*self.m-self.k, self.weight.t().type(self.format))
+        u = self.leak_alpha * self.u_prev - (self.s_prev*self.m-self.k) * self.vth + ws
         out = FSULinearFireStep.apply(u, self.vth, self.hwcfg["widthg"]).type(self.format)
         self.u_prev = u.detach().clone()
         self.s_prev = out.detach().clone()
