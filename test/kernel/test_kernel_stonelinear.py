@@ -10,21 +10,22 @@ from UnarySim.stream import RNG, BinGen, BSGen
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def test_stonelinear():
+    data = "mnist"
     time_step = 10
+    mode = "bipolar"
+    widthw = 12
+    batch_size_train = 256
+    batch_size_test = 256
+
     hwcfg={
-            "mode" : "bipolar",
-            "format" : "float32",
-            "widthw" : 8,
-            "scale" : 1,
+            "mode" : mode,
+            "format" : "fxp",
+            "widthw" : widthw,
+            "scale" : 1.2,
             "depth" : 20,
             "leak" : 0.5,
-            "widthg" : 0.5
+            "widthg" : 1.25
         }
-    data = "mnist"
-
-    def PoissonGen(inp, rescale_fac=1.0):
-        rand_inp = torch.rand_like(inp)
-        return torch.mul(torch.le(rand_inp * rescale_fac, torch.abs(inp)).float(), torch.sign(inp))
 
     class MLPStoNe(torch.nn.Module):
         def __init__(self,time_step, hwcfg):
@@ -37,7 +38,7 @@ def test_stonelinear():
 
             self.rng = RNG(
                         hwcfg={
-                            "width" : 12,
+                            "width" : widthw,
                             "rng" : "Sobol",
                             "dimr" : 1
                         },
@@ -46,14 +47,13 @@ def test_stonelinear():
                         })()
         
         def forward(self, inp):
-            torch.autograd.set_detect_anomaly(False)
             u_out = 0
             inp = inp.view(inp.shape[0],-1)
             binary = BinGen(
                         inp, 
                         hwcfg={
-                            "width" : 12,
-                            "mode" : "bipolar"
+                            "width" : widthw,
+                            "mode" : mode
                         },
                         swcfg={
                             "rtype" : torch.float
@@ -65,17 +65,12 @@ def test_stonelinear():
                             "stype" : torch.float
                         })
             for t in range(self.time_step):
-                
-                # spike_inp = PoissonGen(inp)
                 spike_inp = bsgen(torch.zeros_like(inp, dtype=torch.long)+t)
                 x, _  = self.fc_1(spike_inp)
                 _, U = self.fc_out(x)
                 u_out = u_out + U
             return u_out
 
-
-    batch_size_train = 256
-    batch_size_test = 256
 
     train_loader_mnist = torch.utils.data.DataLoader(
         torchvision.datasets.MNIST('/mnt/ssd1/data/', train=True, download=False,
@@ -94,9 +89,6 @@ def test_stonelinear():
                                         (0.1307,), (0.3081,))
                                     ])),
         batch_size=batch_size_test, shuffle=True,drop_last=True)
-
-
-    
 
     model = MLPStoNe(time_step, hwcfg).to(device)
 
@@ -124,16 +116,14 @@ def test_stonelinear():
 
                 out = model(data)
                 loss = criterion(out, target)
-                # torch.autograd.set_detect_anomaly(True)
                 
                 loss.backward(retain_graph=True)
                 optimizer.step()
-                
-                # print statistics
                 running_loss += loss.item()
-                # if i % 100 == 99:    # print every 100 mini-batches
+                # if i % 20 == 19:    # print every 20 mini-batches
                 #     print('[%d, %5d] current average batch loss: %.3f' %
                 #         (epoch + 1, i + 1, running_loss / (i+1)))
+            scheduler.step()
             print('[%d, %5d] overall average batch loss: %.3f' %
                     (epoch + 1, i + 1, running_loss / (i+1)))
             
@@ -159,11 +149,6 @@ def test_stonelinear():
     print('Finished Training')
 
 
-
-
-
-
 if __name__ == '__main__':
     test_stonelinear()
-
 
