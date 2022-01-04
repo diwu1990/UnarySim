@@ -64,11 +64,15 @@ def test_stonelinear(epochs=1):
                         swcfg={
                             "stype" : torch.float
                         })
+            u1_list = [0]
+            u2_list = [0]
             for t in range(self.time_step):
                 spike_inp = bsgen(torch.zeros_like(inp, dtype=torch.long)+t)
-                x, _  = self.fc_1(spike_inp)
-                _, U = self.fc_out(x)
-                u_out = u_out + U
+                x, _, u1  = self.fc_1(spike_inp, u1_list[-1])
+                u1_list.append(u1)
+                _, us, u2 = self.fc_out(x, u2_list[-1])
+                u2_list.append(u2)
+                u_out = u_out + us
             return u_out
 
 
@@ -109,7 +113,7 @@ def test_stonelinear(epochs=1):
             running_loss = 0.0
             for i, (data, target) in enumerate(train_loader):
                 # running_loss = 0.0
-                
+                # print(i)
                 # zero the parameter gradients
                 optimizer.zero_grad()
                 data, target = data.to(device), target.to(device)
@@ -117,15 +121,15 @@ def test_stonelinear(epochs=1):
                 out = model(data)
                 loss = criterion(out, target)
                 
-                loss.backward(retain_graph=True)
+                loss.backward()
                 optimizer.step()
                 running_loss += loss.item()
                 # if i % 20 == 19:    # print every 20 mini-batches
                 #     print('[%d, %5d] current average batch loss: %.3f' %
                 #         (epoch + 1, i + 1, running_loss / (i+1)))
             scheduler.step()
-            print('[%d, %5d] overall average batch loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / (i+1)))
+            print('Epoch-%3d overall average batch loss: %.3f' %
+                    (epoch + 1, running_loss / (i+1)))
             
             ## Test each epoch
             correct = 0

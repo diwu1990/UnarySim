@@ -998,7 +998,6 @@ class FSULinearStoNe(torch.nn.Linear):
         bias=False, 
         weight_ext=None, 
         bias_ext=None, 
-        bptt=True, 
         hwcfg={
             "mode" : "bipolar",
             "format" : "fxp",
@@ -1048,11 +1047,6 @@ class FSULinearStoNe(torch.nn.Linear):
         #         "Error: the hw config 'out_features' in " + str(self) + " class unmatches the binary bias shape."
         #     self.bias.data = bias_ext
         
-        self.u_prev = 0
-        self.s_prev = 0
-        
-        self.bptt = bptt
-
         self.leak_alpha = self.hwcfg["leak"]
         self.vth = self.hwcfg["scale"]
         if self.hwcfg["mode"] == "unipolar":
@@ -1062,24 +1056,17 @@ class FSULinearStoNe(torch.nn.Linear):
             self.m = 2.
             self.k = 1.
 
-    def forward_bptt(self, input):
+    def forward_bptt(self, input, u_prev):
         if self.hwcfg["format"] in ["fxp"]:
             ws = torch.matmul(self.quant(input).type(self.format)*self.m-self.k, self.quant(self.weight).t().type(self.format))
             ws = self.quant(ws)
         else:
             ws = torch.matmul(input.type(self.format)*self.m-self.k, self.weight.t().type(self.format))
-        u = self.leak_alpha * self.u_prev - (self.s_prev*self.m-self.k) * self.vth + ws
-        out = NCFireStep.apply(u, self.vth, self.hwcfg["widthg"]).type(self.format)
-        self.u_prev = u.detach().clone()
-        self.s_prev = out.detach().clone()
-        return out, u
+        us = self.leak_alpha * u_prev + ws
+        out = NCFireStep.apply(us, self.vth, self.hwcfg["widthg"]).type(self.format)
+        u = us - self.vth * (out*self.m-self.k)
+        return out, us, u
 
-    def forward_scaling(self, input):
-        return None
-
-    def forward(self, input):
-        if self.bptt:
-            return self.forward_bptt(input)
-        else:
-            return self.forward_scaling(input)
+    def forward(self, input, u_prev):
+        return self.forward_bptt(input, u_prev)
 
