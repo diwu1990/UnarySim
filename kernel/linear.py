@@ -1070,3 +1070,71 @@ class FSULinearStoNe(torch.nn.Linear):
     def forward(self, input, u_prev):
         return self.forward_bptt(input, u_prev)
 
+
+class FSULinearNC(torch.nn.Linear):
+    def __init__(
+        self, 
+        in_features, 
+        out_features, 
+        bias=False, 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "width" : 8,
+            "formatw" : "float32",
+            "scale" : 0.8,
+            "depth" : 12,
+            "leak" : 0.94,
+            "widthg" : 1.25
+        }):
+        super(FSULinearNC, self).__init__(in_features, out_features, bias)
+        self.hwcfg = {}
+        self.hwcfg["width"] = hwcfg["width"]
+        self.hwcfg["formatw"] = hwcfg["formatw"]
+        self.hwcfg["scale"] = hwcfg["scale"]
+        self.hwcfg["depth"] = hwcfg["depth"]
+        self.hwcfg["leak"] = hwcfg["leak"]
+        self.hwcfg["widthg"] = hwcfg["widthg"]
+
+        assert self.hwcfg["formatw"] in ["bfloat16", "float16", "float32", "fxp"], \
+            "Error: the hw config 'formatw' in " + str(self) + " class requires one of ['bfloat16', 'float16', 'float32', 'fxp']."
+        
+        if self.hwcfg["formatw"] in ["fxp", "float32"]:
+            self.format = torch.float32
+        elif self.hwcfg["formatw"] in ["bfloat16"]:
+            self.format = torch.bfloat16
+        elif self.hwcfg["formatw"] in ["float16"]:
+            self.format = torch.float16
+
+        if self.hwcfg["formatw"] in ["fxp"]:
+            self.quant = Round(intwidth=self.hwcfg["depth"]-self.hwcfg["width"], fracwidth=self.hwcfg["width"]-1)
+        
+        # define the linear weight and bias
+        if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1]) == (out_features, in_features), \
+                "Error: the hw config 'out_features, in_features' in " + str(self) + " class unmatches the binary weight shape."
+            self.weight.data = weight_ext   
+        assert (bias is False) and (bias_ext is None), "Error: bias=True in " + str(self) + " class is not supported."
+        
+        if weight_ext is not None:
+            self.weight.data = weight_ext
+        if bias and bias_ext is not None:
+            self.bias.data = bias_ext
+        
+    def forward(self,input,U_prev):
+
+        if self.hwcfg["formatw"] in ["fxp"]:
+            x = torch.matmul(input, self.quant(self.weight).t().type(self.format))
+            x = self.quant(x)
+        else:
+            x = torch.matmul(input, self.weight.t().type(self.format))
+            
+        U_s = self.hwcfg["leak"] * U_prev + x
+            
+        output = NCFireStep.apply(U_s, self.hwcfg["scale"], self.hwcfg["widthg"]).type(self.format)
+        
+        U = U_s*(1 - output)
+    
+        return output, U_s, U   
+
+
