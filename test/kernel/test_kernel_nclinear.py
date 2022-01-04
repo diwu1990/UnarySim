@@ -153,4 +153,6 @@ def test_nclinear(epochs=1):
 
 
 if __name__ == '__main__':
-    test_stonelinear(epochs=30)
+    test_nclinear(epochs=30)
+    
+    
