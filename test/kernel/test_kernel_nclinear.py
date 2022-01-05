@@ -18,8 +18,8 @@ def test_nclinear(epochs=1):
     batch_size_test = 256
 
     hwcfg={
-            "width" : widthw,
-            "formatw" : "float32",
+            "widthw" : widthw,
+            "format" : "float32",
             "scale" : 0.8,
             "depth" :32,
             "leak" : 0.9,
