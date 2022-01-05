@@ -7,7 +7,9 @@ from UnarySim.kernel import HUBLinearFunction
 from UnarySim.kernel import FXPLinearFunction
 from UnarySim.kernel import TLUTLinearFXPFXPFunction, TLUTLinearFXPFPFunction, TLUTLinearFPFPFunction
 from UnarySim.kernel import FSUAdd, rshift_offset
+from UnarySim.kernel import NCFireStep, Round
 from torch.cuda.amp import autocast
+import torch.jit as jit
 
 class FSUConv2d(torch.nn.Module):
     """
@@ -345,7 +347,7 @@ class FSUConv2dPC(torch.nn.Conv2d):
 
 class HUBConv2d(torch.nn.Conv2d):
     """
-    This module is the fully connected layer for binary signed data in fxp format using unary computing.
+    This module is the conv2d layer for binary signed data in fxp format using unary computing.
     The hardware configuration specifies 
     1) the data with in bit for input and weight/bias
     2) the rng type for input and weight/bias
@@ -777,4 +779,129 @@ class TLUTConv2d(torch.nn.Conv2d):
             return output
         else:
             return output + self.bias.view([1, self.bias.size()[0], 1, 1])
+
+
+class FSUConv2dStoNe(torch.nn.Conv2d):
+    """
+    This module is the conv2d layer with unary input and unary output, and its API is similar to the Conv2d class, except:
+    1) weight_ext: external binary weight
+    2) bias_ext: external binary bias
+    3) mode: input spike polarity
+    4) format: binary weight format
+    5) width: binary weight width
+    6) scale: accumulation scale
+    7) depth: accumulator depth
+
+    The allowed coding for input is rate coding for high accuracy.
+    However, this module itself does not force the input coding. Thus, above coding constraints should be done by users.
+    """
+    def __init__(
+        self, 
+        in_channels, 
+        out_channels, 
+        kernel_size, 
+        stride=1, 
+        padding=0, 
+        dilation=1, 
+        groups=1, 
+        bias=True, 
+        padding_mode='zeros', 
+        weight_ext=None, 
+        bias_ext=None, 
+        hwcfg={
+            "mode" : "bipolar",
+            "format" : "fxp",
+            "widthw" : 8,
+            "scale" : None,
+            "depth" : 20,
+            "leak" : 0.5,
+            "widthg" : 0.1
+        }):
+        super(FSUConv2dStoNe, self).__init__(in_channels, 
+                                                out_channels, 
+                                                kernel_size, 
+                                                stride, 
+                                                padding, 
+                                                dilation, 
+                                                groups, 
+                                                bias, 
+                                                padding_mode)
+        self.hwcfg = {}
+        self.hwcfg["mode"] = hwcfg["mode"].lower()
+        self.hwcfg["format"] = hwcfg["format"].lower()
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["scale"] = hwcfg["scale"]
+        self.hwcfg["depth"] = hwcfg["depth"]
+        self.hwcfg["leak"] = hwcfg["leak"]
+        self.hwcfg["widthg"] = hwcfg["widthg"]
+
+        assert self.hwcfg["format"] in ["fxp", "bfloat16", "float16", "float32"], \
+            "Error: the hw config 'format' in " + str(self) + " class requires one of ['fxp', 'bfloat16', 'float16', 'float32']."
+
+        self.mode = hwcfg["mode"].lower()
+        assert self.mode in ["unipolar", "bipolar"], \
+            "Error: the hw config 'mode' in " + str(self) + " class requires one of ['unipolar', 'bipolar']."
+
+        if self.hwcfg["format"] in ["fxp", "float32"]:
+            self.format = torch.float32
+        elif self.hwcfg["format"] in ["bfloat16"]:
+            self.format = torch.bfloat16
+        elif self.hwcfg["format"] in ["float16"]:
+            self.format = torch.float16
+
+        if self.hwcfg["format"] in ["fxp"]:
+            self.quant = Round(intwidth=self.hwcfg["depth"]-self.hwcfg["widthw"], fracwidth=self.hwcfg["widthw"]-1)
+
+        # define the linear weight and bias
+        if weight_ext is not None:
+            assert (weight_ext.size()[0], weight_ext.size()[1], weight_ext.size()[2], weight_ext.size()[3]) == (out_channels, in_channels, num2tuple(kernel_size)[0], num2tuple(kernel_size)[1]), \
+                "Error: the hw config 'out_channels, in_channels, kernel_size' in " + str(self) + " class unmatches the binary weight shape."
+            self.weight.data = weight_ext
+        
+        assert (bias is False) and (bias_ext is None), "Error: bias=True in " + str(self) + " class is not supported."
+
+        # if bias and (bias_ext is not None):
+        #     assert bias_ext.size()[0] == out_channels, \
+        #         "Error: the hw config 'out_channels' in " + str(self) + " class unmatches the binary bias shape."
+        #     self.bias.data = bias_ext
+
+        self.leak_alpha = self.hwcfg["leak"]
+        self.vth = self.hwcfg["scale"]
+        if self.hwcfg["mode"] == "unipolar":
+            self.m = 1.
+            self.k = 0.
+        else:
+            self.m = 2.
+            self.k = 1.
+
+        self.padding = padding
+        
+        # padding value flag for bipolar
+        self.timestep_even = True
+        # padding for unipolar
+        self.padding_0 = torch.nn.ConstantPad2d(self.padding, 0)
+        # padding for bipolar
+        self.padding_1 = torch.nn.ConstantPad2d(self.padding, 1)
+
+    def forward_bptt(self, input, u_prev):
+        if self.mode == "bipolar" and self.timestep_even is False:
+            input_padding = self.padding_1(input)
+            self.timestep_even = not self.timestep_even
+        else:
+            input_padding = self.padding_0(input)
+
+        if self.hwcfg["format"] in ["fxp"]:
+            ws = torch.nn.functional.conv2d(input_padding.type(torch.float)*self.m-self.k, self.quant(self.weight.type(torch.float)), self.bias, 
+                        self.stride, 0, self.dilation, self.groups)
+            ws = self.quant(ws)
+        else:
+            ws = torch.nn.functional.conv2d(input_padding.type(torch.float)*self.m-self.k, self.weight.type(torch.float), self.bias, 
+                        self.stride, 0, self.dilation, self.groups)
+        us = self.leak_alpha * u_prev + ws.type(self.format)
+        out = NCFireStep.apply(us, self.vth, self.hwcfg["widthg"]).type(self.format)
+        u = us - self.vth * (out*self.m-self.k)
+        return out, us, u
+
+    def forward(self, input, u_prev):
+        return self.forward_bptt(input, u_prev)
 
