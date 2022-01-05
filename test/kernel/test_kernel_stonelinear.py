@@ -5,17 +5,19 @@ import torch.optim as optim
 import torch.nn as nn
 from UnarySim.kernel import FSULinearStoNe
 from UnarySim.stream import RNG, BinGen, BSGen
+import time
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def test_stonelinear(epochs=1):
-    data = "mnist"
+    dataset = "mnist"
     time_step = 10
     mode = "bipolar"
     widthw = 12
     batch_size_train = 256
     batch_size_test = 256
+    print("Dataset: " + dataset)
 
     hwcfg={
             "mode" : mode,
@@ -75,9 +77,27 @@ def test_stonelinear(epochs=1):
                 u_out = u_out + us
             return u_out
 
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
 
+    trainset = torchvision.datasets.CIFAR10(root='/mnt/ssd1/data/', train=True,
+                                        download=True, transform=transform_train)
+    train_loader_cifar10 = torch.utils.data.DataLoader(trainset, batch_size=batch_size_train,
+                                            shuffle=True, num_workers=4, pin_memory=True)
+
+    testset = torchvision.datasets.CIFAR10(root='/mnt/ssd1/data/', train=False,
+                                        download=True, transform=transform_test)
+    test_loader_cifar10 = torch.utils.data.DataLoader(testset, batch_size=batch_size_test,
+                                         shuffle=False, num_workers=4, pin_memory=True)
+                                         
     train_loader_mnist = torch.utils.data.DataLoader(
-        torchvision.datasets.MNIST('/mnt/ssd1/data/', train=True, download=False,
+        torchvision.datasets.MNIST('/mnt/ssd1/data/', train=True, download=True,
                                     transform=torchvision.transforms.Compose([
                                     torchvision.transforms.ToTensor(),
                                     torchvision.transforms.Normalize(
@@ -86,7 +106,7 @@ def test_stonelinear(epochs=1):
         batch_size=batch_size_train, shuffle=True,drop_last=True)
 
     test_loader_mnist = torch.utils.data.DataLoader(
-        torchvision.datasets.MNIST('/mnt/ssd1/data/', train=False, download=False,
+        torchvision.datasets.MNIST('/mnt/ssd1/data/', train=False, download=True,
                                     transform=torchvision.transforms.Compose([
                                     torchvision.transforms.ToTensor(),
                                     torchvision.transforms.Normalize(
@@ -100,15 +120,16 @@ def test_stonelinear(epochs=1):
     optimizer = optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
-    if data == "cifar10":
+    if dataset == "cifar10":
         train_loader = train_loader_cifar10
         test_loader = test_loader_cifar10
-    elif data == "mnist":
+    elif dataset == "mnist":
         train_loader = train_loader_mnist
         test_loader = test_loader_mnist
         
     with torch.autograd.set_detect_anomaly(True):
         for epoch in range(epochs):
+            start_time = time.time()
             model.train()
             running_loss = 0.0
             for i, (data, target) in enumerate(train_loader):
@@ -146,9 +167,8 @@ def test_stonelinear(epochs=1):
                     _, predicted = torch.max(outputs.data, 1)
                     total += labels.size(0)
                     correct += (predicted == labels).sum().item()
-
-            print('Accuracy of the network on the 10000 test images: %.2f %%' % (
-                100 * correct / total))
+            print('Accuracy of the network on the 10000 test images: %.2f %% (Epoch runtime: %.2f secs)' % (
+                100 * correct / total, time.time()-start_time))
 
     print('Finished Training')
 

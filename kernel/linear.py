@@ -1058,10 +1058,10 @@ class FSULinearStoNe(torch.nn.Linear):
 
     def forward_bptt(self, input, u_prev):
         if self.hwcfg["format"] in ["fxp"]:
-            ws = torch.matmul(self.quant(input).type(self.format)*self.m-self.k, self.quant(self.weight).t().type(self.format))
+            ws = torch.matmul(input.type(torch.float)*self.m-self.k, self.quant(self.weight).t().type(torch.float)).type(self.format)
             ws = self.quant(ws)
         else:
-            ws = torch.matmul(input.type(self.format)*self.m-self.k, self.weight.t().type(self.format))
+            ws = torch.matmul(input.type(torch.float)*self.m-self.k, self.weight.t().type(torch.float)).type(self.format)
         us = self.leak_alpha * u_prev + ws
         out = NCFireStep.apply(us, self.vth, self.hwcfg["widthg"]).type(self.format)
         u = us - self.vth * (out*self.m-self.k)
@@ -1080,8 +1080,8 @@ class FSULinearNC(torch.nn.Linear):
         weight_ext=None, 
         bias_ext=None, 
         hwcfg={
-            "width" : 8,
-            "formatw" : "float32",
+            "widthw" : 8,
+            "format" : "float32",
             "scale" : 0.8,
             "depth" : 12,
             "leak" : 0.94,
@@ -1089,25 +1089,25 @@ class FSULinearNC(torch.nn.Linear):
         }):
         super(FSULinearNC, self).__init__(in_features, out_features, bias)
         self.hwcfg = {}
-        self.hwcfg["width"] = hwcfg["width"]
-        self.hwcfg["formatw"] = hwcfg["formatw"]
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["format"] = hwcfg["format"]
         self.hwcfg["scale"] = hwcfg["scale"]
         self.hwcfg["depth"] = hwcfg["depth"]
         self.hwcfg["leak"] = hwcfg["leak"]
         self.hwcfg["widthg"] = hwcfg["widthg"]
 
-        assert self.hwcfg["formatw"] in ["bfloat16", "float16", "float32", "fxp"], \
+        assert self.hwcfg["format"] in ["bfloat16", "float16", "float32", "fxp"], \
             "Error: the hw config 'formatw' in " + str(self) + " class requires one of ['bfloat16', 'float16', 'float32', 'fxp']."
         
-        if self.hwcfg["formatw"] in ["fxp", "float32"]:
+        if self.hwcfg["format"] in ["fxp", "float32"]:
             self.format = torch.float32
-        elif self.hwcfg["formatw"] in ["bfloat16"]:
+        elif self.hwcfg["format"] in ["bfloat16"]:
             self.format = torch.bfloat16
-        elif self.hwcfg["formatw"] in ["float16"]:
+        elif self.hwcfg["format"] in ["float16"]:
             self.format = torch.float16
 
-        if self.hwcfg["formatw"] in ["fxp"]:
-            self.quant = Round(intwidth=self.hwcfg["depth"]-self.hwcfg["width"], fracwidth=self.hwcfg["width"]-1)
+        if self.hwcfg["format"] in ["fxp"]:
+            self.quant = Round(intwidth=self.hwcfg["depth"]-self.hwcfg["widthw"], fracwidth=self.hwcfg["widthw"]-1)
         
         # define the linear weight and bias
         if weight_ext is not None:
@@ -1121,20 +1121,14 @@ class FSULinearNC(torch.nn.Linear):
         if bias and bias_ext is not None:
             self.bias.data = bias_ext
         
-    def forward(self,input,U_prev):
-
-        if self.hwcfg["formatw"] in ["fxp"]:
-            x = torch.matmul(input, self.quant(self.weight).t().type(self.format))
-            x = self.quant(x)
+    def forward(self, input, u_prev):
+        if self.hwcfg["format"] in ["fxp"]:
+            ws = torch.matmul(input.type(torch.float), self.quant(self.weight).t().type(torch.float)).type(self.format)
+            ws = self.quant(ws)
         else:
-            x = torch.matmul(input, self.weight.t().type(self.format))
-            
-        U_s = self.hwcfg["leak"] * U_prev + x
-            
-        output = NCFireStep.apply(U_s, self.hwcfg["scale"], self.hwcfg["widthg"]).type(self.format)
-        
-        U = U_s*(1 - output)
-    
-        return output, U_s, U   
-
+            ws = torch.matmul(input.type(torch.float), self.weight.t().type(torch.float)).type(self.format)
+        us = self.hwcfg["leak"] * u_prev + ws
+        out = NCFireStep.apply(us, self.hwcfg["scale"], self.hwcfg["widthg"]).type(self.format)
+        u = us * (1 - out)
+        return out, us, u
 
