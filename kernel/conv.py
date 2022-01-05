@@ -905,3 +905,78 @@ class FSUConv2dStoNe(torch.nn.Conv2d):
     def forward(self, input, u_prev):
         return self.forward_bptt(input, u_prev)
 
+
+class FSUConv2dNC(torch.nn.Conv2d):
+    def __init__(
+        self, 
+        in_channels, 
+        out_channels,
+        kernel_size,
+        bias=False, 
+        weight_ext=None, 
+        bias_ext=None,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        hwcfg={
+            "widthw" : 8,
+            "format" : "float32",
+            "scale" : 0.8,
+            "depth" : 12,
+            "leak" : 0.94,
+            "widthg" : 1.25,
+            "time_step":10
+        }):
+        super(FSUConv2dNC, self).__init__(in_channels, out_channels,kernel_size,bias)
+        self.hwcfg = {}
+        self.hwcfg["widthw"] = hwcfg["widthw"]
+        self.hwcfg["format"] = hwcfg["format"]
+        self.hwcfg["scale"] = hwcfg["scale"]
+        self.hwcfg["depth"] = hwcfg["depth"]
+        self.hwcfg["leak"] = hwcfg["leak"]
+        self.hwcfg["widthg"] = hwcfg["widthg"]
+        
+        self.stride = stride
+        self.padding = padding
+        self.dilation = dilation
+        self.groups = groups
+
+        assert self.hwcfg["format"] in ["bfloat16", "float16", "float32", "fxp"], \
+            "Error: the hw config 'formatw' in " + str(self) + " class requires one of ['bfloat16', 'float16', 'float32', 'fxp']."
+        
+        if self.hwcfg["format"] in ["fxp", "float32"]:
+            self.format = torch.float32
+        elif self.hwcfg["format"] in ["bfloat16"]:
+            self.format = torch.bfloat16
+        elif self.hwcfg["format"] in ["float16"]:
+            self.format = torch.float16
+
+        if self.hwcfg["format"] in ["fxp"]:
+            self.quant = Round(intwidth=self.hwcfg["depth"]-self.hwcfg["width"], fracwidth=self.hwcfg["width"]-1)
+            
+        assert (bias is False) and (bias_ext is None), "Error: bias=True in " + str(self) + " class is not supported."
+        
+        if weight_ext is not None:
+            self.weight.data = weight_ext
+        if bias and bias_ext is not None:
+            self.bias.data = bias_ext
+        
+    def forward(self,input,U_prev):
+
+        if self.hwcfg["format"] in ["fxp"]:
+            x = torch.nn.functional.conv2d(input.type(torch.float),self.quant(self.weight.type(torch.float)),self.bias,self.stride,
+                                          self.padding,self.dilation,self.groups)
+            x = self.quant(x)
+        else:
+            x = torch.nn.functional.conv2d(input.type(torch.float),self.weight.type(torch.float),self.bias,self.stride,
+                                          self.padding,self.dilation,self.groups)
+            
+        x = x.type(self.format)
+        U_s = self.hwcfg["leak"]*U_prev + x
+            
+        output = NCFireStep.apply(U_s, self.hwcfg["scale"], self.hwcfg["widthg"]).type(self.format)
+        U = U_s*(1-output)
+    
+        return output, U_s, U
+
