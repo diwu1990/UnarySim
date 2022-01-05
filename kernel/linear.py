@@ -1058,11 +1058,11 @@ class FSULinearStoNe(torch.nn.Linear):
 
     def forward_bptt(self, input, u_prev):
         if self.hwcfg["format"] in ["fxp"]:
-            ws = torch.matmul(input.type(torch.float)*self.m-self.k, self.quant(self.weight).t().type(torch.float)).type(self.format)
+            ws = torch.matmul(input.type(torch.float)*self.m-self.k, self.quant(self.weight.t().type(torch.float)))
             ws = self.quant(ws)
         else:
-            ws = torch.matmul(input.type(torch.float)*self.m-self.k, self.weight.t().type(torch.float)).type(self.format)
-        us = self.leak_alpha * u_prev + ws
+            ws = torch.matmul(input.type(torch.float)*self.m-self.k, self.weight.t().type(torch.float))
+        us = self.leak_alpha * u_prev + ws.type(self.format)
         out = NCFireStep.apply(us, self.vth, self.hwcfg["widthg"]).type(self.format)
         u = us - self.vth * (out*self.m-self.k)
         return out, us, u
@@ -1123,11 +1123,11 @@ class FSULinearNC(torch.nn.Linear):
         
     def forward(self, input, u_prev):
         if self.hwcfg["format"] in ["fxp"]:
-            ws = torch.matmul(input.type(torch.float), self.quant(self.weight).t().type(torch.float)).type(self.format)
+            ws = torch.matmul(input.type(torch.float), self.quant(self.weight.t().type(torch.float)))
             ws = self.quant(ws)
         else:
-            ws = torch.matmul(input.type(torch.float), self.weight.t().type(torch.float)).type(self.format)
-        us = self.hwcfg["leak"] * u_prev + ws
+            ws = torch.matmul(input.type(torch.float), self.weight.t().type(torch.float))
+        us = self.hwcfg["leak"] * u_prev + ws.type(self.format)
         out = NCFireStep.apply(us, self.hwcfg["scale"], self.hwcfg["widthg"]).type(self.format)
         u = us * (1 - out)
         return out, us, u
