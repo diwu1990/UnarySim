@@ -962,8 +962,7 @@ class FSUConv2dNC(torch.nn.Conv2d):
         if bias and bias_ext is not None:
             self.bias.data = bias_ext
         
-    def forward(self,input,U_prev):
-
+    def forward(self, input, U_prev):
         if self.hwcfg["format"] in ["fxp"]:
             x = torch.nn.functional.conv2d(input.type(torch.float),self.quant(self.weight.type(torch.float)),self.bias,self.stride,
                                           self.padding,self.dilation,self.groups)
@@ -971,12 +970,8 @@ class FSUConv2dNC(torch.nn.Conv2d):
         else:
             x = torch.nn.functional.conv2d(input.type(torch.float),self.weight.type(torch.float),self.bias,self.stride,
                                           self.padding,self.dilation,self.groups)
-            
-        x = x.type(self.format)
-        U_s = self.hwcfg["leak"]*U_prev + x
-            
+        U_s = self.hwcfg["leak"] * U_prev + x.type(self.format)
         output = NCFireStep.apply(U_s, self.hwcfg["scale"], self.hwcfg["widthg"]).type(self.format)
-        U = U_s*(1-output)
-    
+        U = U_s * (1 - output)
         return output, U_s, U
 
