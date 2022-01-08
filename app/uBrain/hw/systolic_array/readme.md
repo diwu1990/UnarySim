@@ -1,1 +1,0 @@
-This folder contains the results by running [uSystolic-Sim](https://github.com/diwu1990/uSystolic-Sim) with varying running frequencies to complete the inference at varying timestamps.
