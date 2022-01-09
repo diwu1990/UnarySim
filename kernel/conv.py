@@ -377,6 +377,7 @@ class HUBConv2d(torch.nn.Conv2d):
             "rngw" : "Sobol",
             "quantilew" : 1,
             "cycle" : 128,
+            "scale" : 1,
             "rounding" : "round",
             "signmag" : True
         }):
@@ -397,6 +398,7 @@ class HUBConv2d(torch.nn.Conv2d):
         self.hwcfg["rngw"] = hwcfg["rngw"].lower()
         self.hwcfg["quantilew"] = hwcfg["quantilew"]
         self.hwcfg["rounding"] = hwcfg["rounding"].lower()
+        self.hwcfg["scale"] = hwcfg["scale"]
         self.hwcfg["signmag"] = hwcfg["signmag"]
         self.hwcfg["cycle"] = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
 
@@ -516,9 +518,9 @@ class HUBConv2d(torch.nn.Conv2d):
         output = torch.nn.functional.fold(mm_out_transpose, output_size, (1, 1))
 
         if self.bias is None:
-            return output
+            return output / self.hwcfg["scale"]
         else:
-            return output + self.bias.view([1, self.bias.size()[0], 1, 1])
+            return (output + self.bias.view([1, self.bias.size()[0], 1, 1])) / self.hwcfg["scale"]
 
 
 class FXPConv2d(torch.nn.Conv2d):

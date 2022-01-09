@@ -17,6 +17,7 @@ def test_fsulinear():
         "rngw" : "Sobol",
         "quantilew" : 1,
         "cycle" : 2000,
+        "scale" : 1,
         "rounding" : "round",
         "signmag" : True
     }

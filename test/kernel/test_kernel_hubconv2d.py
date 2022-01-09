@@ -17,6 +17,7 @@ def test_hubconv2d():
         "rngw" : "Race",
         "quantilew" : 1,
         "cycle" : 2049,
+        "scale" : 1,
         "rounding" : "round",
         "signmag" : True
     }

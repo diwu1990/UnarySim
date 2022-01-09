@@ -300,6 +300,7 @@ class HUBLinear(torch.nn.Linear):
             "rngw" : "Sobol",
             "quantilew" : 1,
             "cycle" : 128,
+            "scale" : 1,
             "rounding" : "round",
             "signmag" : True
         }):
@@ -313,6 +314,7 @@ class HUBLinear(torch.nn.Linear):
         self.hwcfg["quantilew"] = hwcfg["quantilew"]
         self.hwcfg["rounding"] = hwcfg["rounding"].lower()
         self.hwcfg["signmag"] = hwcfg["signmag"]
+        self.hwcfg["scale"] = hwcfg["scale"]
         self.hwcfg["cycle"] = min(hwcfg["cycle"], 2**(max(hwcfg["widthi"], hwcfg["widthw"]) - hwcfg["signmag"]))
 
         self.itc = (self.hwcfg["rngi"] in ["race", "tc", "race10", "tc10"])
@@ -417,7 +419,7 @@ class HUBLinear(torch.nn.Linear):
         
         return HUBLinearFunction.apply(input, self.weight, self.bias, 
                                         self.rshift_i, self.rshift_w, self.rshift_o, 
-                                        self.cycle_act, self.mapctlee)
+                                        self.cycle_act, self.mapctlee) / self.hwcfg["scale"]
 
 
 # Inherit from Function
