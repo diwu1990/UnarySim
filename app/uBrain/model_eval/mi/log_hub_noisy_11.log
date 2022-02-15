@@ -3,6 +3,8 @@ Train for only motor imagery.
 Using CUDA...
 ******************** Dataset Configuration Start ********************
 Apply international 10-10 system.
+dataset: /mnt/ssd1/data/bci/motor_imagery//preprocessed_data_10_10/preprocessed_1_108_shuffle_dataset_3D_win_10_overlap_5.pkl
+label: /mnt/ssd1/data/bci/motor_imagery//preprocessed_data_10_10/preprocessed_1_108_shuffle_labels_3D_win_10_overlap_5.pkl
 Data scaling threshold (motor imagery): 2.0
 	Resultant outlier ratio: 2.815 %
 # of train samples:	 468024
@@ -11,31 +13,31 @@ Data scaling threshold (motor imagery): 2.0
 
 ********************* Model Configuration Start *********************
 Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi
-Loading model state dict:  /home/diwu/Project/UnarySim/app/uBrain/saved_model/mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi_acc_95.50.pth.tar
+Loading model state dict:  /home/diwu/Project/uBrain/saved_model/mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi_acc_95.50.pth.tar
 loaded state_dict_fp:  odict_keys(['conv1.weight', 'conv2.weight', 'fc3.weight', 'rnncell4.weight_f', 'rnncell4.weight_n', 'fc5.weight'])
 ********************** Model Configuration End **********************
 
 **************************** Test Start *****************************
---- 144.68663573265076 seconds ---
+--- 278.23956775665283 seconds ---
 Current sample count:  640
---- 144.97398233413696 seconds ---
+--- 278.30663776397705 seconds ---
 Current sample count:  1280
---- 144.76218223571777 seconds ---
+--- 276.348783493042 seconds ---
 Current sample count:  1920
---- 144.58244919776917 seconds ---
+--- 276.3394823074341 seconds ---
 Current sample count:  2560
---- 144.75758862495422 seconds ---
+--- 276.5404942035675 seconds ---
 Current sample count:  3200
---- 144.54693722724915 seconds ---
+--- 275.87824010849 seconds ---
 Current sample count:  3840
---- 144.48885869979858 seconds ---
+--- 276.78672552108765 seconds ---
 Current sample count:  4480
---- 144.48291444778442 seconds ---
+--- 279.2525360584259 seconds ---
 Current sample count:  5120
---- 144.4790096282959 seconds ---
+--- 278.23496174812317 seconds ---
 Current sample count:  5760
---- 146.5371699333191 seconds ---
+--- 276.81394696235657 seconds ---
 Current sample count:  6400
-Test Accuracy: 93.828 %
+Test Accuracy: 94.672 %
 ***************************** Test End ******************************
 

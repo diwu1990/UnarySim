@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-bitwidth_list = [8, 9, 10, 11, 12]
+bitwidth_list = [4, 5, 6, 7, 8, 9, 10, 11, 12]
 output_dir = "/home/diwu/Project/UnarySim/app/uBrain/layer_eval/"
 
 batch = 32
@@ -314,16 +314,16 @@ for idx in range(len(bitwidth_list)):
     interval = 1/2**((5).bit_length())
     x_axe = [(x[idx] - (5 - 1) / 2 * interval + x_tick * interval) for x_tick in range(5)]
     if idx == 0:
-        ax.plot(x_axe, data_fxp, "-^", label="Systolic", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
-        ax.plot(x_axe, data_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_fxp, "-^", label="Systolic", alpha=alpha, color="#7A81FF", lw=0.5, ms=0.5)
+        ax.plot(x_axe, data_hub, "-s", label="uBrain", alpha=alpha, color="#FF7F7F", lw=0.5, ms=0.5)
     else:
-        ax.plot(x_axe, data_fxp, "-^", alpha=alpha, color="#7A81FF", lw=0.5, ms=1.5)
-        ax.plot(x_axe, data_hub, "-s", alpha=alpha, color="#FF7F7F", lw=0.5, ms=1.5)
+        ax.plot(x_axe, data_fxp, "-^", alpha=alpha, color="#7A81FF", lw=0.5, ms=0.5)
+        ax.plot(x_axe, data_hub, "-s", alpha=alpha, color="#FF7F7F", lw=0.5, ms=0.5)
 
-    ax.fill_between(x_axe, data_fxp + std_fxp / 2, data_fxp - std_fxp / 2, alpha=0.5, color="#7A81FF", lw=0.0)
-    ax.fill_between(x_axe, data_hub + std_hub / 2, data_hub - std_hub / 2, alpha=0.5, color="#FF7F7F", lw=0.0)
+    ax.fill_between(x_axe, data_fxp + std_fxp / 2, data_fxp - std_fxp / 2, alpha=0.3, color="#7A81FF", lw=0.0)
+    ax.fill_between(x_axe, data_hub + std_hub / 2, data_hub - std_hub / 2, alpha=0.3, color="#FF7F7F", lw=0.0)
 
-locs = [0, 0.02, 0.04, 0.06]
+locs = [0, 0.1, 0.2, 0.3, 0.4]
 ax.set_yticks(locs)
 ax.set_yticklabels(locs)
 

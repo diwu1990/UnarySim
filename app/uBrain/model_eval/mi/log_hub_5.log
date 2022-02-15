@@ -1,0 +1,43 @@
+Train for only motor imagery.
+
+Using CUDA...
+******************** Dataset Configuration Start ********************
+Apply international 10-10 system.
+dataset: E:/ubrain_local/motor_imagery//preprocessed_data_10_10/preprocessed_1_108_shuffle_dataset_3D_win_10_overlap_5.pkl
+label: E:/ubrain_local/motor_imagery//preprocessed_data_10_10/preprocessed_1_108_shuffle_labels_3D_win_10_overlap_5.pkl
+Data scaling threshold (motor imagery): 2.0
+	Resultant outlier ratio: 2.815 %
+# of train samples:	 468024
+# of test samples:	 156235
+********************* Dataset Configuration End *********************
+
+********************* Model Configuration Start *********************
+Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi
+Loading model state dict:  E:/Github/UnarySim/app/uBrain/saved_model_mi\mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_2.0_e_300_t0_50_lr_0.001_decay_5e-05_task_mi_acc_95.50.pth.tar
+loaded state_dict_fp:  odict_keys(['conv1.weight', 'conv2.weight', 'fc3.weight', 'rnncell4.weight_f', 'rnncell4.weight_n', 'fc5.weight'])
+********************** Model Configuration End **********************
+
+**************************** Test Start *****************************
+--- 10.94379448890686 seconds ---
+Current sample count:  640
+--- 9.751034021377563 seconds ---
+Current sample count:  1280
+--- 9.799817085266113 seconds ---
+Current sample count:  1920
+--- 9.773736000061035 seconds ---
+Current sample count:  2560
+--- 9.831181764602661 seconds ---
+Current sample count:  3200
+--- 9.770081758499146 seconds ---
+Current sample count:  3840
+--- 9.742976188659668 seconds ---
+Current sample count:  4480
+--- 9.75177788734436 seconds ---
+Current sample count:  5120
+--- 9.76529574394226 seconds ---
+Current sample count:  5760
+--- 9.798389434814453 seconds ---
+Current sample count:  6400
+Test Accuracy: 17.844 %
+***************************** Test End ******************************
+

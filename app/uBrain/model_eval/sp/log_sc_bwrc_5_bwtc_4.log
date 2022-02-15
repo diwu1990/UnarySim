@@ -1,0 +1,43 @@
+Train for only seizure prediction.
+
+Using CUDA...
+******************** Dataset Configuration Start ********************
+Apply international 10-10 system.
+dataset: E:/ubrain_local/neonatal_eeg_preprocessed_8HZ//preprocessed_data_10_10/preprocessed_1_79_shuffle_dataset_3D_win_10_overlap_5.pkl
+label: E:/ubrain_local/neonatal_eeg_preprocessed_8HZ//preprocessed_data_10_10/preprocessed_1_79_shuffle_labels_3D_win_10_overlap_5.pkl
+Data scaling threshold (seizure prediction): 256.0
+	Resultant outlier ratio: 2.659 %
+# of train samples:	 117265
+# of test samples:	 39263
+********************* Dataset Configuration End *********************
+
+********************* Model Configuration Start *********************
+Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp
+Loading model state dict:  E:/Github/UnarySim/app/uBrain/saved_model_sp\mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp_acc_91.35.pth.tar
+loaded state_dict_fp:  odict_keys(['conv1.weight', 'conv2.weight', 'fc3.weight', 'rnncell4.weight_f', 'rnncell4.weight_n', 'fc5.weight'])
+********************** Model Configuration End **********************
+
+**************************** Test Start *****************************
+--- 10.45010495185852 seconds ---
+Current sample count:  640
+--- 9.45097017288208 seconds ---
+Current sample count:  1280
+--- 9.474653959274292 seconds ---
+Current sample count:  1920
+--- 9.458396434783936 seconds ---
+Current sample count:  2560
+--- 9.453632593154907 seconds ---
+Current sample count:  3200
+--- 9.474262237548828 seconds ---
+Current sample count:  3840
+--- 9.482596635818481 seconds ---
+Current sample count:  4480
+--- 9.47379994392395 seconds ---
+Current sample count:  5120
+--- 9.471189022064209 seconds ---
+Current sample count:  5760
+--- 9.468687772750854 seconds ---
+Current sample count:  6400
+Test Accuracy: 52.766 %
+***************************** Test End ******************************
+

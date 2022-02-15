@@ -1,0 +1,42 @@
+Train for only seizure prediction.
+
+Using CUDA...
+******************** Dataset Configuration Start ********************
+Apply international 10-10 system.
+dataset: E:/ubrain_local/neonatal_eeg_preprocessed_8HZ//preprocessed_data_10_10/preprocessed_1_79_shuffle_dataset_3D_win_10_overlap_5.pkl
+label: E:/ubrain_local/neonatal_eeg_preprocessed_8HZ//preprocessed_data_10_10/preprocessed_1_79_shuffle_labels_3D_win_10_overlap_5.pkl
+Data scaling threshold (seizure prediction): 256.0
+	Resultant outlier ratio: 2.659 %
+# of train samples:	 117265
+# of test samples:	 39263
+********************* Dataset Configuration End *********************
+
+********************* Model Configuration Start *********************
+********************** Model Configuration End **********************
+
+**************************** Test Start *****************************
+Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp
+Loading model state dict:  E:/Github/UnarySim/app/uBrain/saved_model_sp\mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp_acc_91.35.pth.tar
+--- 1.7818899154663086 seconds ---
+Current sample count:  640
+--- 0.18799972534179688 seconds ---
+Current sample count:  1280
+--- 0.18900012969970703 seconds ---
+Current sample count:  1920
+--- 0.1919996738433838 seconds ---
+Current sample count:  2560
+--- 0.18900036811828613 seconds ---
+Current sample count:  3200
+--- 0.18900012969970703 seconds ---
+Current sample count:  3840
+--- 0.18899941444396973 seconds ---
+Current sample count:  4480
+--- 0.18999981880187988 seconds ---
+Current sample count:  5120
+--- 0.1900007724761963 seconds ---
+Current sample count:  5760
+--- 0.18799996376037598 seconds ---
+Current sample count:  6400
+Test Accuracy: 73.031 %
+***************************** Test End ******************************
+
