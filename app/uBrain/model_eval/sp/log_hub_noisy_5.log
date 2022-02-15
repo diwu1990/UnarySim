@@ -1,0 +1,43 @@
+Train for only seizure prediction.
+
+Using CUDA...
+******************** Dataset Configuration Start ********************
+Apply international 10-10 system.
+dataset: /mnt/ssd1/data/bci/seizure_prediction//preprocessed_data_10_10/preprocessed_1_79_shuffle_dataset_3D_win_10_overlap_5.pkl
+label: /mnt/ssd1/data/bci/seizure_prediction//preprocessed_data_10_10/preprocessed_1_79_shuffle_labels_3D_win_10_overlap_5.pkl
+Data scaling threshold (seizure prediction): 256.0
+	Resultant outlier ratio: 2.659 %
+# of train samples:	 117265
+# of test samples:	 39263
+********************* Dataset Configuration End *********************
+
+********************* Model Configuration Start *********************
+Target filename prefix: mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp
+Loading model state dict:  /home/diwu/Project/uBrain/saved_model/sp/mgu_hidden_64_cnn_chn_16_pad_1_act_scalerelu_rnn_hard_True_fc_256_std_None_ol_5_tmi_2.0_tsp_256.0_e_900_t0_50_lr_0.001_decay_5e-05_task_sp_acc_91.35.pth.tar
+loaded state_dict_fp:  odict_keys(['conv1.weight', 'conv2.weight', 'fc3.weight', 'rnncell4.weight_f', 'rnncell4.weight_n', 'fc5.weight'])
+********************** Model Configuration End **********************
+
+**************************** Test Start *****************************
+--- 6.635279417037964 seconds ---
+Current sample count:  640
+--- 5.9101152420043945 seconds ---
+Current sample count:  1280
+--- 5.90679144859314 seconds ---
+Current sample count:  1920
+--- 5.914823293685913 seconds ---
+Current sample count:  2560
+--- 6.1793599128723145 seconds ---
+Current sample count:  3200
+--- 6.040816307067871 seconds ---
+Current sample count:  3840
+--- 5.960900068283081 seconds ---
+Current sample count:  4480
+--- 6.15638542175293 seconds ---
+Current sample count:  5120
+--- 5.957103967666626 seconds ---
+Current sample count:  5760
+--- 5.97727108001709 seconds ---
+Current sample count:  6400
+Test Accuracy: 50.688 %
+***************************** Test End ******************************
+

@@ -142,7 +142,7 @@ class Cascade_CNN_RNN(torch.nn.Module):
         # CNN
         # added an error term to input in order to mimic the ATC inaccuracy
         self.conv1_i_        = input.view(-1, 1, self.input_sz[0], self.input_sz[1])
-        self.conv1_i        = (self.conv1_i_ * (1 + torch.rand(self.conv1_i_.size(), device=self.conv1_i_.device) / 2**7)).clamp(self.conv1_i_.min(), self.conv1_i_.max())
+        self.conv1_i        = (self.conv1_i_ * (1 + torch.rand(self.conv1_i_.size(), device=self.conv1_i_.device) / 20))
         self.conv1_o        = self.conv1(self.conv1_i)
         self.conv1_act_o    = self.conv1_act(self.conv1_o)
         self.conv2_o        = self.conv2(self.conv1_act_o)
