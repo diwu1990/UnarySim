@@ -1,1 +1,0 @@
-This folder contains the reports for hw BCI.
