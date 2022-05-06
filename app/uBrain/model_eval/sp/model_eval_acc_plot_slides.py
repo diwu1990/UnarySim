@@ -96,7 +96,7 @@ font = {'family':'Times New Roman', 'size': 6}
 matplotlib.rc('font', **font)
 
 my_dpi = 300
-fig_h = 1.2
+fig_h = 1
 fig_w = 3.6
 alpha = 1
 
@@ -120,8 +120,8 @@ ax.set_yticks(locs)
 
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
-ax.set_xlabel('Data bitwidth\n')
-ax.set_ylabel('Accuracy (%)\n')
-ax.legend(ncol=2, frameon=True)
+ax.set_xlabel('Data bitwidth')
+ax.set_ylabel('Accuracy (%)')
+ax.legend(loc='center right', ncol=2, frameon=True)
 fig.tight_layout()
 fig.savefig(log_dir+"model_eval_acc_sp_slides.pdf", bbox_inches='tight', dpi=my_dpi, pad_inches=0.02)
