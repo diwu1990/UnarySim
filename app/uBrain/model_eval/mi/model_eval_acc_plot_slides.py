@@ -113,8 +113,8 @@ fig, ax = plt.subplots(figsize=(fig_w, fig_h), dpi=my_dpi)
 
 x_axe = x[0:-1]
 ax.plot(x[-1], acc_fp, "o", label="CPU", alpha=alpha, color=gray, lw=lw, ms=ms)
-ax.plot(x_axe, acc_fxp, "-^", label="Systolic", alpha=alpha, color=orange, lw=lw, ms=ms)
-ax.plot(x_axe, acc_sc, "-P", label="SC", alpha=alpha, color=blue, lw=lw, ms=ms)
+ax.plot(x_axe, acc_fxp, "-^", label="Systolic", alpha=alpha, color=blue, lw=lw, ms=ms)
+# ax.plot(x_axe, acc_sc, "-P", label="SC", alpha=alpha, color=blue, lw=lw, ms=ms)
 ax.plot(x_axe, acc_hub, "-s", label="uBrain", alpha=alpha, color=red, lw=lw, ms=ms)
 
 locs = [10, 30, 50, 70, 90]
