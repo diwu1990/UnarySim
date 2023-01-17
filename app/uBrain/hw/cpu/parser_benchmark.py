@@ -41,7 +41,9 @@ def data_parse(dir_root = "E:/ubrain_local/benchmark_parser/log_cpu/", power_mod
         ts_model_start, ts_model_end, time_cpu_runtime = float(list_model_stats[0]), float(list_model_stats[1]), float(list_model_stats[3])
         runtime_list.append(time_cpu_runtime)
         # read power file
-        df_power = pd.DataFrame(columns = ['timestamp', 'cpu_power', 'gpu_power', 'ram_power', 'total_power'])
+        # df_power = pd.DataFrame(columns = ['timestamp', 'cpu_power', 'gpu_power', 'ram_power', 'total_power'])
+        df_power = None
+        # print(df_power)
         with open(path_power_file) as f_power:
             f_power = f_power.readlines()
         for line_curr in f_power:
@@ -51,8 +53,15 @@ def data_parse(dir_root = "E:/ubrain_local/benchmark_parser/log_cpu/", power_mod
                 gpu_power_curr = float(re.search('POM_5V_GPU (\d+)', line_curr, re.IGNORECASE).group(1)) # get current gpu power in mW
                 total_power_curr = float(re.search('POM_5V_IN (\d+)', line_curr, re.IGNORECASE).group(1)) # get current total power in mW
                 ram_power_curr = total_power_curr - gpu_power_curr - cpu_power_curr # estimate current ram power
-                df_power = df_power.append({'timestamp': ts_curr, 'cpu_power': cpu_power_curr, 'gpu_power': gpu_power_curr,
-                                            'ram_power': ram_power_curr, 'total_power': total_power_curr   }, ignore_index=True)
+                # df_power = df_power.append({'timestamp': ts_curr, 'cpu_power': cpu_power_curr, 'gpu_power': gpu_power_curr,
+                                            # 'ram_power': ram_power_curr, 'total_power': total_power_curr   }, ignore_index=True)
+                if df_power is None:
+                    df_power = pd.DataFrame({'timestamp': ts_curr, 'cpu_power': cpu_power_curr, 'gpu_power': gpu_power_curr,
+                                                'ram_power': ram_power_curr, 'total_power': total_power_curr}, index=[0])
+                else:
+                    # https://pandas.pydata.org/docs/reference/api/pandas.concat.html
+                    df_power = pd.concat([df_power, pd.Series({'timestamp': ts_curr, 'cpu_power': cpu_power_curr, 'gpu_power': gpu_power_curr,
+                                                'ram_power': ram_power_curr, 'total_power': total_power_curr   }).to_frame().T], ignore_index=True)
         df_power_idle = df_power.loc[df_power['timestamp'] < ts_py_start]
         df_power_active = df_power.loc[(df_power['timestamp'] > ts_model_start) & (df_power['timestamp'] < ts_model_end)]
         cpu_power_idle = df_power_idle['cpu_power'].mean()
