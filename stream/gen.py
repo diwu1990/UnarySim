@@ -137,7 +137,7 @@ class BinGen(torch.nn.Module):
             self.binary.data = self.source
         elif self.mode == "bipolar":
             self.binary.data = self.source.add(1).div(2)
-        self.binary.data = self.binary << self.width
+        self.binary.data = self.binary * (2**self.width)
         self.binary.data = self.binary.round().type(self.rtype)
         
     def forward(self):
