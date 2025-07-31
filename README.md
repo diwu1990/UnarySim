@@ -169,10 +169,10 @@ If you find UnarySim is useful for your research, please use the following bibte
 
 ## Contribution
 Active contributor:
-1. [Di Wu](https://diwu1990.github.io/)
+1. [Di Wu](https://unarylab.com/)
 2. [Ruokai Yin](https://ruokaiyin.github.io/)
 3. [Jingjie Li](https://jingjieli95.github.io/)
 4. [Zhewen Pan](TBD)
 
-Please contact me (di.wu@ece.wisc.edu) if you are interested in contributing to this project!
+Please contact di.wu@ucf.edu if you are interested in contributing to this project!
 
